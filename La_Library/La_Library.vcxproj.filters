@@ -13,5 +13,19 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\DataStruture">
+      <UniqueIdentifier>{4b0bdda2-9cea-421a-8260-c1783c59d214}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Class">
+      <UniqueIdentifier>{630e2b79-25e9-47d2-834c-6a601f2c7d07}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="La_String.h">
+      <Filter>头文件\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="La_LinearList.h">
+      <Filter>头文件\DataStruture</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
