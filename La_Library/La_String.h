@@ -1,3 +1,21 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/05/20 11:10:35
+*  最后修改: 
+*
+*  简    介: 
+*
+***************************************************************************************
+*/
+
 #ifndef LA_STRING
 #define LA_STRING
 
@@ -14,18 +32,29 @@ public:
 	STRING(const STRING<T>& source) :ARRAY<T>(source) { lenth = source.lenth; }
 	STRING(int len) :ARRAY<T>(len + 1), lenth(len + 1) { Zero(); }
 	int StrLen(void)const { return lenth; }
+	int StrLen(const T* source);
 	STRING<T>& operator+=(const T* source);//可以类型转化,故不需要用类接受参数
 	friend STRING<T> operator+(const T* source, const STRING<T>& sourceString);
-	STRING<T>	operator+ (const T* source) { STRING<T> temp = *this; return temp += source; }
+	STRING<T>  operator+ (const T* source) { STRING<T> temp = *this; return temp += source; }
 	void Zero(void);
-	void Clear(void) { Resize(0); lenth = 0; }
+	void Clear(void) { this->Resize(0); lenth = 0; }
 };
+
+
+template <class T>
+int STRING<T>::StrLen(const T* source)
+{
+	int i = 0;
+	while (*source++)
+		i++;
+	return i;
+}
 
 template <class T>
 STRING<T>& STRING<T>::operator+=(const T* source)
 {
-	int newSize = lenth + lstrlen(source) + 1;
-	assert(Resize(newSize));
+	int newSize = lenth + StrLen(source) + 1;
+	assert(this->Resize(newSize));
 	for (int i = lenth; i < newSize; i++)
 		(*this)[i] = *source++;
 
@@ -41,7 +70,7 @@ STRING<T> operator+(const T* source, const STRING<T>& sourceString)
 template <class T>
 void STRING<T>::Zero(void)
 {
-	for (int i = 0; i < GetSize(); i++)
+	for (int i = 0; i < this->GetSize(); i++)
 		(*this)[i] = '\0';
 }
 

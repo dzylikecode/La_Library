@@ -19,6 +19,24 @@
     <Filter Include="头文件\Class">
       <UniqueIdentifier>{630e2b79-25e9-47d2-834c-6a601f2c7d07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Windows">
+      <UniqueIdentifier>{6a4b0a0d-0eb7-49c8-a9a2-61925cc88161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Windows\Base">
+      <UniqueIdentifier>{6fff8884-b315-447c-9f93-c05758ccf00e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Windows\Extend">
+      <UniqueIdentifier>{48f753eb-2451-4992-ad2c-2b360b2f3d3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Windows">
+      <UniqueIdentifier>{8ff1d593-069f-4e90-9924-4bbd76ed5a18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Windows\Extend">
+      <UniqueIdentifier>{e1fd4e1d-7234-4f18-809b-e4d26bd73599}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\test">
+      <UniqueIdentifier>{6554d0b4-be2f-4efd-a899-ef5c7b0eba2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -27,5 +45,19 @@
     <ClInclude Include="La_LinearList.h">
       <Filter>头文件\DataStruture</Filter>
     </ClInclude>
+    <ClInclude Include="La_Windows.h">
+      <Filter>头文件\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Shell.h">
+      <Filter>头文件\Windows\Extend</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="La_Shell.cpp">
+      <Filter>源文件\Windows\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>源文件\test</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
