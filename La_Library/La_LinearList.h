@@ -30,18 +30,26 @@ private:
 public:
 	ARRAY(int sz = 0);
 	ARRAY(const ARRAY<T>& a);
-	~ARRAY() { delete[] list; }
+	~ARRAY() { Empty(); }
 	ARRAY<T>& operator = (const ARRAY<T>& rhs);
 	T& operator[] (int i) { assert(i >= 0 && i < size); return list[i]; }
 	const T& operator[] (int i) const { assert(i >= 0 && i < size); return list[i]; }
 	operator T* () { return list; }//重载类型转化
 	operator const T* () const { return list; }
 	int GetSize() const { return size; }
+	void Empty() 
+	{
+		if (list)
+		{
+			delete[] list;
+			list = nullptr;
+		}
+	}
 	bool Resize(int sz);
 };
 
 template <class T>
-ARRAY<T>::ARRAY(int sz)
+ARRAY<T>::ARRAY(int sz):list(nullptr)
 {
 	assert(sz >= 0);
 	size = sz;

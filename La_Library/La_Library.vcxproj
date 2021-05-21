@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -139,12 +139,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="La_Control.h" />
+    <ClInclude Include="La_File.h" />
+    <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
     <ClInclude Include="La_Windows.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="La_Windows.cpp" />
+    <ClCompile Include="La_NetWork.cpp" />
     <ClCompile Include="La_Shell.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>

@@ -28,7 +28,9 @@ private:
 	int lenth;
 public:
 	STRING(void) :lenth(0) {};
-	STRING(const T* source) { *this += source; }
+	//调用了默认 ARRAY 初始化，但是同时要注意 length 也要初始化，然后 this 就初始化完成
+	//所以要注意，冒号后面才是初始化
+	STRING(const T* source) :lenth(0) { *this += source; }//可以类型转化，相当于等于
 	STRING(const STRING<T>& source) :ARRAY<T>(source) { lenth = source.lenth; }
 	STRING(int len) :ARRAY<T>(len + 1), lenth(len + 1) { Zero(); }
 	int StrLen(void)const { return lenth; }
@@ -37,7 +39,12 @@ public:
 	friend STRING<T> operator+(const T* source, const STRING<T>& sourceString);
 	STRING<T>  operator+ (const T* source) { STRING<T> temp = *this; return temp += source; }
 	void Zero(void);
-	void Clear(void) { this->Resize(0); lenth = 0; }
+	void Empty(void) { this->ARRAY::Empty(); lenth = 0; }
+
+	bool operator==(const T* target);
+	friend bool operator==(const T* target, const STRING<T>& source);
+	bool operator!=(const T* target) { return !(*this == target); }
+	friend bool operator!=(const T* target, const STRING<T>& source);
 };
 
 
@@ -62,7 +69,7 @@ STRING<T>& STRING<T>::operator+=(const T* source)
 	return *this;
 }
 template <class T>
-STRING<T> operator+(const T* source, const STRING<T>& sourceString)
+inline STRING<T> operator+(const T* source, const STRING<T>& sourceString)
 {
 	return sourceString + source;
 }
@@ -72,6 +79,28 @@ void STRING<T>::Zero(void)
 {
 	for (int i = 0; i < this->GetSize(); i++)
 		(*this)[i] = '\0';
+}
+
+template <class T>
+bool STRING<T>::operator==(const T* target)
+{
+	const T* temp = *this;
+	while (*target || *temp)
+		if (*temp++ != *target++)
+			return false;
+	return true;
+}
+
+template <class T>
+inline bool operator==(const T* target, const STRING<T>& source)
+{
+	return source == target;
+}
+
+template <class T>
+inline bool operator!=(const T* target, const STRING<T>& source)
+{
+	return source != target;
 }
 
 #endif
