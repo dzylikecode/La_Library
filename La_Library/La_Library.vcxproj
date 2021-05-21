@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_File.h" />
     <ClInclude Include="La_NetWork.h" />
@@ -146,11 +147,15 @@
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
     <ClInclude Include="La_Windows.h" />
+    <ClInclude Include="Platform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Windows.cpp" />
     <ClCompile Include="La_NetWork.cpp" />
     <ClCompile Include="La_Shell.cpp" />
+    <ClCompile Include="test.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

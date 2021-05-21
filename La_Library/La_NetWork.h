@@ -111,6 +111,10 @@ private:
 	sockaddr_in addrMsg;
 public:
 	MSGPV4() :addrMsg{ 0 }, bConnect(false), addrSize(sizeof(sockaddr_in)){};
+	MSGPV4(const char* IP, int Port) :bConnect(false), addrSize(sizeof(sockaddr_in))
+	{
+		Set(IP, Port);
+	}
 	int addrSize;
 	//nullptr 表示任何都可以
 	void Set(const char* IP, int Port)
@@ -145,6 +149,7 @@ protected:
 	}
 public:
 	DSOCKET() :bCreate(false), hSocket(INVALID_SOCKET) {};
+	SOCKET GetSocket()const { return hSocket; }
 	virtual bool Create(const char* destIP, const int destPort) = 0;
 	virtual int Send(const MSGPV4& dest, const char* msg, int msgLength) = 0;
 	//会获得 dest 的信息
@@ -152,6 +157,7 @@ public:
 	~DSOCKET() { Close(); }
 };
 
+//遵从的规则是，只能创建一次，如果像要更改设定，则可以 close 后，重新 create
 
 class UDP :public DSOCKET
 {
@@ -206,6 +212,14 @@ public:
 		}
 		return false;
 	}
+};
+
+
+
+class TCP:public DSOCKET
+{
+public:
+
 };
 
 

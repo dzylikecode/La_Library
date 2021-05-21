@@ -1,38 +1,72 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "La_NetWork.h"
-#include "La_Windows.h"
-#include "La_Shell.h"
+#include "Platform.h"
 #include <stdio.h>
+#include <conio.h>
+#include <iostream>
+#include <process.h>
+
+//没法超过256，要不然无法对应端无法接受到
+const int dataBuffer = 256;
+UDPSEVER server;
+ASTRING recvData(dataBuffer);
+bool bRun = true;
+MSGPV4 client;
+
+//接收消息的函数，单独一个线程中运行
+void receive_msg(void* message = nullptr)
+{
+	
+	while (1)
+	{
+		//接收来自聊天对方的消息
+		int ret = server.Receive(client, recvData, dataBuffer);
+		if (ret > 0)
+		{
+			recvData[ret] = '\0';					//填充字符串结束符'\0'
+			printf("来自%s的新消息：%s\n", client.GetIP(), recvData);
+
+			//如果消息是bye，则退出聊天
+			if (recvData == "bye")
+			{
+				bRun = false;
+				printf("系统退出！");
+
+				return;
+			}
+		}
+	}
+}
 
 int main(int argc, char* argv[])
 {
-	UDPSEVER server;
-	server.Create(nullptr, 8888);
-	MSGPV4 client;
+	server.Create(nullptr, 6666);
+
+	//启动接收消息线程
+	_beginthread(receive_msg, 0, nullptr);
+	ASTRING sendData(dataBuffer);
 	while (1)
 	{
-		static int nclients = 0;
-		char recvData[256];	//设置接收数据包的缓冲区（假设要接收的信息不超过
-							//255字节，再加串结束符）
-
-		//接收UDP的数据包
-		int ret = server.Receive(client, recvData, 256);
-		if (ret > 0)
+		if (!bRun)
 		{
-			recvData[ret] = '\0';		//填充字符串结束符'\0'
-			printf("客户端%s发来消息：", client.GetIP());
-			printf(recvData);			//输出接收到的消息          
+			break;
 		}
 
-		nclients++;						//已服务的客户端数目加1
-		char sendData[256];
+		//从键盘接收要发送的消息
+		gets_s((char*)sendData, dataBuffer);
+		//发送聊天消息
+		server.Send(client, sendData, dataBuffer);
 
-		//构造要发送的数据包
-		sprintf(sendData, "您好，第%03d号客户，很高兴为您提供服务。\n", nclients);
-
-		//发送数据包
-		server.Send(client, sendData, 256);
+		//如果是bye，则退出聊天
+		if (recvData == "bye")
+		{
+			bRun = false;
+			printf("系统退出！");
+			break;
+		}
 	}
+
+	//结束接收消息的线程
+	_endthread();
 
 	return argc;
 }
