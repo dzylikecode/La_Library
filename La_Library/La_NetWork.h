@@ -57,7 +57,6 @@ public:
 		Bios = AF_NETBIOS,
 	};
 private:
-	WSADATA wsaData;
 	int numAddress;
 	int numAlias;
 	ARRAY<ASTRING> IPList;
@@ -65,7 +64,7 @@ private:
 protected:
 	bool Deal(void);
 public:
-	DSOCKET(void);
+	DSOCKET(void) :destHost(nullptr), numAddress(0) {};
 	bool SearchHostByName(const char* name = nullptr);
 	bool SearchHostByAddress(const char* address);
 	// If the user input is an alpha name for the host, use gethostbyname()
@@ -99,8 +98,6 @@ public:
 		addr.s_addr = *(u_long*)addressListN;
 		return inet_ntoa(addr);
 	}
-
-	~DSOCKET(void){ WSACleanup(); }
 };
 
 
@@ -108,9 +105,11 @@ class SOCKET_MASTER
 {
 private:
 	static int life;
+	WSADATA wsaData;
 public:
 	bool Create();
 	void Release();
 	SOCKET_MASTER(void);
+	~SOCKET_MASTER() { Release(); }
 };
 
