@@ -34,7 +34,7 @@ void SOCKET_MASTER::Release()
 
 SOCKET_MASTER socketMaster;
 
-bool DSOCKET::SearchHostByName(const char* name)
+bool DHOST::SearchHostByName(const char* name)
 {
 	//好像一般不用中文域名
 //#ifdef UNICODE
@@ -50,10 +50,10 @@ bool DSOCKET::SearchHostByName(const char* name)
 	destHost = gethostbyname(hostName);
 
 
-	return Deal();
+	return DealSearch();
 }
 
-bool DSOCKET::SearchHostByAddress(const char* address)
+bool DHOST::SearchHostByAddress(const char* address)
 {
 	struct in_addr addr;
 	addr.s_addr = inet_addr(address);
@@ -67,10 +67,10 @@ bool DSOCKET::SearchHostByAddress(const char* address)
 		destHost = gethostbyaddr((char*)&addr, 4, AF_INET);
 	}
 
-	return Deal();
+	return DealSearch();
 }
 
-bool DSOCKET::Deal()
+bool DHOST::DealSearch()
 {
 	if (!destHost)
 	{

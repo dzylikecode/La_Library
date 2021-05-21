@@ -3,77 +3,35 @@
 #include "La_Windows.h"
 #include "La_Shell.h"
 #include <stdio.h>
-//int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPSTR lpCmdLine, __in int nShowCmd)
-//{
-//	DSOCKET desthost;
-//	desthost.SearchHostBy();
-//	
-//	return 0;
-//}
 
 int main(int argc, char* argv[])
 {
-	//验证命令行参数的合法性
-	if (argc != 2)
+	UDPSEVER server;
+	server.Create(nullptr, 8888);
+	MSGPV4 client;
+	while (1)
 	{
-		printf("用法：getbyname 主机名\n      getbyname localhost 查询本地主机的IP地址");
-		return 1;
-	}
-	DSOCKET host;
+		static int nclients = 0;
+		char recvData[256];	//设置接收数据包的缓冲区（假设要接收的信息不超过
+							//255字节，再加串结束符）
 
-	ASTRING hostname = argv[1];
-	if (hostname == "localhost")
-	{
-		hostname = host.GetLocalName();
-	}
-	
-	if (host.IsHostName(hostname))
-	{
-		printf("主机名：%s\n", hostname);
-		host.SearchHostByName(hostname);
-	}
-	else
-	{
-		printf("地址名：%s\n", hostname);
-		host.SearchHostByAddress(hostname);
-	}
-	
-
-	//输出地址类型和地址长度
-	printf("查询结果：\n");
-	printf("\t主机名：%s\n", host.GetOfficialName());
-
-	for (int i = 0; i < host.GetAliasNumber(); i++)
-	{
-		printf("\t别名 #%d：%s\n", i + 1, host.GetAlias(i));
-	}
-
-	printf("\t地址类型：");
-	switch (host.GetAddressType())
-	{
-	case DSOCKET::IPv4:
-		printf("AF_INET\n");
-		break;
-	case DSOCKET::Bios:
-		printf("AF_NETBIOS\n");
-		break;
-	default:
-		printf("%d\n", host.GetAddressType());
-		break;
-	}
-	printf("\t地址长度：%d\n", host.GetAddressLength());
-
-	//如果返回的是IPv4地址，则输出查询到的结果
-	if (host.GetAddressType() == DSOCKET::IPv4)
-	{
-		for (int i = 0; i < host.GetAddressNumber(); i++)
+		//接收UDP的数据包
+		int ret = server.Receive(client, recvData, 256);
+		if (ret > 0)
 		{
-			printf("\tIP地址#%d：%s\n", i, host.GetIP(i));
+			recvData[ret] = '\0';		//填充字符串结束符'\0'
+			printf("客户端%s发来消息：", client.GetIP());
+			printf(recvData);			//输出接收到的消息          
 		}
-	}
-	else if (host.GetAddressType() == DSOCKET::Bios)
-	{
-		printf("返回的是NETBIOS地址");
+
+		nclients++;						//已服务的客户端数目加1
+		char sendData[256];
+
+		//构造要发送的数据包
+		sprintf(sendData, "您好，第%03d号客户，很高兴为您提供服务。\n", nclients);
+
+		//发送数据包
+		server.Send(client, sendData, 256);
 	}
 
 	return argc;
