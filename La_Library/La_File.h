@@ -29,7 +29,23 @@ public:
 	DFILE(void) :hFile(INVALID_HANDLE_VALUE) {};
 
 	//------------------以下不需要打开文件就可以操作----------------------------
-	bool Delete(LPCTSTR fileName, bool bForce = false);//强制表明，只读的文件也删除
+	bool Delete(LPCTSTR fileName, bool bForce = false)//强制表明，只读的文件也删除
+	{
+		DWORD dwRet = GetFileAttributes(fileName);
+
+		if (dwRet == INVALID_FILE_ATTRIBUTES)
+			return false;
+		if (bForce)
+		{
+			if (dwRet & FILE_ATTRIBUTE_READONLY)
+			{
+				RESET_BIT(dwRet, FILE_ATTRIBUTE_READONLY);
+				SetFileAttributes(fileName, dwRet);
+			}
+		}
+
+		return DeleteFile(fileName);
+	}
 	bool Delete(bool bForce = false) { Delete(tstrFileName, bForce); }
 	//强制表明，存在也进行覆盖,若非覆盖模式，且已经存在，则会返回 false
 	//----复制到C盘权限不够，会失败
@@ -62,21 +78,3 @@ public:
 	}
 	~DFILE(void) { Close(); }
 };
-
-bool DFILE::Delete(LPCTSTR fileName, bool bForce /* = false */)
-{
-	DWORD dwRet = GetFileAttributes(fileName);
-
-	if (dwRet == INVALID_FILE_ATTRIBUTES) 
-		return false;
-	if (bForce)
-	{
-		if (dwRet & FILE_ATTRIBUTE_READONLY)
-		{
-			RESET_BIT(dwRet, FILE_ATTRIBUTE_READONLY);
-			SetFileAttributes(fileName, dwRet);
-		}
-	}
-
-	return DeleteFile(fileName);
-}

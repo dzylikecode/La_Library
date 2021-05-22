@@ -102,14 +102,34 @@ public:
 	}
 };
 
+class DSOCKET
+{
+protected:
+	bool bCreate;
+	SOCKET hSocket;
+	virtual void Close()
+	{
+		if (bCreate)
+		{
+			closesocket(hSocket);
+		}
+	}
+public:
+	DSOCKET() :bCreate(false), hSocket(INVALID_SOCKET) {};
+	SOCKET GetSocket()const { return hSocket; }
+	~DSOCKET() { Close(); }
+};
+
+class TCPSERVER;
 
 class MSGPV4 
 {
 private:
+	sockaddr_in addrMsg;
 	bool bConnect;//也可用来判断是否初始化
 	SOCKET hSocket;
-	sockaddr_in addrMsg;
 public:
+	friend class TCPSERVER;
 	MSGPV4() :addrMsg{ 0 }, bConnect(false), addrSize(sizeof(sockaddr_in)){};
 	MSGPV4(const char* IP, int Port) :bConnect(false), addrSize(sizeof(sockaddr_in))
 	{
@@ -133,36 +153,18 @@ public:
 	//operator const sockaddr* const() { return (sockaddr*)((sockaddr_in*)this); }
 	sockaddr* GetMsg(void)const { return (sockaddr*)&addrMsg; }
 	char* GetIP(void)const { return inet_ntoa(addrMsg.sin_addr); }
+	void Close() { if (bConnect)closesocket(hSocket); }
+	~MSGPV4() { Close(); }
 };
 
-class DSOCKET
-{
-protected:
-	bool bCreate;
-	SOCKET hSocket;
-	void Close()
-	{
-		if (bCreate)
-		{
-			closesocket(hSocket);
-		}
-	}
-public:
-	DSOCKET() :bCreate(false), hSocket(INVALID_SOCKET) {};
-	SOCKET GetSocket()const { return hSocket; }
-	virtual bool Create(const char* destIP, const int destPort) = 0;
-	virtual int Send(const MSGPV4& dest, const char* msg, int msgLength) = 0;
-	//会获得 dest 的信息
-	virtual int Receive(MSGPV4& dest, char* msg, int msgLength) = 0;
-	~DSOCKET() { Close(); }
-};
+
 
 //遵从的规则是，只能创建一次，如果像要更改设定，则可以 close 后，重新 create
 
 class UDP :public DSOCKET
 {
 public:
-	virtual bool Create(const char* destIP, const int destPort)
+	virtual bool Create()
 	{
 		if (!bCreate)
 		{
@@ -173,7 +175,6 @@ public:
 				MessageWarn(TEXT("Get a handle to socket Failed!"));
 				return false;
 			}
-			bCreate = true;
 		}
 		return true;
 	}
@@ -189,26 +190,27 @@ public:
 
 typedef UDP		UDPCLIENT;
 
-class UDPSEVER :public UDP
+class UDPSERVER :public UDP
 {
 public:
 	//选择本机的IP地址用来通信，本机不止一个IP
-	virtual bool Create(const char* sourceIP, const int sourcePort)
+	virtual bool Create(const char* localIP, const int localPort)
 	{
-		if (UDP::Create(nullptr, sourcePort))
+		if (UDP::Create())
 		{
-			MSGPV4 serverMsg;
-			serverMsg.Set(sourceIP, sourcePort);
+			if (bCreate)
+				return true;
+			MSGPV4 localPV4;
+			localPV4.Set(localIP, localPort);
 			//绑定socket套接字与地址
-			if (bind(hSocket, serverMsg.GetMsg(), sizeof(sockaddr_in)) == SOCKET_ERROR)
+			if (bind(hSocket, localPV4.GetMsg(), sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				MessageWarn(TEXT("绑定地址错误！"));
 				Close();
 
 				return false;
 			}
-			//不是双等于
-			return bCreate = true;
+			return true;
 		}
 		return false;
 	}
@@ -219,7 +221,107 @@ public:
 class TCP:public DSOCKET
 {
 public:
+	virtual bool Create()
+	{
+		if (!bCreate)
+		{
+			//创建socket套接字，指定使用TCP协议
+			hSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if (hSocket == INVALID_SOCKET)
+			{
+				MessageWarn(TEXT("创建socket失败！"));
 
+				return false;
+			}
+		}
+		return true;
+	}
+};
+
+class TCPCLIENT :public TCP
+{
+public:
+	virtual bool Create(const char* serverIP, const int serverPort)
+	{
+		if (TCP::Create())
+		{
+			if (bCreate)
+				return true;
+			MSGPV4 server(serverIP, serverPort);
+
+			if (connect(hSocket, server.GetMsg(), server.addrSize) == SOCKET_ERROR)
+			{
+				MessageWarn(TEXT("连接服务器失败！"));
+				Close();
+				return false;
+			}
+			return true;
+		}
+
+		return false;
+	}
+	virtual int Send(const char* msg, int msgLength)
+	{
+		return send(hSocket, msg, msgLength, 0);
+	}
+	virtual int Receive(char* msg, int msgLength)
+	{
+		return recv(hSocket, msg, msgLength, 0);
+	}
+};
+
+
+class TCPSERVER : public TCP
+{
+public:
+	virtual bool Create(const char* localIP, const int localPort, int maxSequence = 6)
+	{
+		if (TCP::Create())
+		{
+			if (bCreate)
+				return true;
+
+			MSGPV4 localPV4(localIP, localPort);
+
+			if (bind(hSocket,localPV4.GetMsg(), localPV4.addrSize) == SOCKET_ERROR)
+			{
+				MessageWarn(TEXT("绑定地址失败！"));
+				Close();
+				return false;
+			}
+
+			//开始监听
+			//待连接队列的最大长度。如果设置为SOMAXCONN
+			if (listen(hSocket, maxSequence) == SOCKET_ERROR)
+			{
+				MessageWarn(TEXT("监听失败！"));
+				Close();
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	virtual bool GetClient(MSGPV4& client)
+	{
+		//如果没有，会一直等待
+		client.hSocket = accept(hSocket, client.GetMsg(), &client.addrSize);
+		if (client.hSocket == INVALID_SOCKET)
+		{
+			MessageWarn(TEXT("接受客户端连接错误！"));
+			return false;
+		}
+		client.bConnect = true;
+		return true;
+	}
+	virtual int Send(MSGPV4& client, const char* msg, int msgLength)
+	{
+		return send(client.hSocket, msg, msgLength, 0);
+	}
+	virtual int Receive(MSGPV4& client, char* msg, int msgLength)
+	{
+		return recv(client.hSocket, msg, msgLength, 0);
+	}
 };
 
 
