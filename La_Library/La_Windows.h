@@ -54,6 +54,18 @@ enum SHOWSTYLE :int
 															 va_end(pArgList);\
 															 }
 
+#define GetVariableArgumentA(szBuffer,bufferSize, szFormat)   {va_list pArgList;\
+															 va_start(pArgList, szFormat);\
+															 _vsnprintf_s(szBuffer, bufferSize, szFormat, pArgList);\
+															 va_end(pArgList);\
+															 }
+
+#define GetVariableArgumentW(szBuffer,bufferSize, szFormat)   {va_list pArgList;\
+															 va_start(pArgList, szFormat);\
+															 _vsnwprintf_s(szBuffer, bufferSize, szFormat, pArgList);\
+															 va_end(pArgList);\
+															 }
+
 #define MessageInfo(message, ...)			MessageBoxPrintf(TEXT("Inform"), MB_OK | MB_ICONINFORMATION, message, ##__VA_ARGS__)
 #define MessageErr(message, ...)			MessageBoxPrintf(TEXT("Error"), MB_OK | MB_ICONERROR, message, ##__VA_ARGS__)
 #define MessageWarn(message, ...)			MessageBoxPrintf(TEXT("Warn"), MB_OK | MB_ICONWARNING, message, ##__VA_ARGS__)

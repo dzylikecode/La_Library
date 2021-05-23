@@ -153,7 +153,17 @@ public:
 	//operator const sockaddr* const() { return (sockaddr*)((sockaddr_in*)this); }
 	sockaddr* GetMsg(void)const { return (sockaddr*)&addrMsg; }
 	char* GetIP(void)const { return inet_ntoa(addrMsg.sin_addr); }
-	void Close() { if (bConnect)closesocket(hSocket); }
+	int   GetPort()const { return ntohs(addrMsg.sin_port); }
+	friend int  GetServerMSG(MSGPV4& server, SOCKET sourceSocket)
+	{
+		return getsockname(sourceSocket, server.GetMsg(), &server.addrSize);
+	}
+	friend int  GetClientMSG(MSGPV4& client, SOCKET sourceSocket)
+	{
+		return getpeername(sourceSocket, client.GetMsg(), &client.addrSize);
+	}
+	void Close() { if (bConnect) { closesocket(hSocket); bConnect = false; } }
+	SOCKET GetSocket()const { return hSocket; }
 	~MSGPV4() { Close(); }
 };
 
