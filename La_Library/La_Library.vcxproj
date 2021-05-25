@@ -139,13 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="La_Complex.h" />
     <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_File.h" />
+    <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
+    <ClInclude Include="La_Vector.h" />
     <ClInclude Include="La_Windows.h" />
     <ClInclude Include="Platform.h" />
   </ItemGroup>
@@ -157,6 +160,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="WinMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="code.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

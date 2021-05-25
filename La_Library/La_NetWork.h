@@ -335,6 +335,7 @@ public:
 };
 
 
+//可以设计为静态成员来管理
 class SOCKET_MASTER
 {
 private:

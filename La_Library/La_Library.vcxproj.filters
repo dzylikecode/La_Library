@@ -40,6 +40,12 @@
     <Filter Include="源文件\Windows\Base">
       <UniqueIdentifier>{6e335c2a-462f-42da-964e-60505b3ddbf1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Math">
+      <UniqueIdentifier>{e97f6350-b38d-4fe0-8142-0e527b7fb95c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="小机灵">
+      <UniqueIdentifier>{bcc1c70c-f56f-492f-ba34-b44612ed2cce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -69,6 +75,15 @@
     <ClInclude Include="Platform.h">
       <Filter>头文件\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="La_Complex.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Vector.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Matrix.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -86,5 +101,10 @@
     <ClCompile Include="test.cpp">
       <Filter>源文件\test</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="code.txt">
+      <Filter>小机灵</Filter>
+    </Text>
   </ItemGroup>
 </Project>
