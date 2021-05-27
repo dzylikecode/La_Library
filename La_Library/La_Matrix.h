@@ -5,9 +5,49 @@ template <typename T>
 class MAXTRIX
 {
 private:
-	VECTORV<VECTORH<T>> matrix;
-	int col;
+	vVECTOR<hVECTOR<T>> matrix;
+	int row, col;
 public:
-	VECTORH<T>& operator[](int i) { return matrix[i]; }
-	MAXTRIX<T>& operator*=(const MAXTRIX<T>& mat);
+	MAXTRIX(int r, int c);
+	hVECTOR<T>& operator[](int i) { return matrix[i]; }
+	MAXTRIX<T> operator*(const MAXTRIX<T>& mat)const;
+	void Zero();
 };
+
+template <typename T>
+MAXTRIX<T>::MAXTRIX(int r, int c) :row(r), col(c)
+{
+	matrix.Resize(row);
+	for (int i = 0; i < row; i++)
+	{
+		matrix[i].Resize(col);
+	}
+	Zero();
+}
+
+template <typename T>
+void MAXTRIX<T>::Zero()
+{
+	for (int i = 0; i < row; i++)
+		matrix[i].Zero();
+}
+
+template <typename T>
+MAXTRIX<T> MAXTRIX<T>::operator*(const MAXTRIX<T>& mat)const
+{
+	assert(col == mat.row);
+	MAXTRIX<T> temp(row, mat.col);
+
+	for (int i = 0; i < row; i++)
+	{
+		for (int j = 0; j < mat.col; j++)
+		{
+			for (int k = 0; k < col; k++)
+			{
+				temp[i][j] += matrix[i][k] * mat[k][j];
+			}
+		}
+	}
+
+	return temp;
+}
