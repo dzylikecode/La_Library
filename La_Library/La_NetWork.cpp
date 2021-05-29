@@ -102,7 +102,7 @@ bool DHOST::DealSearch()
 		numAddress++;
 	if (destHost->h_addrtype == IPv4)
 	{
-		IPList.Resize(numAddress);
+		IPList.resize(numAddress);
 		for (int i = 0; i < numAddress; i++)
 		{
 			IPList[i] = AddressToIP(destHost->h_addr_list[i]);

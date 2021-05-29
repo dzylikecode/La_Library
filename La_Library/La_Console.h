@@ -140,19 +140,19 @@ public:
 		COORD pos = { x, y };
 		return SetConsoleCursorPosition(hOutput, pos);
 	}
-	bool Resize(int width, int height)
+	bool resize(int width, int height)
 	{
 		COORD size = { width, height };
 		return SetConsoleScreenBufferSize(hOutput, size);
 	}
-	bool Resize(int x, int y, int width, int height)
+	bool resize(int x, int y, int width, int height)
 	{
 		SMALL_RECT rc = { x, y, width, height };
 		SetConsoleWindowInfo(hOutput, true, &rc);
 	}
 	bool Move(int x, int y)
 	{
-		return Resize(x, y, x + Width(), y + Height());
+		return resize(x, y, x + Width(), y + Height());
 	}
 	int  CursorX()
 	{

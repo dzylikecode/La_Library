@@ -21,8 +21,14 @@
 #include <stdio.h>
 #include <sys/timeb.h>
 #include <time.h>
+#include <dbghelp.h>
+#include <shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 
-class WINFILE
+typedef NODE<WIN32_FIND_DATA>		fileNODE;
+typedef LINKEDLIST<WIN32_FIND_DATA> winFILELIST;
+
+class winFILE
 {
 public:
 	enum SHAREMODE :DWORD
@@ -37,7 +43,7 @@ private:
 	HANDLE  hFile;
 public:
 
-	WINFILE(void) :hFile(INVALID_HANDLE_VALUE) {};
+	winFILE(void) :hFile(INVALID_HANDLE_VALUE) {};
 
 	//------------------以下不需要打开文件就可以操作----------------------------
 	bool Delete(LPCTSTR fileName, bool bForce = false)//强制表明，只读的文件也删除
@@ -75,7 +81,7 @@ public:
 	bool Rename(LPCTSTR newName) { return Move(newName); }
 
 	//-------------------------打开文件的操作---------------------------
-	bool Creat(LPCTSTR fileName, bool bForce)
+	bool Create(LPCTSTR fileName, bool bForce)
 	{
 		//采用独占模式，创建的时候
 		hFile = CreateFile(fileName, GENERIC_READ | GENERIC_WRITE, 0, nullptr, bForce ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -84,6 +90,13 @@ public:
 			return false;
 		}
 		return true;
+	}
+	BOOL CreateHideFile(LPCTSTR lpFilePath)
+	{
+		if (!lpFilePath || _tcslen(lpFilePath) < 3) return FALSE;
+
+		HANDLE hFile = CreateFile(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+		if (hFile == INVALID_HANDLE_VALUE) return FALSE;
 	}
 	//r  r & exist
 	//w  w & always
@@ -134,21 +147,54 @@ public:
 		}
 		return true;
 	}
-	int Write(LPCTSTR string, ...)
+	int Write(LPCTSTR string, ...)//二进制
 	{
-
+		DWORD beWritten = 0;
+		WriteFile(hFile, string, sizeof(string), &beWritten, nullptr);
+		return beWritten;
 	}
-	LARGE_INTEGER GetSize(LPCTSTR fileName)
+	int Write(TSTRING string, ...)
+	{
+		DWORD beWritten = 0;
+		WriteFile(hFile, (TCHAR*)string, string.getSize()*sizeof(TCHAR), &beWritten, nullptr);
+		return beWritten;
+	}
+	DWORD Write(void* buffer, int size)
+	{
+		DWORD beWritten = 0;
+		WriteFile(hFile, buffer, size, &beWritten, nullptr);
+		return beWritten;
+	}
+	DWORD Read(void* buffer, int size)
+	{
+		DWORD beRead = 0;
+		ReadFile(hFile, buffer, size, &beRead, nullptr);
+		return beRead;
+	}
+	bool Flush()
+	{
+		return FlushFileBuffers(hFile);
+	}
+	DWORD Seek(LONG low, PLONG high = nullptr, DWORD method = FILE_CURRENT)
+	{
+		return SetFilePointer(hFile, low, high, method);
+	}
+	bool Seek(LONGLONG distant, DWORD method = FILE_CURRENT, PLARGE_INTEGER newDist = nullptr)
+	{
+		LARGE_INTEGER distantStruct;
+		distantStruct.QuadPart = distant;
+		return SetFilePointerEx(hFile, distantStruct, newDist, method);
+	}
+	LONGLONG getSize(LPCTSTR fileName)//函数执行失败返回-1，否则返回文件大小
 	{
 		LARGE_INTEGER  fileSize = { 0 };
-		bool bRe = GetFileSizeEx(hFile, &fileSize);
-		if (!bRe)
+		if (!GetFileSizeEx(hFile, &fileSize))
 		{
-			MessageWarn(TEXT("文件未打开"));
+			return -1;
 		}
-		return fileSize;
+		return fileSize.QuadPart;
 	}
-	LARGE_INTEGER GetSize() { return GetSize(tstrFileName); }
+	LONGLONG getSize() { return getSize(tstrFileName); }
 	bool Close(void) 
 	{
 		if (hFile != INVALID_HANDLE_VALUE)
@@ -159,11 +205,126 @@ public:
 		}
 		return true;
 	}
-	~WINFILE(void) { Close(); }
+	~winFILE(void) { Close(); }
+	
+	bool Check(LPCTSTR fileOrdirectory)
+	{
+		return PathFileExists(fileOrdirectory);
+	}
+
+	//文件夹的操作
+	bool CreateDir(LPCTSTR path, bool force = false)
+	{
+		if (force)
+		{
+			ASTRING pathString;
+#ifdef UNICODE
+			pathString = WToA(path);
+#else
+			pathString = path;
+#endif
+			return MakeSureDirectoryPathExists(pathString);
+		}
+
+		return CreateDirectory(path, nullptr);
+	}
+	BOOL CreateDeepDirectory(LPCTSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+	{
+		if (PathFileExists(lpPathName)) return TRUE;
+
+		TCHAR szPath[MAX_PATH] = { 0 };
+		TCHAR pszSrc[MAX_PATH] = { 0 };
+		_tcscpy(pszSrc, lpPathName);
+		TCHAR* pToken = _tcstok(pszSrc, _T("\\"));
+		while (pToken)
+		{
+			_tcscat(szPath, pToken);
+			_tcscat(szPath, _T("\\"));
+			if (!PathFileExists(szPath))
+			{
+				if (!CreateDirectory(szPath, lpSecurityAttributes)) return FALSE;
+			}
+
+			pToken = _tcstok(NULL, _T("\\"));
+		}
+
+		return TRUE;
+	}
+	bool RemoveDir(LPCTSTR path, bool force = false)
+	{
+		if (force)
+		{
+			SHFILEOPSTRUCT FileOp;
+			FileOp.fFlags = FOF_NOCONFIRMATION | FOF_SILENT;
+			FileOp.hNameMappings = NULL;
+			FileOp.hwnd = NULL;
+			FileOp.lpszProgressTitle = NULL;
+			FileOp.pFrom = path;
+			FileOp.pTo = NULL;
+			FileOp.wFunc = FO_DELETE;
+			return !SHFileOperation(&FileOp);
+		}
+
+		return RemoveDirectory(path);
+	}
+
+	//支持通配符
+	BOOL EnumFiles(LPCTSTR lpszPath, LPCTSTR lpszType, winFILELIST& fileList)
+	{
+		TCHAR szPath[MAX_PATH] = { 0 };
+		_stprintf(szPath, _T("%s\\%s"), lpszPath, lpszType);
+
+		////效率有些低好吧，要先得到信息，再复制到链表当中
+		////不能先到链表中创建，然后得到消息，这样就不用复制了
+		//WIN32_FIND_DATA FindData;
+		fileNODE* FindData = new fileNODE;
+
+		HANDLE hFind = FindFirstFile(szPath, &FindData->data);
+		if (hFind == INVALID_HANDLE_VALUE)
+		{
+			delete FindData;
+			return FALSE;
+		}
+
+		fileList.insertBefore(FindData);
+
+		BOOL bRet = FALSE;
+		do
+		{
+			FindData = new fileNODE;
+			bRet = FindNextFile(hFind, &FindData->data);
+			if (!bRet) break;
+
+			//if ((FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			//{
+			//	//文件夹
+			//}
+			//else
+			//{
+			//	if ((FindData.dwFileAttributes & FILE_ATTRIBUTE_READONLY))
+			//	cout << "文件：";
+			//}
+
+			fileList.insertBefore(FindData);
+
+		} while (bRet);
+
+		delete FindData;
+		fileList.reset(0);
+		return TRUE;
+	}
 };
 
+//winFILELIST fileList;
+//EnumFiles(TEXT("."), TEXT("*.*"), fileList);
+//
+//while (!fileList.endOfList())
+//{
+//	wcout << fileList.data().cFileName << endl;
+//	fileList.next();
+//}
 
-class STDFILE
+class stdFILE
 {
 private:
 	FILE* file;
@@ -171,7 +332,7 @@ private:
 	char timeString[280];
 public:
 	FILE* GetFile() { return file; }
-	STDFILE() :file(nullptr) {};
+	stdFILE() :file(nullptr) {};
 	bool Open(const char* fileName, const char* mode = "w+") { return file = fopen(fileName, mode); }
 	int Write(const char* string, ...)
 	{
@@ -180,6 +341,10 @@ public:
 		int num = fprintf(file, buffer);
 		fflush(file);
 		return num;
+	}
+	size_t Write(void* buffer, size_t elementSize, size_t elementCount)
+	{
+		return fwrite(buffer, elementSize, elementCount, file);
 	}
 	char* TimeString()
 	{
@@ -200,5 +365,7 @@ public:
 		return timeString;
 	}
 	void Close() { if (file) { fclose(file); file = nullptr; } }
-	~STDFILE() { Close(); }
+	~stdFILE() { Close(); }
 };
+
+

@@ -91,9 +91,9 @@ public:
 	int  GetAddressNumber(void)const { return numAddress; }
 	char** GetAddressList(void)const { return destHost->h_addr_list; }
 	ARRAY<ASTRING> GetIPList(void)const { return IPList; }
-	char* GetIP(int i) { assert(i >= 0 && i < IPList.GetSize()); return IPList[i]; }
-	const char* GetIP(int i)const { assert(i >= 0 && i < IPList.GetSize()); return IPList[i]; }
-	int GetIPNumber(void)const { return IPList.GetSize(); }
+	char* GetIP(int i) { assert(i >= 0 && i < IPList.getSize()); return IPList[i]; }
+	const char* GetIP(int i)const { assert(i >= 0 && i < IPList.getSize()); return IPList[i]; }
+	int GetIPNumber(void)const { return IPList.getSize(); }
 	char* AddressToIP(char* addressListN)
 	{
 		struct in_addr addr;

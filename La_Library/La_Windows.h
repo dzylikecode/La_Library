@@ -71,3 +71,13 @@ enum SHOWSTYLE :int
 #define MessageWarn(message, ...)			MessageBoxPrintf(TEXT("Warn"), MB_OK | MB_ICONWARNING, message, ##__VA_ARGS__)
 
 int MessageBoxPrintf(const TCHAR* szCaption, UINT uType, const TCHAR* szFormat, ...);
+
+
+WSTRING AToW(__in LPCCH pszInBuf);
+ASTRING WToA(__in LPCWCH pszInBuf);
+
+#include <locale.h> //必备头文件
+inline void StartWchar()
+{
+	setlocale(LC_ALL, ""); //必须得有这行 否则不能输出中文
+}

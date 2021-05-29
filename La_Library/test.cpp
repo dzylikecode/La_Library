@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	CONSOLE console;
 	console.Create();
 	console.SetTitle(TEXT("基于UDP的简单聊天程序客户端"));
-	console.Resize(80, 25);
+	console.resize(80, 25);
 	console.Clear();
 	printf("天天聊天室欢迎你！\n\n");
 

@@ -30,9 +30,9 @@ public:
 template <typename T>
 T VECTOR<T>::operator*(const VECTOR<T>& v1)const
 {
-	assert(GetSize() == v1.GetSize());
+	assert(getSize() == v1.getSize());
 	T sum = 0;
-	for (int i = 0; i < GetSize(); i++)
+	for (int i = 0; i < getSize(); i++)
 	{
 		sum += *this[i] * v1[i];
 	}
@@ -42,7 +42,7 @@ T VECTOR<T>::operator*(const VECTOR<T>& v1)const
 template <typename T>
 void VECTOR<T>::Zero()
 {
-	for (int i = 0; i < GetSize(); i++)
+	for (int i = 0; i < getSize(); i++)
 	{
 		*this[i] = 0;
 	}
