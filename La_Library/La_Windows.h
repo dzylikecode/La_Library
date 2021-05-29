@@ -73,11 +73,37 @@ enum SHOWSTYLE :int
 int MessageBoxPrintf(const TCHAR* szCaption, UINT uType, const TCHAR* szFormat, ...);
 
 
-WSTRING AToW(__in LPCCH pszInBuf);
-ASTRING WToA(__in LPCWCH pszInBuf);
-
+WSTRING& AToW(__in LPCCH pszInBuf, WSTRING& result);
+inline WSTRING  AToW(__in LPCCH pszInBuf)
+{
+	WSTRING temp;
+	return AToW(pszInBuf, temp);
+}
+ASTRING& WToA(__in LPCWCH pszInBuf, ASTRING& result);
+inline ASTRING& WToA(__in LPCWCH pszInBuf)
+{
+	ASTRING temp;
+	return WToA(pszInBuf, temp);
+}
 #include <locale.h> //必备头文件
 inline void StartWchar()
 {
 	setlocale(LC_ALL, ""); //必须得有这行 否则不能输出中文
 }
+
+
+inline void ConvertToTCHAR(TSTRING& string, const char* source)
+{
+#ifdef UNICODE
+	AToW(source, string);
+#else
+	timeString = source;
+#endif
+}
+
+
+extern const BYTE UTF_16[3];
+extern const BYTE UTF_16LE[3];
+extern const BYTE UTF_16BE[3];
+
+#define uniHead  UTF_16

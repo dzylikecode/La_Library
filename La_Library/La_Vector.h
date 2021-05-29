@@ -24,7 +24,7 @@ class VECTOR :public ARRAY<T>
 {
 public:
 	T operator*(const VECTOR<T>& v1)const;
-	void Zero();
+	void zero();
 };
 
 template <typename T>
@@ -40,7 +40,7 @@ T VECTOR<T>::operator*(const VECTOR<T>& v1)const
 }
 
 template <typename T>
-void VECTOR<T>::Zero()
+void VECTOR<T>::zero()
 {
 	for (int i = 0; i < getSize(); i++)
 	{

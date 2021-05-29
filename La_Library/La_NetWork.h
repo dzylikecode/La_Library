@@ -107,7 +107,7 @@ class DSOCKET
 protected:
 	bool bCreate;
 	SOCKET hSocket;
-	virtual void Close()
+	virtual void close()
 	{
 		if (bCreate)
 		{
@@ -117,7 +117,7 @@ protected:
 public:
 	DSOCKET() :bCreate(false), hSocket(INVALID_SOCKET) {};
 	SOCKET GetSocket()const { return hSocket; }
-	~DSOCKET() { Close(); }
+	~DSOCKET() { close(); }
 };
 
 class TCPSERVER;
@@ -162,9 +162,9 @@ public:
 	{
 		return getpeername(sourceSocket, client.GetMsg(), &client.addrSize);
 	}
-	void Close() { if (bConnect) { closesocket(hSocket); bConnect = false; } }
+	void close() { if (bConnect) { closesocket(hSocket); bConnect = false; } }
 	SOCKET GetSocket()const { return hSocket; }
-	~MSGPV4() { Close(); }
+	~MSGPV4() { close(); }
 };
 
 
@@ -174,7 +174,7 @@ public:
 class UDP :public DSOCKET
 {
 public:
-	virtual bool Create()
+	virtual bool create()
 	{
 		if (!bCreate)
 		{
@@ -204,9 +204,9 @@ class UDPSERVER :public UDP
 {
 public:
 	//选择本机的IP地址用来通信，本机不止一个IP
-	virtual bool Create(const char* localIP, const int localPort)
+	virtual bool create(const char* localIP, const int localPort)
 	{
-		if (UDP::Create())
+		if (UDP::create())
 		{
 			if (bCreate)
 				return true;
@@ -216,7 +216,7 @@ public:
 			if (bind(hSocket, localPV4.GetMsg(), sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				MessageWarn(TEXT("绑定地址错误！"));
-				Close();
+				close();
 
 				return false;
 			}
@@ -231,7 +231,7 @@ public:
 class TCP:public DSOCKET
 {
 public:
-	virtual bool Create()
+	virtual bool create()
 	{
 		if (!bCreate)
 		{
@@ -251,9 +251,9 @@ public:
 class TCPCLIENT :public TCP
 {
 public:
-	virtual bool Create(const char* serverIP, const int serverPort)
+	virtual bool create(const char* serverIP, const int serverPort)
 	{
-		if (TCP::Create())
+		if (TCP::create())
 		{
 			if (bCreate)
 				return true;
@@ -262,7 +262,7 @@ public:
 			if (connect(hSocket, server.GetMsg(), server.addrSize) == SOCKET_ERROR)
 			{
 				MessageWarn(TEXT("连接服务器失败！"));
-				Close();
+				close();
 				return false;
 			}
 			return true;
@@ -284,9 +284,9 @@ public:
 class TCPSERVER : public TCP
 {
 public:
-	virtual bool Create(const char* localIP, const int localPort, int maxSequence = 6)
+	virtual bool create(const char* localIP, const int localPort, int maxSequence = 6)
 	{
-		if (TCP::Create())
+		if (TCP::create())
 		{
 			if (bCreate)
 				return true;
@@ -296,7 +296,7 @@ public:
 			if (bind(hSocket,localPV4.GetMsg(), localPV4.addrSize) == SOCKET_ERROR)
 			{
 				MessageWarn(TEXT("绑定地址失败！"));
-				Close();
+				close();
 				return false;
 			}
 
@@ -305,7 +305,7 @@ public:
 			if (listen(hSocket, maxSequence) == SOCKET_ERROR)
 			{
 				MessageWarn(TEXT("监听失败！"));
-				Close();
+				close();
 				return false;
 			}
 			return true;
@@ -342,7 +342,7 @@ private:
 	static int life;
 	WSADATA wsaData;
 public:
-	bool Create();
+	bool create();
 	void Release();
 	SOCKET_MASTER(void);
 	~SOCKET_MASTER() { Release(); }

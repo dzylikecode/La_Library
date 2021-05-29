@@ -46,6 +46,12 @@
     <Filter Include="小机灵">
       <UniqueIdentifier>{bcc1c70c-f56f-492f-ba34-b44612ed2cce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Debug">
+      <UniqueIdentifier>{896dd372-2293-4ecf-858a-38ddf52e8ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Debug">
+      <UniqueIdentifier>{b361e763-36dd-44d6-9bf7-747f7a988cd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -84,6 +90,9 @@
     <ClInclude Include="La_Matrix.h">
       <Filter>头文件\Math</Filter>
     </ClInclude>
+    <ClInclude Include="La_Log.h">
+      <Filter>头文件\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -101,9 +110,18 @@
     <ClCompile Include="test.cpp">
       <Filter>源文件\test</Filter>
     </ClCompile>
+    <ClCompile Include="La_File.cpp">
+      <Filter>源文件\Windows\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Log.cpp">
+      <Filter>源文件\Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">
+      <Filter>小机灵</Filter>
+    </Text>
+    <Text Include="ErrLog\error.txt">
       <Filter>小机灵</Filter>
     </Text>
   </ItemGroup>

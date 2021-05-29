@@ -1,6 +1,6 @@
 #include "La_Shell.h"
 
-bool SHELL::Open(LPCTSTR fileNameOrDirectory, LPCTSTR parameters)
+bool SHELL::open(LPCTSTR fileNameOrDirectory, LPCTSTR parameters)
 {
 	lpVerb = TEXT("open");
 	lpFile = fileNameOrDirectory;
@@ -10,7 +10,7 @@ bool SHELL::Open(LPCTSTR fileNameOrDirectory, LPCTSTR parameters)
 	return result;
 }
 
-bool SHELL::Run(LPCTSTR fileName, LPCTSTR parameters)
+bool SHELL::run(LPCTSTR fileName, LPCTSTR parameters)
 {
 	lpVerb = TEXT("runas");
 	lpFile = fileName;
@@ -20,29 +20,29 @@ bool SHELL::Run(LPCTSTR fileName, LPCTSTR parameters)
 	return result;
 }
 
-bool SHELL::Explore(LPCTSTR Directory)
+bool SHELL::explore(LPCTSTR Directory)
 {
 	lpVerb = TEXT("explore");
 	lpFile = Directory;
 	return ShellExecuteEx(this);
 }
-bool SHELL::Print(LPCTSTR fileName)
+bool SHELL::print(LPCTSTR fileName)
 {
 	lpVerb = TEXT("print");
 	lpFile = fileName;
 	return ShellExecuteEx(this);
 }
 
-bool SHELL::Edit(LPCTSTR fileName)
+bool SHELL::edit(LPCTSTR fileName)
 {
 	lpVerb = TEXT("edit");
 	lpFile = fileName;
 	return ShellExecuteEx(this);
 }
 
-bool SHELL::Select(LPCTSTR fileNameOrDirectory)
+bool SHELL::select(LPCTSTR fileNameOrDirectory)
 {
 	TSTRING string(TEXT("/select,"));
 	string += fileNameOrDirectory;
-	return Open(TEXT("explorer.exe"), string);
+	return open(TEXT("explorer.exe"), string);
 }

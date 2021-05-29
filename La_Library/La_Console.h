@@ -79,18 +79,18 @@
 /// RED、GREEN、BLUE是三原色分量，
 /// INTENSITY代表颜色加强（变得更亮）
 
+enum WriteMode :int
+{
+	BLANK = B_HIGH_WITHTE,
+	TIME = F_HIGH_PURPLE,
+	INFO = F_HIGH_GREEN,
+	NOTICE = F_HIGH_CYAN,
+	WARN = F_HIGH_YELLOW,
+	ERR = F_HIGH_RED
+};
+
 class CONSOLE
 {
-public:
-	enum WriteMode :int
-	{
-		BLANK = B_HIGH_WITHTE,
-		TIME = F_HIGH_PURPLE,
-		INFO = F_HIGH_GREEN,
-		NOTICE = F_HIGH_CYAN,
-		WARN = F_HIGH_YELLOW,
-		ERR = F_HIGH_RED
-	};
 private:
 	TSTRING consoleName;
 	HWND hConsole;
@@ -99,43 +99,43 @@ private:
 	CONSOLE_SCREEN_BUFFER_INFO information;
 public:
 	CONSOLE() :stream(nullptr), information{ 0 }{};
-	void SetTitle(LPCTSTR name)
+	void setTitle(LPCTSTR name)
 	{
 		SetConsoleTitle(name);
 		consoleName = name;
 		hConsole = FindWindow(NULL, name);
 	}
-	bool Create(LPCTSTR name = DEFAULT_CONSOLE_TITLE)
+	bool create(LPCTSTR name = DEFAULT_CONSOLE_TITLE)
 	{
 		AllocConsole();
-		SetTitle(name);
+		setTitle(name);
 		freopen_s(&stream, "conin$", "r+t", stdin);//重定向输入流
 		freopen_s(&stream, "conout$", "w+t", stdout);//重定向输入流
 		hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 
 		return true;
 	}
-	bool SetColor(WORD color) { return SetConsoleTextAttribute(hOutput, color); }
-	int Write(WORD color, LPCTSTR string, ...)
+	bool setColor(WORD color) { return SetConsoleTextAttribute(hOutput, color); }
+	int write(WORD color, LPCTSTR string, ...)
 	{
-		SetColor(color);
+		setColor(color);
 		TCHAR   szBuffer[MAX_BUFFER];
 		GetVariableArgument(szBuffer, MAX_BUFFER, string);
 		//fprintf(stream, buffer); //都可以
 		return _tprintf(szBuffer);		//如果控制台删除了，printf 就会报错
 	}
 	//有效范围 0 - 100
-	void Hide()
+	void hide()
 	{
 		CONSOLE_CURSOR_INFO cur = { 1, false };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	void Show(int size = 1)
+	void show(int size = 1)
 	{
 		CONSOLE_CURSOR_INFO cur = { size, true };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	bool GotoXY(int x, int y)
+	bool gotoXY(int x, int y)
 	{
 		COORD pos = { x, y };
 		return SetConsoleCursorPosition(hOutput, pos);
@@ -150,65 +150,65 @@ public:
 		SMALL_RECT rc = { x, y, width, height };
 		SetConsoleWindowInfo(hOutput, true, &rc);
 	}
-	bool Move(int x, int y)
+	bool move(int x, int y)
 	{
-		return resize(x, y, x + Width(), y + Height());
+		return resize(x, y, x + getWidth(), y + getHeight());
 	}
-	int  CursorX()
+	int  getCursorX()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.dwCursorPosition.X;
 	}
-	int  CursorY()
+	int  getCursorY()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.dwCursorPosition.Y;
 	}
-	int  X()
+	int  getX()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.srWindow.Left;
 	}
-	int  Y()
+	int  getY()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.srWindow.Top;
 	}
-	int  Width()
+	int  getWidth()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.srWindow.Right - information.srWindow.Left;
 	}
-	int  Height()
+	int  getHeight()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.srWindow.Bottom - information.srWindow.Top;
 	}
-	int  BufferWidth()
+	int  getBufferWidth()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.dwSize.X;
 	}
-	int  BufferHeight()
+	int  getBufferHeight()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.dwSize.Y;
 	}
-	WORD Color()
+	WORD getColor()
 	{
-		GetInfo(information);
+		getInfo(information);
 		return information.wAttributes;
 	}
-	void Clear()
+	void clear()
 	{
 		system("cls");
 	}
-	void GetInfo(CONSOLE_SCREEN_BUFFER_INFO& info)
+	void getInfo(CONSOLE_SCREEN_BUFFER_INFO& info)
 	{
 		GetConsoleScreenBufferInfo(hOutput, &info);
 	}
 
-	void Close(){ FreeConsole(); }
-	~CONSOLE() { Close(); }
+	void close(){ FreeConsole(); }
+	~CONSOLE() { close(); }
 };
 

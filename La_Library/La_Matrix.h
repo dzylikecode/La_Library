@@ -12,7 +12,7 @@ public:
 	hVECTOR<T>& operator[](int i) { return matrix[i]; }
 	MAXTRIX<T> operator*(const MAXTRIX<T>& mat)const;
 	MAXTRIX<T> operator&(const MAXTRIX<T>& mat)const;
-	void Zero();
+	void zero();
 };
 
 template <typename T>
@@ -23,14 +23,14 @@ MAXTRIX<T>::MAXTRIX(int r, int c) :row(r), col(c)
 	{
 		matrix[i].resize(col);
 	}
-	Zero();
+	zero();
 }
 
 template <typename T>
-void MAXTRIX<T>::Zero()
+void MAXTRIX<T>::zero()
 {
 	for (int i = 0; i < row; i++)
-		matrix[i].Zero();
+		matrix[i].zero();
 }
 
 template <typename T>

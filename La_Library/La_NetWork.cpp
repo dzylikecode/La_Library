@@ -6,10 +6,10 @@ int SOCKET_MASTER::life = 0;
 
 SOCKET_MASTER::SOCKET_MASTER(void)
 {
-	Create();
+	create();
 }
 
-bool SOCKET_MASTER::Create()
+bool SOCKET_MASTER::create()
 {
 	if (!life++)
 	{

@@ -38,13 +38,13 @@ void receive_msg(void* message = nullptr)
 int main(int argc, char* argv[])
 {
 	CONSOLE console;
-	console.Create();
-	console.SetTitle(TEXT("基于UDP的简单聊天程序客户端"));
+	console.create();
+	console.setTitle(TEXT("基于UDP的简单聊天程序客户端"));
 	console.resize(80, 25);
-	console.Clear();
+	console.clear();
 	printf("天天聊天室欢迎你！\n\n");
 
-	client.Create(nullptr, 6666);
+	client.create();
 
 
 	MSGPV4 server("127.0.0.1", 6666);
