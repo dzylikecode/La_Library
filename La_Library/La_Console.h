@@ -1,5 +1,23 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/05/31 0:29:30
+*  最后修改: 
+*
+*  简    介: 
+*
+***************************************************************************************
+*/
+
 #pragma once
-#include "La_Windows.h"
+#include "La_WindowsBase.h"
 #include <stdio.h>
 #define DEFAULT_CONSOLE_TITLE  TEXT("Debug")
 
@@ -142,12 +160,12 @@ public:
 		COORD pos = { x, y };
 		return SetConsoleCursorPosition(hOutput, pos);
 	}
-	bool resize(int width, int height)
+	bool resize(SHORT width, SHORT height)
 	{
 		COORD size = { width, height };
 		return SetConsoleScreenBufferSize(hOutput, size);
 	}
-	bool resize(int x, int y, int width, int height)
+	bool resize(SHORT x, SHORT y, int width, int height)
 	{
 		SMALL_RECT rc = { x, y, width, height };
 		SetConsoleWindowInfo(hOutput, true, &rc);

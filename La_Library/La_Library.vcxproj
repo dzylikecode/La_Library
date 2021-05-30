@@ -144,6 +144,7 @@
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_File.h" />
     <ClInclude Include="La_GameBox.h" />
+    <ClInclude Include="La_Graphic.h" />
     <ClInclude Include="La_Log.h" />
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
@@ -152,9 +153,9 @@
     <ClInclude Include="La_LinearList.h" />
     <ClInclude Include="La_Time.h" />
     <ClInclude Include="La_Vector.h" />
-    <ClInclude Include="La_Windows.h" />
+    <ClInclude Include="La_WindowsBase.h" />
     <ClInclude Include="La_WinGDI.h" />
-    <ClInclude Include="Platform.h" />
+    <ClInclude Include="La_Windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_File.cpp" />

@@ -1,5 +1,23 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/05/31 0:29:52
+*  最后修改: 
+*
+*  简    介: 
+*
+***************************************************************************************
+*/
+
 #pragma once
-#include "La_Windows.h"
+#include "La_WindowsBase.h"
 #define TEST_FUNCTION(result,num,function)		{LARGE_INTEGER begin_time, freq, end_time; \
 												QueryPerformanceFrequency(&freq); \
 												QueryPerformanceCounter(&begin_time); \

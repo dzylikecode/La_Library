@@ -217,4 +217,5 @@ bool GAMEBox::startCommuication()
 	}
 	exShutDown();
 	ERROR_MSG(WARN, TEXT("End Commuicating With System"));
+	return true;
 }

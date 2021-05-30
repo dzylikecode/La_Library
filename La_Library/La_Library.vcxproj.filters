@@ -64,6 +64,9 @@
     <Filter Include="源文件\WinGDI">
       <UniqueIdentifier>{01c2dd67-8541-4eb5-aaa3-43415142ca8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Graphic">
+      <UniqueIdentifier>{7b2d7de4-bd7e-41d3-a672-cca8b13f437f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -71,9 +74,6 @@
     </ClInclude>
     <ClInclude Include="La_LinearList.h">
       <Filter>头文件\DataStruture</Filter>
-    </ClInclude>
-    <ClInclude Include="La_Windows.h">
-      <Filter>头文件\Windows\Base</Filter>
     </ClInclude>
     <ClInclude Include="La_Shell.h">
       <Filter>头文件\Windows\Extend</Filter>
@@ -89,9 +89,6 @@
     </ClInclude>
     <ClInclude Include="La_Console.h">
       <Filter>头文件\Windows\Extend</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform.h">
-      <Filter>头文件\Windows</Filter>
     </ClInclude>
     <ClInclude Include="La_Complex.h">
       <Filter>头文件\Math</Filter>
@@ -113,6 +110,15 @@
     </ClInclude>
     <ClInclude Include="La_WinGDI.h">
       <Filter>头文件\WinGDI</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Graphic.h">
+      <Filter>头文件\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="La_WindowsBase.h">
+      <Filter>头文件\Windows\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Windows.h">
+      <Filter>头文件\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

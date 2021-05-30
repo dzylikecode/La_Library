@@ -18,7 +18,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma once
 #include <winsock2.h>
-#include "La_Windows.h"
+#include "La_WindowsBase.h"
 
 
 #pragma comment(lib, "Urlmon.lib")

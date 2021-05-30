@@ -17,7 +17,7 @@
 */
 
 #pragma once
-#include "La_Windows.h"
+#include "La_WindowsBase.h"
 
 class SHELL :private SHELLEXECUTEINFO
 {

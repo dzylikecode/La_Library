@@ -17,7 +17,7 @@
 */
 #define _CRT_SECURE_NO_WARNINGS
 #pragma once
-#include "La_Windows.h"
+#include "La_WindowsBase.h"
 #include <stdio.h>
 #include <time.h>
 #include <dbghelp.h>

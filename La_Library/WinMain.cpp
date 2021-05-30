@@ -1,14 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
-
-#include "Platform.h"
-#include "La_File.h"
-#include "La_Log.h"
-#include "La_WinGDI.h"
 #include <stdio.h>
 #include <conio.h>
 #include <iostream>
-#include <process.h>
-
+#include "La_Windows.h"
+#include "La_WinGDI.h"
+#include "La_GameBox.h"
 
 using namespace std;
 
