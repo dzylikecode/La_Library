@@ -15,6 +15,7 @@ using namespace std;
 void GameBody(void)
 {
 	GDI::winOut(30, 0) << TEXT("Hello, World") << GDI::end;
+	GDI::DrawCircle(RGB(0, 255, 255), 90, 30, 30);
 }
 
 int main(int argc, char* argv[])
