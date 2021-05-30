@@ -154,7 +154,7 @@ public:
 
 	winFILE(void) :hFile(INVALID_HANDLE_VALUE) {};
 	HANDLE getFile()const { return hFile; }
-	
+	const TCHAR* getFileName()const { return tstrFileName; }
 	//-------------------------打开文件的操作---------------------------
 	bool create(LPCTSTR fileName, bool bForce)
 	{
@@ -164,14 +164,17 @@ public:
 		{
 			return false;
 		}
+		tstrFileName = fileName;
 		return true;
 	}
-	bool createHideFile(LPCTSTR lpFilePath)
+	bool createHideFile(LPCTSTR fileName)
 	{
-		if (!lpFilePath || _tcslen(lpFilePath) < 3) return FALSE;
+		if (!fileName || _tcslen(fileName) < 3) return false;
 
-		HANDLE hFile = CreateFile(lpFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
-		if (hFile == INVALID_HANDLE_VALUE) return FALSE;
+		HANDLE hFile = CreateFile(fileName, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+		if (hFile == INVALID_HANDLE_VALUE) return false;
+		tstrFileName = fileName;
+		return true;
 	}
 	//r  r & exist
 	//w  w & always
@@ -229,6 +232,7 @@ public:
 		{
 			seek(0, FILE_END);
 		}
+		tstrFileName = fileName;
 		return true;
 	}
 	void insertUnicodePrefix()

@@ -149,6 +149,7 @@
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
+    <ClInclude Include="La_Time.h" />
     <ClInclude Include="La_Vector.h" />
     <ClInclude Include="La_Windows.h" />
     <ClInclude Include="Platform.h" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="La_File.cpp" />
     <ClCompile Include="La_Log.cpp" />
+    <ClCompile Include="La_Time.cpp" />
     <ClCompile Include="La_Windows.cpp" />
     <ClCompile Include="La_NetWork.cpp" />
     <ClCompile Include="La_Shell.cpp" />

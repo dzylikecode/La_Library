@@ -65,6 +65,7 @@
 #define B_LOW_WITHTE	( BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_BLUE )
 #define B_HIGH_WITHTE	( BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_BLUE )
 #define B_GRAY			( BACKGROUND_INTENSITY )
+#define B_BLACK			( 0 )
 //e enhance the color
 #define B_COLOR(r, g, b, e)		  ( ( (r) ? B_LOW_RED   : 0 ) | \
 								    ( (g) ? B_LOW_GREEN : 0 ) |	\
@@ -116,6 +117,7 @@ public:
 		return true;
 	}
 	bool setColor(WORD color) { return SetConsoleTextAttribute(hOutput, color); }
+	bool restoreColor() { return SetConsoleTextAttribute(hOutput, F_HIGH_WITHTE | B_BLACK); }
 	int write(WORD color, LPCTSTR string, ...)
 	{
 		setColor(color);

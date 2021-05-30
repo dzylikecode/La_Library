@@ -93,6 +93,9 @@
     <ClInclude Include="La_Log.h">
       <Filter>头文件\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="La_Time.h">
+      <Filter>头文件\Windows\Extend</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -115,6 +118,9 @@
     </ClCompile>
     <ClCompile Include="La_Log.cpp">
       <Filter>源文件\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Time.cpp">
+      <Filter>源文件\Windows\Extend</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
