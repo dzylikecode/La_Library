@@ -43,6 +43,7 @@ public:
 		{
 			delete[] list;
 			list = nullptr;
+			size = 0;
 		}
 	}
 	bool resize(int sz);

@@ -37,7 +37,6 @@ errINFOMaster::errINFOMaster()
 		WriteInConsole(WARN, TEXT("\n\n Debug File Message:\n"));
 		WriteInConsole(ERR, TEXT("\t\t>>>>>>>>>>>>>Create ' Error Log ' Failed<<<<<<<<<<<<<\n"));
 	}
-	errConsoleMaster.restoreColor();
 #endif
 #endif
 }

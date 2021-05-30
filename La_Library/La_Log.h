@@ -101,17 +101,20 @@ public:
 
 extern CONSOLE errConsoleMaster;
 
-#define WriteInConsole errConsoleMaster.write
+#define WriteInConsole		errConsoleMaster.write
+#define GetConsoleColor		errConsoleMaster.getColor
+#define SetConsoleColor		errConsoleMaster.setColor
+
+
+#define CONSOLE_LOG()						{DWORD oldColor = GetConsoleColor(); WriteInConsole(ERR,"file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()); SetConsoleColor(oldColor);}
+#define CONSOLE_MSG(mode,message, ...)		{DWORD oldColor = GetConsoleColor(); WriteInConsole(mode,"file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__); SetConsoleColor(oldColor);}
+#define FILE_LOG()							{WriteError("file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError());}
+#define FILE_MSG(mode, message, ...)		{WriteError("file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__);}
+#define BOTH_LOG()							{CONSOLE_LOG(); FILE_LOG()}
+#define BOTH_MSG(mode, message, ...)		{CONSOLE_MSG(mode,message, ##__VA_ARGS__);FILE_MSG(mode, message, ##__VA_ARGS__);}
+
 #endif
 
-
-
-#define CONSOLE_LOG()						(WriteInConsole(ERR,"file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()))
-#define CONSOLE_MSG(mode,message, ...)		(WriteInConsole(mode,"file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__))
-#define FILE_LOG()							(WriteError("file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()))
-#define FILE_MSG(mode, message, ...)		(WriteError("file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__))
-#define BOTH_LOG()							(CONSOLE_LOG(),FILE_LOG())
-#define BOTH_MSG(mode, message, ...)		(CONSOLE_MSG(mode,message, ##__VA_ARGS__),FILE_MSG(mode, message, ##__VA_ARGS__))
 
 #if		LADZY_DEBUG
 #if		LADZY_DEBUG_MODE == LADZY_DEBUG_CONSOLE

@@ -61,6 +61,9 @@
     <Filter Include="头文件\WinGDI">
       <UniqueIdentifier>{89c69f22-08ce-4d72-b5de-6e3e94147086}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\WinGDI">
+      <UniqueIdentifier>{01c2dd67-8541-4eb5-aaa3-43415142ca8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -139,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="La_GameBox.cpp">
       <Filter>源文件\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="La_WinGDI.cpp">
+      <Filter>源文件\WinGDI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

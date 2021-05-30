@@ -1,5 +1,7 @@
 #include "La_GameBox.h"
 #include <windowsx.h>
+#include "La_WinGDI.h"
+
 namespace
 {
 	void La_GameBody(void)
@@ -159,6 +161,7 @@ bool GAMEBox::create(int width, int height, LPCTSTR title, bool bTopLeft)
 	// show the window, so there's no garbage on first render
 	ShowWindow(hwnd, SW_SHOW);
 
+	GDI::InitializeGDI(hwnd);
 	/*Initialize_Clock();
 	Initialize_WinGDI(LaDzy_global_hwnd);
 	Initialize_Mathematic();

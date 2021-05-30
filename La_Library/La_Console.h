@@ -118,7 +118,7 @@ public:
 	}
 	bool setColor(WORD color) { return SetConsoleTextAttribute(hOutput, color); }
 	bool restoreColor() { return SetConsoleTextAttribute(hOutput, F_HIGH_WITHTE | B_BLACK); }
-	int write(WORD color, LPCTSTR string, ...)
+	int write(WORD color, LPCTSTR string, ...) 
 	{
 		setColor(color);
 		TCHAR   szBuffer[MAX_BUFFER];
@@ -132,12 +132,12 @@ public:
 		CONSOLE_CURSOR_INFO cur = { 1, false };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	void show(int size = 1)
+	void show(DWORD size = 1)
 	{
 		CONSOLE_CURSOR_INFO cur = { size, true };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	bool gotoXY(int x, int y)
+	bool gotoXY(SHORT x, SHORT y)
 	{
 		COORD pos = { x, y };
 		return SetConsoleCursorPosition(hOutput, pos);

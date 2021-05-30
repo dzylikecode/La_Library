@@ -164,6 +164,7 @@
     <ClCompile Include="La_Windows.cpp" />
     <ClCompile Include="La_NetWork.cpp" />
     <ClCompile Include="La_Shell.cpp" />
+    <ClCompile Include="La_WinGDI.cpp" />
     <ClCompile Include="test.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
