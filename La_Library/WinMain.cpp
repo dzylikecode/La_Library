@@ -14,7 +14,7 @@ using namespace std;
 GRAPHIC::SURFACE backGround;
 void StartUp(void)
 {
-	backGround.createFromBitmap(TEXT("landscape1_24.bmp"));
+	backGround.createFromBitmap(TEXT("landscape1.bmp"));
 	//backGround.scroll(0, 30);
 }
 
@@ -34,7 +34,7 @@ void GameBody(void)
 
 int main(int argc, char* argv[])
 {
-	gameBox.setWndMode(false, true);
+	//gameBox.setWndMode(false, true);
 	gameBox.create(640, 480, TEXT("Äêºó"));
 	gameBox.setGameStart(StartUp);
 	gameBox.setGameBody(GameBody);

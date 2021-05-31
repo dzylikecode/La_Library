@@ -49,7 +49,7 @@ namespace GRAPHIC
 		//删除原来的图像
 		clear();
 
-		BYTE* temp_buffer = new BYTE[bitmapinfoheader.biSizeImage];
+		UCHAR* temp_buffer = new UCHAR[bitmapinfoheader.biSizeImage];
 		//获得图形的大小而非图片的大小
 		ULONGLONG bitmap_image_square = bitmapinfoheader.biWidth * bitmapinfoheader.biHeight;
 

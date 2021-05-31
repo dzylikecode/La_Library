@@ -55,7 +55,7 @@ namespace GRAPHIC
 
 				if (lpitch == width)
 				{
-					memcpy(memory, bitmap.getImage(), bitmap.getSizeByte());
+					memcpy(memory, bitmap.getImage(), width * height * sizeof(COLOR));
 				}
 				else
 				{
