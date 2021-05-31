@@ -62,8 +62,7 @@ class errLOGMaster :public winFILE
 public:
 	bool create()
 	{
-		TSTRING path;
-		ConvertToTCHAR(path, _getcwd(nullptr, 0));
+		TSTRING path = AToT(_getcwd(nullptr, 0));
 		path += TEXT("\\ErrLog");
 		if (!winFILEMaster::Check(path))
 		{
@@ -75,8 +74,7 @@ public:
 		{
 			winFILE::insertUnicodePrefix();
 
-			TSTRING timeString;
-			ConvertToTCHAR(timeString, getTimeString());
+			TSTRING timeString = AToT(getTimeString());
 
 			TSTRING message;
 
@@ -124,8 +122,8 @@ extern CONSOLE errConsoleMaster;
 #define SetConsoleColor		errConsoleMaster.setColor
 
 
-#define CONSOLE_LOG()						{DWORD oldColor = GetConsoleColor(); WriteInConsole(ERR,"file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()); SetConsoleColor(oldColor);}
-#define CONSOLE_MSG(mode,message, ...)		{DWORD oldColor = GetConsoleColor(); WriteInConsole(mode,"file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__); SetConsoleColor(oldColor);}
+#define CONSOLE_LOG()						{WORD oldColor = GetConsoleColor(); WriteInConsole(ERR,"file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()); SetConsoleColor(oldColor);}
+#define CONSOLE_MSG(mode,message, ...)		{WORD oldColor = GetConsoleColor(); WriteInConsole(mode,"file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__); SetConsoleColor(oldColor);}
 #define FILE_LOG()							{WriteError("file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError());}
 #define FILE_MSG(mode, message, ...)		{WriteError("file: %s\nline %d:" message "\n\n",TEXT(__FILE__),__LINE__, ##__VA_ARGS__);}
 #define BOTH_LOG()							{CONSOLE_LOG(); FILE_LOG()}

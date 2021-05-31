@@ -86,21 +86,45 @@ inline ASTRING& WToA(__in LPCWCH pszInBuf)
 	ASTRING temp;
 	return WToA(pszInBuf, temp);
 }
+
+inline WSTRING& WToW(__in LPCWCH pszInBuf, WSTRING& result)
+{
+	return result = pszInBuf;
+}
+inline WSTRING  WToW(__in LPCWCH pszInBuf)
+{
+	WSTRING temp;
+	return temp = pszInBuf;
+}
+
+inline ASTRING& AToA(__in LPCCH pszInBuf, ASTRING& result)
+{
+	return result = pszInBuf;
+}
+inline ASTRING WToW(__in LPCCH pszInBuf)
+{
+	ASTRING temp;
+	return temp = pszInBuf;
+}
+
+#ifdef UNICODE
+#define AToT    AToW
+#define TToA	WToA
+#define WToT	WToW
+#define TToW	WToW
+#else
+#define AToT    AToA
+#define TToA	AToA
+#define WToT	WToA
+#define TToW	AToW
+#endif
+
 #include <locale.h> //必备头文件
 inline void StartWchar()
 {
 	setlocale(LC_ALL, ""); //必须得有这行 否则不能输出中文
 }
 
-
-inline void ConvertToTCHAR(TSTRING& string, const char* source)
-{
-#ifdef UNICODE
-	AToW(source, string);
-#else
-	timeString = source;
-#endif
-}
 
 
 extern const BYTE UTF_16[3];

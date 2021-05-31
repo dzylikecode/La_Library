@@ -17,7 +17,6 @@
 */
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma once
-#include <winsock2.h>
 #include "La_WindowsBase.h"
 
 
@@ -53,7 +52,7 @@ public:
 	enum ADDRESSTYPE:int
 	{
 		IPv4 = AF_INET,
-		IPv6 = AF_INET6,
+		/*IPv6 = AF_INET6,*/
 		Bios = AF_NETBIOS,
 	};
 private:

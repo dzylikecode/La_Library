@@ -17,8 +17,8 @@ void GameBody(void)
 int main(int argc, char* argv[])
 {
 	GAMEBox gameBox;
-	gameBox.create(300, 200, TEXT("年后"));
-
+	gameBox.create(640, 480, TEXT("年后"));
+	
 	gameBox.setGameBody(GameBody);
 	gameBox.startCommuication();
 	return argc;

@@ -67,6 +67,12 @@
     <Filter Include="头文件\Graphic">
       <UniqueIdentifier>{7b2d7de4-bd7e-41d3-a672-cca8b13f437f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Graphic">
+      <UniqueIdentifier>{43d6dd0f-6e58-458f-b46e-cb8866aa2ae9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Graphic\Base">
+      <UniqueIdentifier>{4a92f177-4ac1-40e4-94a3-0773bc39c4ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -105,20 +111,29 @@
     <ClInclude Include="La_Time.h">
       <Filter>头文件\Windows\Extend</Filter>
     </ClInclude>
-    <ClInclude Include="La_GameBox.h">
-      <Filter>头文件\GameBox</Filter>
-    </ClInclude>
     <ClInclude Include="La_WinGDI.h">
       <Filter>头文件\WinGDI</Filter>
-    </ClInclude>
-    <ClInclude Include="La_Graphic.h">
-      <Filter>头文件\Graphic</Filter>
     </ClInclude>
     <ClInclude Include="La_WindowsBase.h">
       <Filter>头文件\Windows\Base</Filter>
     </ClInclude>
     <ClInclude Include="La_Windows.h">
       <Filter>头文件\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="La_GameBox.h">
+      <Filter>头文件\GameBox</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Graphic.h">
+      <Filter>源文件\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="La_GraphicBase.h">
+      <Filter>头文件\Graphic\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Bitmap.h">
+      <Filter>头文件\Graphic\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Surface.h">
+      <Filter>头文件\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +166,15 @@
     </ClCompile>
     <ClCompile Include="La_WinGDI.cpp">
       <Filter>源文件\WinGDI</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Bitmap.cpp">
+      <Filter>源文件\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="La_GraphicBase.cpp">
+      <Filter>源文件\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Surface.cpp">
+      <Filter>源文件\Graphic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -139,18 +139,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="La_Bitmap.h" />
     <ClInclude Include="La_Complex.h" />
     <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_File.h" />
     <ClInclude Include="La_GameBox.h" />
     <ClInclude Include="La_Graphic.h" />
+    <ClInclude Include="La_GraphicBase.h" />
     <ClInclude Include="La_Log.h" />
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
+    <ClInclude Include="La_Surface.h" />
     <ClInclude Include="La_Time.h" />
     <ClInclude Include="La_Vector.h" />
     <ClInclude Include="La_WindowsBase.h" />
@@ -158,9 +161,12 @@
     <ClInclude Include="La_Windows.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="La_Bitmap.cpp" />
     <ClCompile Include="La_File.cpp" />
     <ClCompile Include="La_GameBox.cpp" />
+    <ClCompile Include="La_GraphicBase.cpp" />
     <ClCompile Include="La_Log.cpp" />
+    <ClCompile Include="La_Surface.cpp" />
     <ClCompile Include="La_Time.cpp" />
     <ClCompile Include="La_Windows.cpp" />
     <ClCompile Include="La_NetWork.cpp" />

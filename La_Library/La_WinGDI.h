@@ -79,7 +79,7 @@ namespace GDI
 		/// PS_DASHDOTDOT
 	private:
 		static int curPenID; //当前在被使用的 id   0表示系统的笔正在使用
-		int ID;
+		const int ID; //显然更好
 		int style;
 		int width;
 		COLORREF color;
@@ -159,7 +159,7 @@ namespace GDI
 		};
 	private:
 		static int curBrushID;  //int 的话 也不怕 溢出吧
-		int ID;
+		const int ID;
 		COLORREF color;
 		STYLE style;
 	public:
@@ -232,9 +232,7 @@ namespace GDI
 		}
 	};
 
-	COLORREF SetWinPixel(int x, int y, COLORREF color);
-
-	inline COLORREF SetWinPixel(int x, int y, COLORREF color) { return SetPixel(hdc, x, y, color); }
+	inline COLORREF SetPixel(int x, int y, COLORREF color) { return ::SetPixel(hdc, x, y, color); }
 
 	inline bool MoveTo(int x, int y, POINT* lastPosition = nullptr) { return MoveToEx(hdc, x, y, lastPosition); }
 

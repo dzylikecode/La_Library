@@ -1,6 +1,7 @@
 #include "La_GameBox.h"
 #include <windowsx.h>
 #include "La_WinGDI.h"
+#include "La_Graphic.h"
 
 namespace
 {
@@ -30,7 +31,7 @@ namespace
 }
 
 
-GAMEBox::GAMEBox():bCreated(false),bExit(false),bWindowed(true),bDX(true)
+GAMEBox::GAMEBox() :bCreated(false), bExit(false), bWindowed(true), bDX(true)
 {
 	wndclassEx.cbSize = sizeof(WNDCLASSEX);
 	wndclassEx.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -160,19 +161,20 @@ bool GAMEBox::create(int width, int height, LPCTSTR title, bool bTopLeft)
 	}
 	// show the window, so there's no garbage on first render
 	ShowWindow(hwnd, SW_SHOW);
-
-	GDI::InitializeGDI(hwnd);
+	if (bWindowed)
+	{
+		GDI::InitializeGDI(hwnd);
+	}
 	/*Initialize_Clock();
 	Initialize_WinGDI(LaDzy_global_hwnd);
 	Initialize_Mathematic();
 	Initialize_Input(LaDzy_global_hInstance, LaDzy_global_hwnd);
 	Initialize_Audio(LaDzy_global_hwnd);
-
+	*/
 	if (bDX)
 	{
-		Initialize_Graphics(LaDzy_global_hwnd, iWidth, iHeight, bWindowed);
-	}*/
-
+		GRAPHIC::InitializeGraphics(hwnd, iWidth, iHeight, bWindowed);
+	}
 
 	bCreated = true;
 	return true;

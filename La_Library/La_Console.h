@@ -165,7 +165,7 @@ public:
 		COORD size = { width, height };
 		return SetConsoleScreenBufferSize(hOutput, size);
 	}
-	bool resize(SHORT x, SHORT y, int width, int height)
+	bool resize(SHORT x, SHORT y, SHORT width, SHORT height)
 	{
 		SMALL_RECT rc = { x, y, width, height };
 		SetConsoleWindowInfo(hOutput, true, &rc);
