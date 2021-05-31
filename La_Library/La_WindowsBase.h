@@ -75,15 +75,17 @@ int MessageBoxPrintf(const TCHAR* szCaption, UINT uType, const TCHAR* szFormat, 
 
 
 WSTRING& AToW(__in LPCCH pszInBuf, WSTRING& result);
-inline WSTRING  AToW(__in LPCCH pszInBuf)
+inline WSTRING&  AToW(__in LPCCH pszInBuf)
 {
-	WSTRING temp;
+	static WSTRING temp; //很容易消失啊，果然还是要用 static
+	temp.clear();
 	return AToW(pszInBuf, temp);
 }
 ASTRING& WToA(__in LPCWCH pszInBuf, ASTRING& result);
 inline ASTRING& WToA(__in LPCWCH pszInBuf)
 {
-	ASTRING temp;
+	static ASTRING temp;
+	temp.clear();
 	return WToA(pszInBuf, temp);
 }
 
@@ -91,9 +93,10 @@ inline WSTRING& WToW(__in LPCWCH pszInBuf, WSTRING& result)
 {
 	return result = pszInBuf;
 }
-inline WSTRING  WToW(__in LPCWCH pszInBuf)
+inline WSTRING&  WToW(__in LPCWCH pszInBuf)
 {
-	WSTRING temp;
+	static WSTRING temp;
+	temp.clear();
 	return temp = pszInBuf;
 }
 
@@ -101,9 +104,10 @@ inline ASTRING& AToA(__in LPCCH pszInBuf, ASTRING& result)
 {
 	return result = pszInBuf;
 }
-inline ASTRING WToW(__in LPCCH pszInBuf)
+inline ASTRING& AToA(__in LPCCH pszInBuf)
 {
-	ASTRING temp;
+	static ASTRING temp;
+	temp.clear();
 	return temp = pszInBuf;
 }
 

@@ -5,20 +5,38 @@
 #include "La_Windows.h"
 #include "La_WinGDI.h"
 #include "La_GameBox.h"
+#include "La_Graphic.h"
 
 using namespace std;
 
+#define randColor	RGB_DX(rand()%256, rand()%256, rand()%256)
+
+GRAPHIC::SURFACE backGround;
+void StartUp(void)
+{
+	backGround.createFromBitmap(TEXT("landscape1_24.bmp"));
+	//backGround.scroll(0, 30);
+}
+
+GAMEBox gameBox;
+
 void GameBody(void)
 {
-	GDI::winOut(30, 0) << TEXT("Hello, World") << GDI::end;
-	GDI::DrawCircle(RGB(0, 255, 255), 90, 30, 30);
+	if (KEY_DOWN(VK_ESCAPE))
+		gameBox.exitFromGameBody();
+	/*GRAPHIC::BeginDrawOn();
+	for (int i = 0; i < 1000; i++)
+		GRAPHIC::graphicOut(rand() % 640, rand() % 480, randColor);
+	GRAPHIC::EndDrawOn();*/
+	backGround.drawOn(0, 0);
+	GRAPHIC::Flush();
 }
 
 int main(int argc, char* argv[])
 {
-	GAMEBox gameBox;
+	gameBox.setWndMode(false, true);
 	gameBox.create(640, 480, TEXT("Äêºó"));
-	
+	gameBox.setGameStart(StartUp);
 	gameBox.setGameBody(GameBody);
 	gameBox.startCommuication();
 	return argc;

@@ -145,6 +145,7 @@
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_File.h" />
     <ClInclude Include="La_GameBox.h" />
+    <ClInclude Include="La_GeometryBase.h" />
     <ClInclude Include="La_Graphic.h" />
     <ClInclude Include="La_GraphicBase.h" />
     <ClInclude Include="La_Log.h" />

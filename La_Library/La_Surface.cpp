@@ -16,6 +16,9 @@ namespace GRAPHIC
 		LPDIRECTDRAWSURFACE7 lpddsprimary = nullptr;
 		LPDIRECTDRAWCLIPPER  lpddclipper = nullptr;
 		LPDIRECTDRAWCLIPPER  lpddclipperwin = nullptr;
+
+		bool windowed = true;
+		HWND globalHwnd;
 	}
 	
 	extern LPDIRECTDRAW7		  lpdd7;
@@ -200,6 +203,8 @@ namespace GRAPHIC
 		}
 
 		bInitialize_Graphics = true;
+		windowed = bWindowed;
+		globalHwnd = hwnd;
 
 		return true;
 	}
@@ -230,6 +235,7 @@ namespace GRAPHIC
 					lpddsback->Release();
 					lpddsback = nullptr;
 				}*/
+				graphicOut.clear(); //还是要注意顺序嘛，要在这个时机释放
 
 				if (lpddsprimary)
 				{
@@ -247,5 +253,73 @@ namespace GRAPHIC
 	}graphicMaster;
 
 
+	void Flush()
+	{
+		//必须解锁才可以
+		if (!windowed)//full screen 可以使用页面交换技术
+		{
+			//nullptr 是和主表面关联的后备缓冲
+			//也可指向另外一个表面
+			//默认是1次垂直逆程，可以（| DDFLIP_INTERVAL2) 2次
+			//什么鬼东西，这么慢
+			/*while (FAILED(lpddsprimary->Flip(nullptr, DDFLIP_WAIT)))
+				continue;*/
+				/*lpddsprimary->Flip(nullptr, DDFLIP_WAIT);*/
+
+
+					//反正关联的是背面的裁剪器，与前表面无关，直接 fast
+					/*RECT source_rect = { 0, 0, width, height };
+					lpddsprimary->BltFast(0, 0, lpddsback, &source_rect, DDBLTFAST_WAIT);*/
+					//-----------裂开，没 blt Fast 多少
+
+
+				//不知道为什么最右边会有一条细细的颜色 如果用 nullptr
+				//觉得用这个也是多此一举啊，因为我设置的表面宽度，裁剪宽度，以及
+				//画线的软件宽度就是这么大呀，真不知道最边上的那些像素哪儿来的
+				//RECT source_rect = { min_clip_x, min_clip_y, max_clip_x, max_clip_y };
+			lpddsprimary->Blt(nullptr, lpddsback, nullptr, DDBLT_WAIT, nullptr);
+
+		}
+		else
+		{
+			//Windows mode 采用blt
+			RECT dest_rect;
+			POINT point = { 0, 0 };
+			//获得客户区所在的位置
+			ClientToScreen(globalHwnd, &point);
+			//将后备缓冲坐标转化
+			dest_rect.left = point.x;
+			dest_rect.top = point.y;
+
+			dest_rect.right = dest_rect.left + graphicOut.getWidth();
+			dest_rect.bottom = dest_rect.top + graphicOut.getHeight();
+#if LADZY_DEBUG
+			//裁剪器在主表面，用 blt
+			if (FAILED(lpddsprimary->Blt(&dest_rect, lpddsback, nullptr, DDBLT_WAIT, nullptr)))
+			{
+				ERROR_MSG(ERR, TEXT("Blt Failed!"));
+				return;
+			}
+#else
+			lpddsprimary->Blt(&dest_rect, lpddsback, nullptr, DDBLT_WAIT, nullptr);
+#endif
+		}
+
+	}
+
+
+	void WaitForVsync(void)
+	{
+#if LADZY_DEBUG
+		//使得系统等待，直到下一个垂直空白周期开始（当光栅化到底部时）
+		if (FAILED(lpdd7->WaitForVerticalBlank(DDWAITVB_BLOCKBEGIN, 0)))
+		{
+			ERROR_MSG(ERR, TEXT("Can't Wait For V sync"));
+			return;
+		}
+#else
+		lpdd7->WaitForVerticalBlank(DDWAITVB_BLOCKBEGIN, 0);
+#endif
+	}
 }
 

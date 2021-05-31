@@ -73,6 +73,9 @@
     <Filter Include="头文件\Graphic\Base">
       <UniqueIdentifier>{4a92f177-4ac1-40e4-94a3-0773bc39c4ca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Graphic\geometry">
+      <UniqueIdentifier>{558f512e-e947-4889-9874-b1f7950cc860}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -133,7 +136,10 @@
       <Filter>头文件\Graphic\Base</Filter>
     </ClInclude>
     <ClInclude Include="La_Surface.h">
-      <Filter>头文件\Graphic</Filter>
+      <Filter>头文件\Graphic\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_GeometryBase.h">
+      <Filter>头文件\Graphic\geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
