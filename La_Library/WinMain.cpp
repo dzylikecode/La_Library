@@ -35,6 +35,7 @@ void GameBody(void)
 
 int main(int argc, char* argv[])
 {
+	GRAPHIC::aniSTRING aniString = GRAPHIC::InitAniString(0, 1);
 	//gameBox.setWndMode(false, true);
 	gameBox.create(640, 480, TEXT("Äêºó"));
 	gameBox.setGameStart(StartUp);

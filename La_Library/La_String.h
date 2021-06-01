@@ -33,7 +33,7 @@ public:
 	STRING(const T* source) :length(0) { *this += source; }//可以类型转化，相当于等于
 	STRING(const STRING<T>& source) :ARRAY<T>(source) { length = source.length; }
 	STRING(int len) :ARRAY<T>(len + 1), length(len + 1) { zero(); }
-	bool isEnd(cosnt T* word) { return word == endFlag; }
+	bool isEnd(const T word) { return word == endFlag; }
 	int getLength(void)const { return length; }
 	void UpdateLen() { length = getLength(*this); }//当使用指针往里面写字符的时候不会更新 length ，需要自己手动
 	int getLength(const T* source)
@@ -47,7 +47,7 @@ public:
 			i++;
 		return i;
 	}
-	STRING<T>& operator+=(const T* source)//可以类型转化,故不需要用类接受参数
+	STRING<T, endFlag>& operator+=(const T* source)//可以类型转化,故不需要用类接受参数
 	{
 		length = getLength(*this);
 		int newSize = length + getLength(source) + 1;
@@ -58,12 +58,12 @@ public:
 		length = newSize - 1;
 		return *this;
 	}
-	friend STRING<T> operator+(const T* source, const STRING<T>& sourceString)
+	friend STRING<T, endFlag> operator+(const T* source, const STRING<T, endFlag>& sourceString)
 	{
 		return sourceString + source;
 	}
-	STRING<T>  operator+ (const T* source) { STRING<T> temp = *this; return temp += source; }
-	STRING<T>& operator<<(const T* source)
+	STRING<T, endFlag>  operator+ (const T* source) { STRING<T, endFlag> temp = *this; return temp += source; }
+	STRING<T, endFlag>& operator<<(const T* source)
 	{
 		return (*this += source);
 	}
@@ -112,12 +112,12 @@ public:
 				return false;
 		return true;
 	}
-	friend bool operator==(const T* target, const STRING<T>& source)
+	friend bool operator==(const T* target, const STRING<T, endFlag>& source)
 	{
 		return source == target;
 	}
 	bool operator!=(const T* target) { return !(*this == target); }
-	friend bool operator!=(const T* target, const STRING<T>& source)
+	friend bool operator!=(const T* target, const STRING<T, endFlag>& source)
 	{
 		return source != target;
 	}
