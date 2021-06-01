@@ -12,7 +12,9 @@ namespace
 
 namespace GDI
 {
-	HDC hdc;
+	HDC hdcCur;
+	HDC hdcGDI;
+	HDC hdcOld;
 
 	WINOut winOut;
 
@@ -24,7 +26,7 @@ namespace GDI
 		}
 		
 		hwndGDI = hwnd;
-		hdc = GetDC(hwndGDI);
+		hdcOld = hdcCur = hdcGDI = GetDC(hwndGDI);
 		//默认是透明色嘛
 		SetWinBKMode(true);
 		SetWinTextColor(RGB(0, 255, 255));
@@ -32,7 +34,7 @@ namespace GDI
 		bInitialize_GDI = true;
 	}
 
-	bool WinPrintf(COLORREF color, int x, int y, LPCTSTR string, ...)
+	bool WinPrintf(int x, int y, COLORREF color, LPCTSTR string, ...)
 	{
 		TCHAR buffer[MAX_BUFFER];
 
@@ -40,7 +42,7 @@ namespace GDI
 
 		SetWinTextColor(color);
 
-		return TextOut(hdc, x, y, buffer, lstrlen(buffer));
+		return TextOut(hdcCur, x, y, buffer, lstrlen(buffer));
 	}
 
 	bool WinPrintf(int x, int y, LPCTSTR string, ...)
@@ -49,7 +51,7 @@ namespace GDI
 
 		GetVariableArgument(buffer, MAX_BUFFER, string);
 
-		return TextOut(hdc, x, y, buffer, lstrlen(buffer));
+		return TextOut(hdcCur, x, y, buffer, lstrlen(buffer));
 	}
 
 	int PEN::curPenID = 0;
@@ -70,7 +72,7 @@ namespace GDI
 		{
 			if (bInitialize_GDI)
 			{
-				ReleaseDC(hwndGDI, hdc);
+				ReleaseDC(hwndGDI, hdcGDI);
 			}
 		}
 	}gdiMaster;

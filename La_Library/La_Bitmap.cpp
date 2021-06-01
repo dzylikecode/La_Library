@@ -50,8 +50,8 @@ namespace GRAPHIC
 		clear();
 
 		UCHAR* temp_buffer = new UCHAR[bitmapinfoheader.biSizeImage];
-		//获得图形的大小而非图片的大小
-		ULONGLONG bitmap_image_square = bitmapinfoheader.biWidth * bitmapinfoheader.biHeight;
+		//获得图形的大小而非图片的大小, 担心溢出好吧
+		UINT bitmap_image_square = bitmapinfoheader.biWidth * bitmapinfoheader.biHeight;
 
 		buffer = new COLOR[bitmap_image_square];
 		if (!temp_buffer || !buffer)
@@ -135,6 +135,7 @@ namespace GRAPHIC
 		}
 		//完成转化，需要修改信息
 		bitmapinfoheader.biBitCount = 8 * sizeof(COLOR);
+		bitmapinfoheader.biSizeImage = getWidth() * getHeight() * sizeof(COLOR);
 
 		delete[] temp_buffer;
 

@@ -321,5 +321,47 @@ namespace GRAPHIC
 		lpdd7->WaitForVerticalBlank(DDWAITVB_BLOCKBEGIN, 0);
 #endif
 	}
+
+
+
+/// <summary>
+/// 在某一区域范围扫面是否存在某个区间的颜色
+/// </summary>
+/// <param name="scan_start">
+/// 颜色区间的开端
+/// </param>
+/// <param name="scan_end">
+/// 颜色区间的结尾
+/// </param>
+	bool ScanColor(int x1, int y1, int x2, int y2, COLORREF scan_start, COLORREF scan_end, SURFACE* surface)
+	{
+		surface = INCLUDE_NULL_SURFACE(surface);
+		//扫面的范围
+		//clip rectangle
+		x1 = max(min_clip_x, min(max_clip_x, x1));
+		x2 = max(min_clip_x, min(max_clip_x, x2));
+
+		y1 = max(min_clip_y, min(max_clip_y, y1));
+		y2 = max(min_clip_y, min(max_clip_y, y2));
+
+		//开始探测的区域
+		int scan_lpitch = surface->getLpitch();
+		COLOR* scan_buffer = surface->getMemory() + y1 * scan_lpitch;
+
+		for (int scan_y = y1; scan_y <= y2; scan_y++)
+		{
+			for (int scan_x = x1; scan_x <= x2; scan_x++)
+			{
+				if (scan_buffer[scan_x] >= scan_start && scan_buffer[scan_x] <= scan_end)
+				{
+					return true;
+				}
+			}
+
+			scan_buffer += scan_lpitch;
+		}
+
+		return false;
+	}
 }
 

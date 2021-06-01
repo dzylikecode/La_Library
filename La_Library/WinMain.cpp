@@ -10,12 +10,13 @@
 using namespace std;
 
 #define randColor	RGB_DX(rand()%256, rand()%256, rand()%256)
+#define RED			RGB_DX(255, 0, 0)
 
 GRAPHIC::SURFACE backGround;
+FRAMECounter fpsSet;
 void StartUp(void)
 {
-	backGround.createFromBitmap(TEXT("landscape1.bmp"));
-	//backGround.scroll(0, 30);
+
 }
 
 GAMEBox gameBox;
@@ -24,12 +25,12 @@ void GameBody(void)
 {
 	if (KEY_DOWN(VK_ESCAPE))
 		gameBox.exitFromGameBody();
-	/*GRAPHIC::BeginDrawOn();
-	for (int i = 0; i < 1000; i++)
-		GRAPHIC::graphicOut(rand() % 640, rand() % 480, randColor);
-	GRAPHIC::EndDrawOn();*/
-	backGround.drawOn(0, 0);
-	GRAPHIC::Flush();
+
+	GRAPHIC::BeginDrawOn();
+	GRAPHIC::DrawLine(-10, -10, 240, 240, RED);
+	GRAPHIC::EndDrawOn();
+	fpsSet.adjust();
+	GRAPHIC::Flush();  //在此之前必须关闭 GDI 要不然 无法切换
 }
 
 int main(int argc, char* argv[])

@@ -141,7 +141,7 @@ public:
 * 是为方便 current 和 preview 
 */
 template <typename T>
-class LINKEDLIST 
+class LINKEDList 
 {
 private:
 	NODE<T>* front, * rear; //表头和表尾指针
@@ -157,10 +157,10 @@ private:
 	}
 	void freeNode(NODE<T>* p); //释放节点
 
-	void copy(const LINKEDLIST<T>& L); //将链表L复制到当前表（假设当前表为空），被复制构造函数和operator=调用
+	void copy(const LINKEDList<T>& L); //将链表L复制到当前表（假设当前表为空），被复制构造函数和operator=调用
 
 public:
-	LINKEDLIST()//构造函数
+	LINKEDList()//构造函数
 	{
 		front = new NODE<T>();
 		rear = new NODE<T>();
@@ -170,14 +170,14 @@ public:
 		size = 0; //不计算front和rear
 		position = 0; //在front下一个元素视为0
 	}
-	LINKEDLIST(const LINKEDLIST<T>& L) { copy(L); } //复制构造函数
-	~LINKEDLIST() //析构函数
+	LINKEDList(const LINKEDList<T>& L) { copy(L); } //复制构造函数
+	~LINKEDList() //析构函数
 	{
 		clear();
 		delete front;
 		delete rear;
 	}
-	LINKEDLIST<T>& operator = (const LINKEDLIST<T>& L) //重载赋值运算符
+	LINKEDList<T>& operator = (const LINKEDList<T>& L) //重载赋值运算符
 	{
 		if (this != &L)
 		{
@@ -299,11 +299,11 @@ public:
 	void clear(); //清空链表：释放所有节点的内存空间，被析构函数和operator=使用
 
 	const T& operator[](int i)const;
-	T& operator[](int i) { return const_cast<T&>((*static_cast<const LINKEDLIST*>(this))[i]); }
+	T& operator[](int i) { return const_cast<T&>((*static_cast<const LINKEDList*>(this))[i]); }
 };
 
 template <class T>
-const T& LINKEDLIST<T>::operator[](int pos)const
+const T& LINKEDList<T>::operator[](int pos)const
 {
 	assert(pos >= 0 && pos < size);
 	int i = 0;
@@ -318,7 +318,7 @@ const T& LINKEDLIST<T>::operator[](int pos)const
 
 //释放节点
 template <class T>
-void LINKEDLIST<T>::freeNode(NODE<T>* p)
+void LINKEDList<T>::freeNode(NODE<T>* p)
 {
 	NODE<T>* temp = front;
 	while (temp->next != p) 
@@ -344,7 +344,7 @@ void LINKEDLIST<T>::freeNode(NODE<T>* p)
 
 //将链表L复制到当前表（假设当前表为空），被复制构造函数和operator=调用
 template <class T>
-void LINKEDLIST<T>::copy(const LINKEDLIST<T>& L) 
+void LINKEDList<T>::copy(const LINKEDList<T>& L) 
 {
 	NODE<T>* temp = L.front, * ptr = front;
 	while (temp != L.rear) 
@@ -361,7 +361,7 @@ void LINKEDLIST<T>::copy(const LINKEDLIST<T>& L)
 
 //初始化游标的位置
 template <class T>
-void LINKEDLIST<T>::reset(int pos) //初始化游标位置
+void LINKEDList<T>::reset(int pos) //初始化游标位置
 { 
 	assert(pos >= 0 && pos <= size);//允许到 size 是因为 insertAt 和 before
 	int i = 0;
@@ -379,7 +379,7 @@ void LINKEDLIST<T>::reset(int pos) //初始化游标位置
 
 //删除头节点，实质是删除front->next
 template <class T>
-T LINKEDLIST<T>::deleteFront()
+T LINKEDList<T>::deleteFront()
 {
 	assert(front->next != rear);
 	if (prevPtr == front->next)
@@ -399,7 +399,7 @@ T LINKEDLIST<T>::deleteFront()
 
 //清空链表：释放所有节点的内存空间，被析构函数和operator=使用
 template <class T>
-void LINKEDLIST<T>::clear() 
+void LINKEDList<T>::clear() 
 {
 	NODE<T>* temp;
 	while (front->next != rear) 

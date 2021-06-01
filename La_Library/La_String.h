@@ -21,7 +21,7 @@
 
 #include "La_LinearList.h"
 
-template <class T>
+template <class T, int endFlag = 0>
 class STRING :public ARRAY<T>
 {
 private:
@@ -33,17 +33,45 @@ public:
 	STRING(const T* source) :length(0) { *this += source; }//可以类型转化，相当于等于
 	STRING(const STRING<T>& source) :ARRAY<T>(source) { length = source.length; }
 	STRING(int len) :ARRAY<T>(len + 1), length(len + 1) { zero(); }
+	bool isEnd(cosnt T* word) { return word == endFlag; }
 	int getLength(void)const { return length; }
 	void UpdateLen() { length = getLength(*this); }//当使用指针往里面写字符的时候不会更新 length ，需要自己手动
-	int getLength(const T* source);
-	STRING<T>& operator+=(const T* source);//可以类型转化,故不需要用类接受参数
-	friend STRING<T> operator+(const T* source, const STRING<T>& sourceString);
+	int getLength(const T* source)
+	{
+		if (!source)
+		{
+			return 0;
+		}
+		int i = 0;
+		while (!isEnd(*source++))
+			i++;
+		return i;
+	}
+	STRING<T>& operator+=(const T* source)//可以类型转化,故不需要用类接受参数
+	{
+		length = getLength(*this);
+		int newSize = length + getLength(source) + 1;
+		assert(this->ARRAY<T>::resize(newSize));
+		for (int i = length; i < newSize; i++)
+			(*this)[i] = *source++;
+
+		length = newSize - 1;
+		return *this;
+	}
+	friend STRING<T> operator+(const T* source, const STRING<T>& sourceString)
+	{
+		return sourceString + source;
+	}
 	STRING<T>  operator+ (const T* source) { STRING<T> temp = *this; return temp += source; }
 	STRING<T>& operator<<(const T* source)
 	{
 		return (*this += source);
 	}
-	void zero(void);
+	void zero(void)
+	{
+		for (int i = 0; i < this->getSize(); i++)
+			(*this)[i] = endFlag;
+	}
 	void clear(void) { this->ARRAY<T>::clear(); length = 0; }
 
 	//如果比原来的小，那么最后一个字节会变成空字符
@@ -61,7 +89,7 @@ public:
 			//一开始没有字符串，担心 size >= oldSize 时，没处理
 			if (oldSize == 0)
 			{
-				(*this)[0] = '\0';
+				(*this)[0] = endFlag;
 				length = 0;
 				return true;
 			}
@@ -69,78 +97,30 @@ public:
 			if (size < oldSize)
 			{
 				length = oldSize - 1;
-				(*this)[length] = '\0';
+				(*this)[length] = endFlag;
 			}
 		}
 		
 		return false;
 	}
 	bool relength(int len) { return resize(len + 1); }
-	bool operator==(const T* target);
-	friend bool operator==(const T* target, const STRING<T>& source);
-	bool operator!=(const T* target) { return !(*this == target); }
-	friend bool operator!=(const T* target, const STRING<T>& source);
-};
-
-
-template <class T>
-int STRING<T>::getLength(const T* source)
-{
-	if (!source)
+	bool operator==(const T* target)
 	{
-		return 0;
+		const T* temp = *this;
+		while (!isEnd(*target) || !isEnd(*temp))
+			if (*temp++ != *target++)
+				return false;
+		return true;
 	}
-	int i = 0;
-	while (*source++)
-		i++;
-	return i;
-}
-
-template <class T>
-STRING<T>& STRING<T>::operator+=(const T* source)
-{
-	length = getLength(*this);
-	int newSize = length + getLength(source) + 1;
-	assert(this->ARRAY<T>::resize(newSize));
-	for (int i = length; i < newSize; i++)
-		(*this)[i] = *source++;
-
-	length = newSize - 1;
-	return *this;
-}
-template <class T>
-inline STRING<T> operator+(const T* source, const STRING<T>& sourceString)
-{
-	return sourceString + source;
-}
-
-template <class T>
-void STRING<T>::zero(void)
-{
-	for (int i = 0; i < this->getSize(); i++)
-		(*this)[i] = '\0';
-}
-
-template <class T>
-bool STRING<T>::operator==(const T* target)
-{
-	const T* temp = *this;
-	while (*target || *temp)
-		if (*temp++ != *target++)
-			return false;
-	return true;
-}
-
-template <class T>
-inline bool operator==(const T* target, const STRING<T>& source)
-{
-	return source == target;
-}
-
-template <class T>
-inline bool operator!=(const T* target, const STRING<T>& source)
-{
-	return source != target;
-}
+	friend bool operator==(const T* target, const STRING<T>& source)
+	{
+		return source == target;
+	}
+	bool operator!=(const T* target) { return !(*this == target); }
+	friend bool operator!=(const T* target, const STRING<T>& source)
+	{
+		return source != target;
+	}
+};
 
 #endif

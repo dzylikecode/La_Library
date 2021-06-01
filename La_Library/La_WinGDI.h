@@ -24,7 +24,9 @@
 
 namespace GDI
 {
-	extern HDC hdc;
+	extern HDC hdcCur;  //这个是可以更改的
+	extern HDC hdcGDI; //这个是窗口专用的
+	extern HDC hdcOld;
 
 	enum MANIPULATOR
 	{
@@ -43,13 +45,13 @@ namespace GDI
 		WINOut& operator()(int posX, int posY, COLORREF newColor)
 		{
 			x = posX; y = posY;
-			SetTextColor(hdc, newColor);
+			SetTextColor(hdcCur, newColor);
 			return *this;
 		}
 		WINOut& operator<<(LPCTSTR string) { content << string; return *this; }
 		void    operator<<(MANIPULATOR maniputor)
 		{
-			TextOut(hdc, x, y, content, content.getLength());
+			TextOut(hdcCur, x, y, content, content.getLength());
 			content.clear();
 		}
 	};
@@ -58,12 +60,12 @@ namespace GDI
 
 	void InitializeGDI(HWND hwnd);
 
-	bool WinPrintf(COLORREF color, int x, int y, LPCTSTR string, ...);
+	bool WinPrintf(int x, int y, COLORREF color, LPCTSTR string, ...);
 	bool WinPrintf(int x, int y, LPCTSTR string, ...);
-	inline HDC GetHdc() { return hdc; }
-	inline COLORREF SetWinTextColor(COLORREF color) { return SetTextColor(hdc, color); }
-	inline COLORREF SetWinTextBkColor(COLORREF color) { return SetBkColor(hdc, color); }
-	inline int SetWinBKMode(bool bTransparent) { return bTransparent ? SetBkMode(hdc, TRANSPARENT) : SetBkMode(hdc, OPAQUE); }
+	inline HDC GetGDIHDC() { return hdcGDI; }
+	inline COLORREF SetWinTextColor(COLORREF color) { return SetTextColor(hdcCur, color); }
+	inline COLORREF SetWinTextBkColor(COLORREF color) { return SetBkColor(hdcCur, color); }
+	inline int SetWinBKMode(bool bTransparent) { return bTransparent ? SetBkMode(hdcCur, TRANSPARENT) : SetBkMode(hdcCur, OPAQUE); }
 
 
 
@@ -91,11 +93,11 @@ namespace GDI
 		{
 			if (curPenID)
 			{
-				DeleteObject(SelectObject(hdc, CreatePen(style, width, color)));
+				DeleteObject(SelectObject(hdcCur, CreatePen(style, width, color)));
 			}
 			else //说明是系统的
 			{
-				SelectObject(hdc, CreatePen(style, width, color));
+				SelectObject(hdcCur, CreatePen(style, width, color));
 			}
 			int oldID = curPenID;
 			curPenID = ID;
@@ -108,11 +110,11 @@ namespace GDI
 		{
 			if (curPenID)
 			{
-				DeleteObject(SelectObject(hdc, GetStockObject(systemPen)));
+				DeleteObject(SelectObject(hdcCur, GetStockObject(systemPen)));
 			}
 			else //说明是系统的
 			{
-				SelectObject(hdc, GetStockObject(systemPen));
+				SelectObject(hdcCur, GetStockObject(systemPen));
 			}
 			int oldID = curPenID;
 			curPenID = 0;
@@ -137,7 +139,7 @@ namespace GDI
 			//说明当前 ID　被选入了
 			if (curPenID == ID) 
 			{
-				DeleteObject(SelectObject(hdc, GetStockObject(WHITE_PEN)));
+				DeleteObject(SelectObject(hdcCur, GetStockObject(WHITE_PEN)));
 				curPenID = 0; //可能只是局部变量消失了而已，所以要照顾照顾这个变量
 			}
 		}
@@ -172,11 +174,11 @@ namespace GDI
 			{
 				if (style == SOLID)
 				{
-					DeleteObject(SelectObject(hdc, CreateSolidBrush(color)));
+					DeleteObject(SelectObject(hdcCur, CreateSolidBrush(color)));
 				}
 				else
 				{
-					DeleteObject(SelectObject(hdc, CreateHatchBrush(style, color)));
+					DeleteObject(SelectObject(hdcCur, CreateHatchBrush(style, color)));
 				}
 				
 			}
@@ -184,11 +186,11 @@ namespace GDI
 			{
 				if (style == SOLID)
 				{
-					SelectObject(hdc, CreateSolidBrush(color));
+					SelectObject(hdcCur, CreateSolidBrush(color));
 				}
 				else
 				{
-					SelectObject(hdc, CreateHatchBrush(style, color));
+					SelectObject(hdcCur, CreateHatchBrush(style, color));
 				}
 			}
 			int oldID = curBrushID;
@@ -206,12 +208,12 @@ namespace GDI
 		{
 			if (curBrushID)
 			{
-				DeleteObject(SelectObject(hdc, GetStockObject(systemBrush)));
+				DeleteObject(SelectObject(hdcCur, GetStockObject(systemBrush)));
 
 			}
 			else //说明是系统的
 			{
-				SelectObject(hdc, GetStockObject(systemBrush));
+				SelectObject(hdcCur, GetStockObject(systemBrush));
 			}
 			int oldID = curBrushID;
 			curBrushID = 0;
@@ -226,29 +228,29 @@ namespace GDI
 		{
 			if (curBrushID == ID)
 			{
-				DeleteObject(SelectObject(hdc, GetStockObject(BLACK_BRUSH)));
+				DeleteObject(SelectObject(hdcCur, GetStockObject(BLACK_BRUSH)));
 				curBrushID = 0;
 			}
 		}
 	};
 
-	inline COLORREF SetPixel(int x, int y, COLORREF color) { return ::SetPixel(hdc, x, y, color); }
+	inline COLORREF SetPixel(int x, int y, COLORREF color) { return ::SetPixel(hdcCur, x, y, color); }
 
-	inline bool MoveTo(int x, int y, POINT* lastPosition = nullptr) { return MoveToEx(hdc, x, y, lastPosition); }
+	inline bool MoveTo(int x, int y, POINT* lastPosition = nullptr) { return MoveToEx(hdcCur, x, y, lastPosition); }
 
-	inline bool LineTo(int x, int y) { return ::LineTo(hdc, x, y); }
+	inline bool LineTo(int x, int y) { return ::LineTo(hdcCur, x, y); }
 
 	inline void DrawLine(int start_x, int start_y, int end_x, int end_y) { MoveTo(start_x, start_y); LineTo(end_x, end_y); }
 
 	inline void DrawLine(COLORREF color, int start_x, int start_y, int end_x, int end_y) { PEN pen; pen.setColor(color); DrawLine(start_x, start_y, end_x, end_y); }
 
-	inline bool Rectangle(int left, int top, int right, int bottom) { return Rectangle(hdc, left, top, right, bottom); }
+	inline bool Rectangle(int left, int top, int right, int bottom) { return Rectangle(hdcCur, left, top, right, bottom); }
 
 	inline void FrameRect(COLORREF color, const RECT* rect)
 	{
 		HBRUSH temp_brush = CreateSolidBrush(color);
 
-		::FrameRect(hdc, rect, temp_brush);
+		::FrameRect(hdcCur, rect, temp_brush);
 
 		DeleteObject(temp_brush);
 	}
@@ -262,7 +264,7 @@ namespace GDI
 	{
 		HBRUSH temp_brush = CreateSolidBrush(color);
 
-		::FillRect(hdc, rect, temp_brush);
+		::FillRect(hdcCur, rect, temp_brush);
 
 		DeleteObject(temp_brush);
 	}
@@ -278,9 +280,9 @@ namespace GDI
 	inline void Solid(COLORREF color){ static PEN pen; pen.setColor(color); static BRUSH brush; brush.setColor(color); }
 	inline void Hollow(COLORREF color){ static PEN pen; pen.setColor(color); BRUSH::Select(NULL_BRUSH); }
 
-	inline bool DrawEllipse(int left, int top, int right, int bottom) { return ::Ellipse(hdc, left, top, right, bottom); }
-	inline bool DrawEllipse(COLORREF color, int left, int top, int right, int bottom) { Solid(color); return ::Ellipse(hdc, left, top, right, bottom); }
-	inline bool DrawHollowEllipse(COLORREF color, int left, int top, int right, int bottom) { Hollow(color); return ::Ellipse(hdc, left, top, right, bottom); }
+	inline bool DrawEllipse(int left, int top, int right, int bottom) { return ::Ellipse(hdcCur, left, top, right, bottom); }
+	inline bool DrawEllipse(COLORREF color, int left, int top, int right, int bottom) { Solid(color); return ::Ellipse(hdcCur, left, top, right, bottom); }
+	inline bool DrawHollowEllipse(COLORREF color, int left, int top, int right, int bottom) { Hollow(color); return ::Ellipse(hdcCur, left, top, right, bottom); }
 
 	inline bool DrawCircle(COLORREF color, int x, int y, int r)
 	{
@@ -301,9 +303,9 @@ namespace GDI
 		return DrawHollowEllipse(color, left, top, right, bottom);
 	}
 
-	inline bool DrawPolygon(const POINT* point, int count) { return ::Polygon(hdc, point, count); }
-	inline bool DrawPolygon(COLORREF color, const POINT* point, int count) { Solid(color);  return ::Polygon(hdc, point, count); }
-	inline bool DrawHollowPolygon(COLORREF color, const POINT* point, int count) { Hollow(color);  return ::Polygon(hdc, point, count); }
+	inline bool DrawPolygon(const POINT* point, int count) { return ::Polygon(hdcCur, point, count); }
+	inline bool DrawPolygon(COLORREF color, const POINT* point, int count) { Solid(color);  return ::Polygon(hdcCur, point, count); }
+	inline bool DrawHollowPolygon(COLORREF color, const POINT* point, int count) { Hollow(color);  return ::Polygon(hdcCur, point, count); }
 
 
 }

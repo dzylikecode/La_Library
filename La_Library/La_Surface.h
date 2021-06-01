@@ -1,8 +1,34 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/06/01 2:39:55
+*  最后修改: 
+*
+*  简    介: 
+*
+***************************************************************************************
+*/
+
 #pragma once
 #include "La_GraphicBase.h"
 #include "La_Bitmap.h"
 namespace GRAPHIC
 {
+//创建的是离屏表面
+//0 是 默认VRAM内存中
+//DDCAPS_SYSTEMMEMORY 是系统内存
+//也可以创建在显存当中
+#define SURFACE_DEFAULT_M	0
+#define SURFACE_LOCALVIDEO	DDSCAPS_VIDEOMEMORY | DDSCAPS_LOCALVIDMEM
+#define SURFACE_NONLOCALVM	DDSCAPS_VIDEOMEMORY | DDSCAPS_NONLOCALVIDMEM
+
 	extern LPDIRECTDRAWSURFACE7 lpddsback;
 
 	class SURFACE
@@ -15,6 +41,7 @@ namespace GRAPHIC
 		DWORD colorKey;
 		DWORD memoryFlag;
 		int x, y;
+		HDC xdc;
 	public:
 		bool transparent;
 	public:
@@ -37,6 +64,10 @@ namespace GRAPHIC
 		UINT getHeight(void)const { return height; }
 		int  getX(void)const { return x; }
 		int  getY(void)const { return y; }
+		HDC  getDC(void)const { return xdc; }
+	public:
+		HDC  startGDI(void){ lpddS->GetDC(&xdc); return xdc; }
+		void endGDI(void)const{ lpddS->ReleaseDC(xdc); }
 	public:
 		//可以重新设置,但会清空
 		bool create(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag = 0, bool bTransparent = true)
@@ -55,7 +86,7 @@ namespace GRAPHIC
 
 				if (lpitch == width)
 				{
-					memcpy(memory, bitmap.getImage(), width * height * sizeof(COLOR));
+					memcpy(memory, bitmap.getImage(), bitmap.getSizeByte());
 				}
 				else
 				{
@@ -101,6 +132,12 @@ namespace GRAPHIC
 			}
 
 			return createFromBitmap(bitmap, 0);
+		}
+		bool createFromSurface(int iWidth, int iHeight, const SURFACE& source, int x, int y, DWORD dwColorKey = 0)
+		{
+			RECT source_rect = { x, y, x + width - 1, y + height - 1 };
+			create(iWidth, iHeight, dwColorKey, memoryFlag, transparent);
+			lpddS->Blt(nullptr, source.lpddS, &source_rect, DDBLT_WAIT, nullptr);
 		}
 		void fillColor(DWORD color, RECT* rect = nullptr) { FillSurfaceColor(lpddS, color, rect); }
 		void reset(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag, bool bTransparent = false)
@@ -194,7 +231,12 @@ namespace GRAPHIC
 		void drawOn(int x, int y, bool bTransparent = true) { drawOn(x, y, width, height, bTransparent); }
 		void scroll(int dx, int dy)
 		{
-			if (dx == 0 && dy == 0)
+			scrollX(dx);
+			scrollY(dy);
+		}
+		void scrollX(int dx)
+		{
+			if (dx == 0)
 			{
 				return;
 			}
@@ -217,10 +259,22 @@ namespace GRAPHIC
 					dx = -dx;
 					//先移动未超出的，再移动超出的
 					copy(tempsuface, 0, 0, lpddS, dx, 0, width - dx, height);
-					copy(tempsuface,width - dx, 0, lpddS, 0, 0, dx, height);
+					copy(tempsuface, width - dx, 0, lpddS, 0, 0, dx, height);
 
 				}
 			}
+
+			lpddS->Release();
+			lpddS = tempsuface;
+		}
+		void scrollY(int dy)
+		{
+			if (dy == 0)
+			{
+				return;
+			}
+
+			LPDIRECTDRAWSURFACE7 tempsuface = CreateSurface(width, height, colorKey, memoryFlag);
 
 			if (dy != 0)
 			{
@@ -228,7 +282,7 @@ namespace GRAPHIC
 
 				if (dy > 0)
 				{
-					copy(tempsuface, 0, 0, lpddS, 0,height - dy, width, dy);
+					copy(tempsuface, 0, 0, lpddS, 0, height - dy, width, dy);
 					copy(tempsuface, 0, dy, lpddS, 0, 0, width, height - dy);
 				}
 				else
@@ -276,5 +330,11 @@ namespace GRAPHIC
 	bool InitializeGraphics(HWND hwnd, int width, int height, bool bWindowed);
 
 	void Flush();
+
+	bool ScanColor(int x1, int y1, int x2, int y2, COLORREF scan_start, COLORREF scan_end, SURFACE* surface = nullptr);
+	void WaitForVsync(void);
+
+
+	extern int min_clip_x, max_clip_x, min_clip_y, max_clip_y;
 }
 

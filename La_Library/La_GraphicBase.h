@@ -11,7 +11,7 @@
 
 typedef  UINT  COLOR;
 
-#define RGB_DX(r,g,b)          ((COLORREF)(((BYTE)(b)|((WORD)((BYTE)(g))<<8))|(((DWORD)(BYTE)(r))<<16)))
+#define RGB_DX(r,g,b)          ((COLOR)(((BYTE)(b)|((WORD)((BYTE)(g))<<8))|(((COLOR)(BYTE)(r))<<16)))
 #define GetBValue_DX(rgb)      (LOBYTE(rgb))
 #define GetGValue_DX(rgb)      (LOBYTE(((WORD)(rgb)) >> 8))
 #define GetRValue_DX(rgb)      (LOBYTE((rgb)>>16))
@@ -19,7 +19,6 @@ typedef  UINT  COLOR;
 namespace GRAPHIC
 {
 	bool Flip(BYTE* image, int bytes_per_line, int height);
-
 	
 
 	LPDIRECTDRAWSURFACE7 CreateSurface(int width, int height, DWORD colorKey, DWORD surfaceMemoryStyle);
@@ -37,6 +36,21 @@ namespace GRAPHIC
 	}
 	LPDIRECTDRAWCLIPPER SurfaceAttachClipper(LPDIRECTDRAWSURFACE7 lpddsurface, int num_rects, LPRECT clip_list);
 
-
+	inline void MemSetColor(void* dest, COLOR data, int count)
+	{
+		//汇编形式
+		_asm
+		{
+			mov edi, dest;//edi 保留指针
+			mov ecx, count;//多少个32位,不是内存大小
+			mov eax, data;//32位数据
+			rep stosd;
+			/*
+			   SCAS(B/W/D) - to search a byte (word,dword) in memory at ES:DI
+			   CMPS(B/W/D) - to compare blocks of memory: ES:DI against DS:SI
+			   MOVS(B/W/D) - to copy blocks of memory: from DS:SI to ES:DI
+			*/
+		}
+	}
 
 }

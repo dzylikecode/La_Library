@@ -26,7 +26,7 @@
 #pragma comment(lib, "Dbghelp.lib")
 
 typedef NODE<WIN32_FIND_DATA>		fileNODE;
-typedef LINKEDLIST<WIN32_FIND_DATA> winFILELIST;
+typedef LINKEDList<WIN32_FIND_DATA> winFILELIST;
 
 
 namespace winFILEMaster

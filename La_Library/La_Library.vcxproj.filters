@@ -73,8 +73,23 @@
     <Filter Include="头文件\Graphic\Base">
       <UniqueIdentifier>{4a92f177-4ac1-40e4-94a3-0773bc39c4ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Graphic\geometry">
+    <Filter Include="头文件\Graphic\Extend">
+      <UniqueIdentifier>{014e1e08-fe34-4143-beaa-07bb1384b3d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Graphic\Geometry">
       <UniqueIdentifier>{558f512e-e947-4889-9874-b1f7950cc860}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Graphic\Base">
+      <UniqueIdentifier>{a638b767-cc05-4d7a-be21-1e9ac32dff11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Graphic\Extend">
+      <UniqueIdentifier>{3c2c8fa6-5d23-4239-978b-2ff61fbb943e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Graphic\Geometry">
+      <UniqueIdentifier>{38b4753e-4444-415e-9de3-8192bd7bbbcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Math">
+      <UniqueIdentifier>{92076d39-2715-476c-9df6-7e3da1f44605}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -126,9 +141,6 @@
     <ClInclude Include="La_GameBox.h">
       <Filter>头文件\GameBox</Filter>
     </ClInclude>
-    <ClInclude Include="La_Graphic.h">
-      <Filter>源文件\Graphic</Filter>
-    </ClInclude>
     <ClInclude Include="La_GraphicBase.h">
       <Filter>头文件\Graphic\Base</Filter>
     </ClInclude>
@@ -139,7 +151,28 @@
       <Filter>头文件\Graphic\Base</Filter>
     </ClInclude>
     <ClInclude Include="La_GeometryBase.h">
-      <Filter>头文件\Graphic\geometry</Filter>
+      <Filter>头文件\Graphic\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="La_DxWidthGDI.h">
+      <Filter>头文件\Graphic\Extend</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Graphic.h">
+      <Filter>头文件\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="La_MathBase.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Math.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Geometry.h">
+      <Filter>头文件\Graphic\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Polygon.h">
+      <Filter>头文件\Graphic\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Sprite.h">
+      <Filter>头文件\Graphic\Extend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -174,13 +207,22 @@
       <Filter>源文件\WinGDI</Filter>
     </ClCompile>
     <ClCompile Include="La_Bitmap.cpp">
-      <Filter>源文件\Graphic</Filter>
+      <Filter>源文件\Graphic\Base</Filter>
     </ClCompile>
     <ClCompile Include="La_GraphicBase.cpp">
-      <Filter>源文件\Graphic</Filter>
+      <Filter>源文件\Graphic\Base</Filter>
     </ClCompile>
     <ClCompile Include="La_Surface.cpp">
-      <Filter>源文件\Graphic</Filter>
+      <Filter>源文件\Graphic\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Interesting.cpp">
+      <Filter>源文件\Graphic\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="La_GeometryBase.cpp">
+      <Filter>源文件\Graphic\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="La_MathBase.cpp">
+      <Filter>源文件\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
