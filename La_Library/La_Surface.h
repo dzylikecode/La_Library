@@ -64,6 +64,7 @@ namespace GRAPHIC
 		UINT getHeight(void)const { return height; }
 		int  getX(void)const { return x; }
 		int  getY(void)const { return y; }
+		DWORD getColorKey(void)const { return colorKey; }
 		HDC  getDC(void)const { return xdc; }
 	public:
 		HDC  startGDI(void){ lpddS->GetDC(&xdc); return xdc; }
@@ -135,11 +136,13 @@ namespace GRAPHIC
 		}
 		bool createFromSurface(int iWidth, int iHeight, const SURFACE& source, int x, int y, DWORD dwColorKey = 0)
 		{
-			RECT source_rect = { x, y, x + width - 1, y + height - 1 };
-			create(iWidth, iHeight, dwColorKey, memoryFlag, transparent);
+			RECT source_rect = { x, y, x + iWidth - 1, y + iHeight - 1 };
+			bool bRe = create(iWidth, iHeight, dwColorKey, memoryFlag, transparent);
 			lpddS->Blt(nullptr, source.lpddS, &source_rect, DDBLT_WAIT, nullptr);
+			return bRe;
 		}
 		void fillColor(DWORD color, RECT* rect = nullptr) { FillSurfaceColor(lpddS, color, rect); }
+		void fillColor(RECT* rect = nullptr) { fillColor(colorKey, rect); }
 		void reset(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag, bool bTransparent = false)
 		{
 			transparent = bTransparent;

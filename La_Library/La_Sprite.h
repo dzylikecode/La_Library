@@ -70,7 +70,7 @@ namespace GRAPHIC
 		InitializeAniString(0, aniString, rest...);
 		return aniString;
 	}
-
+#define ANIM InitAniString
 	class SPRITE
 	{
 	public:
@@ -93,15 +93,16 @@ namespace GRAPHIC
 	public:
 		SPRITE()
 		{
-			attr = ROUND | VISIBLE;
+			attr = ROUND | VISIBLE | LOOP;
 
-			anim_counter = 0;
-			anim_count_max = 0;
+			anim_counter = anim_count_max = 0;
 
 			x = x;
 			y = y;
 			vx = 0;
 			vy = 0;
+
+			cur_string = cur_word = 0;
 		}
 		void drawOn(SURFACE* surface = nullptr) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, surface); }
 		void drawOn(int sx, int sy, SURFACE* surface = nullptr) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, sx, sy, surface); }
@@ -204,6 +205,6 @@ namespace GRAPHIC
 			return false;
 		}
 		void set(int attrSprite) { SET_BIT(attr, attrSprite); }
-		void deset(int attrSprite) { RESET_BIT(attr, attrSprite); }
+		void reset(int attrSprite) { RESET_BIT(attr, attrSprite); }
 	};
 }

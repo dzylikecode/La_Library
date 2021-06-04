@@ -3,64 +3,6 @@
 
 namespace GRAPHIC
 {
-	//想着是可以放入色素矩阵
-	void Blit_Clipped(int x, int y, int iwidth, int iheight, COLOR* bitmap)
-	{
-		// first do trivial rejections of bitmap, is it totally invisible?
-		if ((x > max_clip_x) || (y > max_clip_y) ||
-			((x + iwidth) < min_clip_x) || ((y + iheight) < min_clip_y))
-			return;
-
-		int x1 = x;
-		int y1 = y;
-		int x2 = x1 + iwidth - 1;
-		int y2 = y1 + iheight - 1;
-
-
-		x1 = max(min_clip_x, x1);
-		y1 = max(min_clip_y, y1);
-		x2 = min(max_clip_x, x2);
-		y2 = min(max_clip_y, y2);
-
-		// now we know to draw only the portions of the bitmap from (x1,y1) to (x2,y2)
-		// compute offsets into bitmap on x,y axes, we need this to compute starting point
-		// to rasterize from
-		int x_off = x1 - x;
-		int y_off = y1 - y;
-
-		// compute number of columns and rows to blit
-		int dx = x2 - x1 + 1;
-		int dy = y2 - y1 + 1;
-
-		COLOR* tempMemory = graphicOut.getMemory();
-		// compute starting address in video_buffer 
-		tempMemory += (x1 + y1 * graphicOut.getLpitch());
-
-		// compute starting address in bitmap to scan data from
-		bitmap += (x_off + y_off * iwidth);
-
-		// at this point bitmap is pointing to the first pixel in the bitmap that needs to
-		// be blitted, and video_buffer is pointing to the memory location on the destination
-		// buffer to put it, so now enter rasterizer loop
-
-		COLOR pixel; // used to read/write pixels
-
-		for (int index_y = 0; index_y < dy; index_y++)
-		{
-			// inner loop, where the action takes place
-			for (int index_x = 0; index_x < dx; index_x++)
-			{
-				// read pixel from source bitmap, test for transparency and plot
-				if ((pixel = bitmap[index_x]))
-					tempMemory[index_x] = pixel;
-
-			}
-			tempMemory += graphicOut.getLpitch();
-			bitmap += iwidth;
-		}
-	}
-
-
 	inline void DarkColor(int& color)
 	{
 		if ((color -= 4) < 0)

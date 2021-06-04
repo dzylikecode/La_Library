@@ -20,4 +20,4 @@ public:
 			sin_look[ang] = sin(theta);
 		}
 	}
-};
+}mathBase;

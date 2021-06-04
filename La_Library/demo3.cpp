@@ -41,7 +41,7 @@ void StartUp(void)
 
 void GameBody(void)
 {
-	
+
 	if (KEY_DOWN(VK_ESCAPE))
 		gameBox.exitFromGameBody();
 

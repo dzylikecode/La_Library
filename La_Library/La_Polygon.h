@@ -65,6 +65,7 @@ namespace GRAPHIC
 				surface);
 		}
 		void translate(int dx, int dy) { xC += dx; yC += dy; }
+		void translate(){ xC += vx; yC += vy; }
 		void rotate(int theta)
 		{
 			theta = DEG_STARDAND(theta);

@@ -44,6 +44,7 @@ namespace TIMEMaster
 			}
 		}
 	};
+	void sleep(int ms);
 }
 
 
@@ -131,5 +132,6 @@ public:
 
 		UINT ms = defaultDt - 1000 / curFrame;
 		Sleep(ms); //暂且不追求什么高性能了 不用自制的 sleep 太占资源了
+		//TIMEMaster::sleep(ms / 2);
 	}
 };

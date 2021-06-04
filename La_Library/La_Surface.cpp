@@ -333,7 +333,7 @@ namespace GRAPHIC
 /// <param name="scan_end">
 /// 颜色区间的结尾
 /// </param>
-	bool ScanColor(int x1, int y1, int x2, int y2, COLORREF scan_start, COLORREF scan_end, SURFACE* surface)
+	bool ScanColor(int x1, int y1, int x2, int y2, COLOR scan_start, COLOR scan_end, SURFACE* surface)
 	{
 		surface = INCLUDE_NULL_SURFACE(surface);
 		//扫面的范围
