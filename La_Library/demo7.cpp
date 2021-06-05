@@ -79,7 +79,7 @@ void StartUp(void)
 	{
 		texture[i].createFromSurface(mapWidth, mapHeight, temp, (i % 4) * (mapWidth + 1) + 1, (i / 4) * (mapHeight + 1) + 1);
 	}
-	
+
 	ResetClipper(0, 0, viewWidth, viewHeight);
 
 
@@ -121,7 +121,7 @@ void GameBody(void)
 	}
 
 	//映射对应的 map 区域
-	int mapLeft = worldX / mapWidth; 
+	int mapLeft = worldX / mapWidth;
 	int mapTop = worldY / mapHeight;
 	int mapRight = mapLeft + viewMapH - 1; //包括了自己
 	int mapBottom = mapTop + viewMapV - 1;
@@ -148,7 +148,7 @@ void GameBody(void)
 		}
 		textureX = offsetX;
 		textureY += mapHeight;
-	} 
+	}
 
 	gPrintf(8, 8, RGB(255, 255, 255), TEXT("USE ARROW KEYS TO MOVE RIGHT & LEFT, <ESC> to Exit."));
 	gPrintf(8, SCREEN_HEIGHT - 32 - 24, RGB_DX(0, 255, 0), TEXT("World Position = [%d, %d]     "), worldX, worldY);

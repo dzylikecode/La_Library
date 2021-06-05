@@ -94,7 +94,7 @@ void GameBody(void)
 	}
 
 	fpsSet.adjust();
-	gPrintf(0, 0, RED, TEXT("%d"), fpsSet.get());
+	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
 	Flush();  //在此之前必须关闭 GDI 要不然 无法切换
 }
 

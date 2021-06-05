@@ -185,9 +185,6 @@
     <ClCompile Include="La_Shell.cpp">
       <Filter>源文件\Windows\Extend</Filter>
     </ClCompile>
-    <ClCompile Include="WinMain.cpp">
-      <Filter>源文件\test</Filter>
-    </ClCompile>
     <ClCompile Include="La_NetWork.cpp">
       <Filter>源文件\Windows\Extend</Filter>
     </ClCompile>
@@ -248,7 +245,13 @@
     <ClCompile Include="demo5.cpp">
       <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="demo6cpp.cpp">
+    <ClCompile Include="demo6.cpp">
+      <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="WinMain.cpp">
+      <Filter>源文件\test</Filter>
+    </ClCompile>
+    <ClCompile Include="demo7.cpp">
       <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
   </ItemGroup>

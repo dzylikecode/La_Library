@@ -142,7 +142,7 @@ void GameBody(void)
 
 	gPrintf(8, 8, RGB_DX(255, 255, 255), TEXT("USE ARROW KEYS TO MOVE RIGHT & LEFT, <ESC> to Exit."));
 	fpsSet.adjust();
-	gPrintf(0, 0, RED, TEXT("%d"), fpsSet.get());
+	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
 	Flush();  //在此之前必须关闭 GDI 要不然 无法切换
 }
 

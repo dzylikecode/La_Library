@@ -337,6 +337,7 @@ namespace GRAPHIC
 	bool ScanColor(int x1, int y1, int x2, int y2, COLOR scan_start, COLOR scan_end, SURFACE* surface = nullptr);
 	void WaitForVsync(void);
 
+	void ResetClipper(int left, int top, int right, int bottom);
 
 	extern int min_clip_x, max_clip_x, min_clip_y, max_clip_y;
 }

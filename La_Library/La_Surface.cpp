@@ -362,5 +362,17 @@ namespace GRAPHIC
 		}
 		return false;
 	}
+
+	void ResetClipper(int left, int top, int right, int bottom)
+	{
+		if (lpddclipper)
+		{
+			lpddclipper->Release();
+			lpddclipper = nullptr;
+		}
+
+		RECT screen_rect = { left, top, right, bottom };
+		lpddclipper = SurfaceAttachClipper(lpddsback, 1, &screen_rect);
+	}
 }
 
