@@ -32,7 +32,7 @@ public:
 	//所以要注意，冒号后面才是初始化
 	STRING(const T* source) :length(0) { *this += source; }//可以类型转化，相当于等于
 	STRING(const STRING<T>& source) :ARRAY<T>(source) { length = source.length; }
-	STRING(int len) :ARRAY<T>(len + 1), length(len + 1) { zero(); }
+	STRING(int len) :ARRAY<T>(len + 1), length(len) { zero(); }
 	bool isEnd(const T word) { return word == endFlag; }
 	int getLength(void)const { return length; }
 	void UpdateLen() { length = getLength(*this); }//当使用指针往里面写字符的时候不会更新 length ，需要自己手动

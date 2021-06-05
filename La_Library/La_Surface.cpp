@@ -360,7 +360,6 @@ namespace GRAPHIC
 
 			scan_buffer += scan_lpitch;
 		}
-
 		return false;
 	}
 }

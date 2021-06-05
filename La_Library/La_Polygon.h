@@ -94,7 +94,7 @@ namespace GRAPHIC
 /// 函数没有裁剪，裁剪后仍是凸多边形
 /// 所以可以凸多边形预处理
 /// </summary>
-		void drallFill(SURFACE* surface = nullptr)
+		void drawFill(SURFACE* surface = nullptr)
 		{
 			surface = INCLUDE_NULL_SURFACE(surface);
 			//从 y 轴方向来看，找到最低的点

@@ -28,13 +28,13 @@
 
 namespace GRAPHIC
 {
-#define ANI_NULL		-1
+#define ANIM_NULL		-1
 	typedef SURFACE						aniPARAPHRASE;
 	typedef ARRAY<aniPARAPHRASE>		aniDICT;
 	typedef int							aniWORD;
-	typedef STRING<aniWORD, ANI_NULL>	aniSTRING;//实际上存放的就是索引
+	typedef STRING<aniWORD, ANIM_NULL>	aniSTRING;//实际上存放的就是索引
 
-#define IS_ANI_NULL(word)			(word == ANI_NULL)
+#define IS_ANIM_NULL(word)			(word == ANIM_NULL)
 
 	//就是一堆的共用 dict 的 string
 	//用几何的观点来看，就是在 （ i ，j ） 点处的含义
@@ -51,7 +51,7 @@ namespace GRAPHIC
 	//这是没有参数时候
 	inline void InitializeAniString(int pos, aniSTRING& aniString)
 	{
-		aniString[pos] = ANI_NULL;
+		aniString[pos] = ANIM_NULL;
 	}
 
 	template <typename T, typename...Args>
@@ -120,7 +120,7 @@ namespace GRAPHIC
 				anim_counter = 0;
 				//move to next frame
 				//循环
-				if (IS_ANI_NULL(content[cur_string][++cur_word]))
+				if (IS_ANIM_NULL(content[cur_string][++cur_word]))
 				{
 					if (attr & LOOP)
 						cur_word = 0;
@@ -129,8 +129,8 @@ namespace GRAPHIC
 				}
 			}
 		}
-		int  getWidth()const { return content(cur_string, cur_string).getWidth(); }
-		int  getHeight()const { return content(cur_string, cur_string).getHeight(); }
+		int  getWidth()const { return content(cur_string, cur_word).getWidth(); }
+		int  getHeight()const { return content(cur_string, cur_word).getHeight(); }
 		void move()
 		{
 			x += vx;
@@ -206,5 +206,7 @@ namespace GRAPHIC
 		}
 		void set(int attrSprite) { SET_BIT(attr, attrSprite); }
 		void reset(int attrSprite) { RESET_BIT(attr, attrSprite); }
+		int  getCurString()const { return cur_string; }
+		int  getCurWord()const { return cur_word; }
 	};
 }

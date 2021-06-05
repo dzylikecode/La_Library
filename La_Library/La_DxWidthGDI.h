@@ -21,7 +21,7 @@ namespace GRAPHIC
 	inline void gPrintf(int x, int y, COLORREF color, LPCTSTR message, ...)
 	{
 		BeginGDI();
-
+		GDI::SetWinBKMode(true);
 		TCHAR buffer[MAX_BUFFER];
 
 		GetVariableArgument(buffer, MAX_BUFFER, message);

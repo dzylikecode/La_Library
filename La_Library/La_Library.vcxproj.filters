@@ -242,6 +242,15 @@
     <ClCompile Include="demo3.cpp">
       <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="demo4.cpp">
+      <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="demo5.cpp">
+      <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="demo6cpp.cpp">
+      <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">

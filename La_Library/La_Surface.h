@@ -114,7 +114,7 @@ namespace GRAPHIC
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
 			BITMAP bitmap;
-			if (bitmap.load(fileName))
+			if (bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("Œﬁ∑®º”‘ÿÕº∆¨£°"));
 				return createFromBitmap(bitmap, dwColorKey);
@@ -126,7 +126,7 @@ namespace GRAPHIC
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
 			BITMAP bitmap;
-			if (!bitmap.load(fileName))
+			if (!bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("Can not load bitmap"));
 				return false;
@@ -334,7 +334,7 @@ namespace GRAPHIC
 
 	void Flush();
 
-	bool ScanColor(int x1, int y1, int x2, int y2, COLORREF scan_start, COLORREF scan_end, SURFACE* surface = nullptr);
+	bool ScanColor(int x1, int y1, int x2, int y2, COLOR scan_start, COLOR scan_end, SURFACE* surface = nullptr);
 	void WaitForVsync(void);
 
 
