@@ -52,9 +52,6 @@
     <Filter Include="源文件\Debug">
       <UniqueIdentifier>{b361e763-36dd-44d6-9bf7-747f7a988cd2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Game">
-      <UniqueIdentifier>{38bb923e-0bde-4b61-b920-0afee70ecd06}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\GameBox">
       <UniqueIdentifier>{4d518aab-5cba-482b-8ca7-9a01010fda0e}</UniqueIdentifier>
     </Filter>
@@ -93,6 +90,18 @@
     </Filter>
     <Filter Include="源文件\test\Graphic">
       <UniqueIdentifier>{c97045c5-e851-4c82-991d-73ded3a532a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Input">
+      <UniqueIdentifier>{517bbf70-4bbf-41f7-9b6d-dd2bfba6038d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Input">
+      <UniqueIdentifier>{2a50e1db-ceed-412a-b623-b38753ce8067}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\GameBox">
+      <UniqueIdentifier>{38bb923e-0bde-4b61-b920-0afee70ecd06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\test\Input">
+      <UniqueIdentifier>{0614ba91-6b2c-455a-a73b-b3ff6e2b1c62}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +189,12 @@
     <ClInclude Include="La_GraphicEx.h">
       <Filter>头文件\Graphic\Extend</Filter>
     </ClInclude>
+    <ClInclude Include="La_InputBase.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Input.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -204,7 +219,7 @@
       <Filter>源文件\Windows\Extend</Filter>
     </ClCompile>
     <ClCompile Include="La_GameBox.cpp">
-      <Filter>源文件\Game</Filter>
+      <Filter>源文件\GameBox</Filter>
     </ClCompile>
     <ClCompile Include="La_WinGDI.cpp">
       <Filter>源文件\WinGDI</Filter>
@@ -253,6 +268,18 @@
     </ClCompile>
     <ClCompile Include="demo7.cpp">
       <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="demo8.cpp">
+      <Filter>源文件\test\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="La_InputBase.cpp">
+      <Filter>源文件\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="demo9.cpp">
+      <Filter>源文件\test\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="demo10.cpp">
+      <Filter>源文件\test\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

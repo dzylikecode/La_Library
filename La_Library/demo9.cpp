@@ -84,7 +84,7 @@ void StartUp(void)
 }
 
 
-enum DIRECT:int
+enum DIRECT :int
 {
 	EAST = 1,
 	WEST = 1 << 1,
@@ -205,7 +205,7 @@ void GameBody(void)
 			skeleton.y -= dirY;
 		}
 	}
-	
+
 	skeleton.bMove = false;
 	skeleton.drawOn();
 

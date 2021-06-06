@@ -1,4 +1,4 @@
-//"绘制色素图形"
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <conio.h>
@@ -149,7 +149,7 @@ void GameBody(void)
 int main(int argc, char* argv[])
 {
 	//gameBox.setWndMode(false, true);
-	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("加载图片"));
+	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("卷轴动画"));
 	gameBox.setGameStart(StartUp);
 	gameBox.setGameBody(GameBody);
 	gameBox.startCommuication();

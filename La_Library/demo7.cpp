@@ -30,11 +30,11 @@ const int viewWidth = viewMapH * mapWidth;
 const int viewHeight = viewMapV * mapHeight;
 
 //世界为视野的 3 * 3倍
-const int viewH = 3;
-const int viewV = 3;
+const int multiViewX = 3;
+const int multiViewY = 3;
 
-const int maxX = viewWidth * (viewH - 1);
-const int maxY = viewHeight * (viewV - 1);
+const int maxX = viewWidth * (multiViewX - 1);
+const int maxY = viewHeight * (multiViewY - 1);
 
 const int moveStep = 4;
 
@@ -42,7 +42,7 @@ const int textureNum = 10;
 
 SURFACE texture[textureNum];
 
-const char* worldMap[viewV * viewMapV] =
+const char* worldMap[multiViewY * viewMapV] =
 {
 "111111111111111111111111111111",
 "100000000000000000000000000001",
@@ -160,7 +160,7 @@ void GameBody(void)
 int main(int argc, char* argv[])
 {
 	//gameBox.setWndMode(false, true);
-	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("加载图片"));
+	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("地图绘制"));
 	gameBox.setGameStart(StartUp);
 	gameBox.setGameBody(GameBody);
 	gameBox.startCommuication();

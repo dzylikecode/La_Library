@@ -151,6 +151,8 @@
     <ClInclude Include="La_Graphic.h" />
     <ClInclude Include="La_GraphicBase.h" />
     <ClInclude Include="La_GraphicEx.h" />
+    <ClInclude Include="La_Input.h" />
+    <ClInclude Include="La_InputBase.h" />
     <ClInclude Include="La_Log.h" />
     <ClInclude Include="La_Math.h" />
     <ClInclude Include="La_MathBase.h" />
@@ -172,6 +174,7 @@
     <ClCompile Include="demo1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="demo10.cpp" />
     <ClCompile Include="demo2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -187,6 +190,13 @@
     <ClCompile Include="demo7.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="demo8.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="demo9.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="La_InputBase.cpp" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Interesting.cpp" />
     <ClCompile Include="La_Bitmap.cpp" />

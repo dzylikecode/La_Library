@@ -2,7 +2,7 @@
 #include <windowsx.h>
 #include "La_WinGDI.h"
 #include "La_Graphic.h"
-
+#include "La_Input.h"
 namespace
 {
 	void La_GameBody(void)
@@ -38,7 +38,7 @@ GAMEBox::GAMEBox() :bCreated(false), bExit(false), bWindowed(true), bDX(true)
 	wndclassEx.lpfnWndProc = WindowProc;
 	wndclassEx.cbClsExtra = 0;
 	wndclassEx.cbWndExtra = 0;
-	wndclassEx.hInstance = GetModuleHandle(nullptr);
+	wndclassEx.hInstance = hInst = GetModuleHandle(nullptr);
 	wndclassEx.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wndclassEx.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclassEx.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
@@ -168,12 +168,12 @@ bool GAMEBox::create(int width, int height, LPCTSTR title, bool bTopLeft)
 	/*Initialize_Clock();
 	Initialize_WinGDI(LaDzy_global_hwnd);
 	Initialize_Mathematic();
-	Initialize_Input(LaDzy_global_hInstance, LaDzy_global_hwnd);
 	Initialize_Audio(LaDzy_global_hwnd);
 	*/
 	if (bDX)
 	{
 		GRAPHIC::InitializeGraphics(hwnd, iWidth, iHeight, bWindowed);
+		INPUT_::InitializeInput(hwnd, hInst);
 	}
 
 	bCreated = true;

@@ -32,7 +32,7 @@ void StartUp(void)
 	solidQuad.yC = SCREEN_HEIGHT / 2;
 	solidQuad.vx = 0;
 	solidQuad.vy = 0;
-	solidQuad.color = GREEN;
+	solidQuad.color = GREEN_GDI;
 }
 
 
