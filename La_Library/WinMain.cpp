@@ -21,193 +21,245 @@ GAMEBox gameBox;
 
 using namespace GRAPHIC;
 
-SURFACE background;
 
-const int gravityVel = 1;
-const COLOR wallColor = RGB_DX(239, 8, 0);
-const int skeletonStep = 2;
+SURFACE pointer;
+SURFACE panel;
+SURFACE canvas;
+const int canvasWidth = 500;
+const int canvasHeight = SCREEN_HEIGHT;
+COLOR palette[256];
 
-class SKELETON :public individeSPRITE
+const int gap = 3;
+const int pointNum = 10;
+
+enum STYLE
+{
+	SPRAY = 0,
+	PENCIL = 1,
+	ERASE = 2,
+	EXIT = 3,
+};
+
+const int paletteWidth = 9;
+const int paletteHeight = 9;
+
+const int palWidthNum = 8;
+const int palHeightNum = 32;
+
+const int paletteGapWidth = 16;
+const int paletteGapHeight = 8;
+
+const int buttonLeft = 500;
+const int buttonRight = 500 + 100;
+const int buttonTop = 344;
+const int buttonBottom = 383 + 34;
+
+const int buttonNum = 4;
+const int buttonWidth = 32;
+const int buttonHeight = 34;
+
+
+class BUTTON
 {
 public:
-	enum DIRECTION :int
-	{
-		EAST = 0,
-		NE = 1,
-		NORTH = 2,
-		NW = 3,
-		WEST = 4,
-		SW = 5,
-		SOUTH = 6,
-		SE = 7,
-	};
-	bool bMove;
-public:
-	SKELETON()
-	{
-		bMove = false;
-	}
-	void setState(DIRECTION dirState) { setAniString(dirState); }
-	void animate() { if (bMove) SPRITE::animate(); }
-	DIRECTION getState()const { return (DIRECTION)getCurString(); }
-}skeleton;
+	BUTTON() :onIcon(icon[0]), offIcon(icon[1]) {};
+	bool state;
+	int x, y;
+	SURFACE icon[2];
+	SURFACE& onIcon;
+	SURFACE& offIcon;
+}button[buttonNum];
 
 using namespace INPUT_;
-KEYBOARD keyboard;
+MOUSE mouse;
 
 void StartUp(void)
 {
-	keyboard.create();
+	//输入的初始化
+	mouse.create();
 
-	TSTRING path = TEXT(".\\Resource\\demo9\\");
-	background.createFromBitmap(path + TEXT("REACTOR2.BMP"));
+	TSTRING path = TEXT(".\\Resource\\demo10\\");
+	SURFACE temp;
+	temp.createFromBitmap(path + TEXT("PAINT.BMP"));
 
-	skeleton.resize(32);
-	skeleton.content.resize(8);
-	for (int i = 0; i < 8; i++)
+	pointer.createFromSurface(buttonWidth, buttonHeight, temp, (0) * (buttonWidth + 1) + 1, (2) * (buttonHeight + 1) + 1);
+
+	for (int i = 0; i < 2 * buttonNum; i++)
 	{
-		SURFACE temp;
-		temp.createFromBitmap(path + TEXT("SKELSP%d.BMP"), i);
-		skeleton[i * 4 + 0].createFromSurface(56, 72, temp, 0 * (56 + 1) + 1, 0 * (72 + 1) + 1);
-		skeleton[i * 4 + 1].createFromSurface(56, 72, temp, 1 * (56 + 1) + 1, 0 * (72 + 1) + 1);
-		skeleton[i * 4 + 2].createFromSurface(56, 72, temp, 2 * (56 + 1) + 1, 0 * (72 + 1) + 1);
-		skeleton[i * 4 + 3].createFromSurface(56, 72, temp, 0 * (56 + 1) + 1, 1 * (72 + 1) + 1);
-		skeleton.content[i] = ANIM(i * 4 + 0, i * 4 + 1, i * 4 + 0, i * 4 + 2);
+		button[i % buttonNum].icon[i / buttonNum].createFromSurface(32, 34, temp, (i % buttonNum) * (32 + 1) + 1, (i / buttonNum) * (34 + 1) + 1);
 	}
-	skeleton.vx = skeleton.vy = 0;
-	skeleton.x = 0;
-	skeleton.y = 128;
-	skeleton.setAniSpeed(12);
+	
+	button[0].state = false;
+	button[1].state = true;
+	button[2].state = false;
+	button[3].state = false;
 
+	button[0].x = 509;
+	button[0].y = 344;
 
+	button[1].x = 559;
+	button[1].y = 344;
+
+	button[2].x = 509;
+	button[2].y = 383;
+
+	button[3].x = 559;
+	button[3].y = 383;
+
+	panel.createFromSurface(104, 424, temp, 150, 0);
+
+	canvas.create(canvasWidth, canvasHeight, 0, false);
+
+	for (int i = 0; i < 256; i++)
+	{
+		palette[i] = randColor;
+	}
+	ShowCursor(false);
 	fpsSet.set(120);
 }
 
 
-enum DIRECT:int
-{
-	EAST = 1,
-	WEST = 1 << 1,
-	NORTH = 1 << 2,
-	SOUTH = 1 << 3,
-	NE = NORTH | EAST,
-	NW = NORTH | WEST,
-	SE = SOUTH | EAST,
-	SW = SOUTH | WEST,
-};
-
-DIRECT direct = EAST;
-
-int dirX = skeletonStep;
-int dirY = 0;
-
 void GameBody(void)
 {
-
 	if (KEY_DOWN(VK_ESCAPE))
 		gameBox.exitFromGameBody();
 
-	background.drawOn(0, 0, false);
+	graphicOut.fillColor();
 
-	keyboard.read();
+	mouse.read();
 
-	if (keyboard[DIK_LEFT])
-	{
-		direct = WEST;
-		dirX = -skeletonStep;
-		skeleton.bMove = true;
-	}
-	else if (keyboard[DIK_RIGHT])
-	{
-		direct = EAST;
-		dirX = skeletonStep;
-		skeleton.bMove = true;
-	}
-	else
-	{
-		dirX = 0;
-	}
+	static int mouseX = 0;
+	static int mouseY = 0;
 
-	if (keyboard[DIK_UP])
-	{
-		direct = DIRECT(direct | NORTH);
-		dirY = -skeletonStep;
-		skeleton.bMove = true;
-	}
-	else if (keyboard[DIK_DOWN])
-	{
-		direct = DIRECT(direct | SOUTH);
-		dirY = skeletonStep;
-		skeleton.bMove = true;
-	}
-	else
-	{
-		dirY = 0;
-	}
+	mouseX += mouse.getX();
+	mouseY += mouse.getY();
 
-	switch (direct)
-	{
-	case EAST:
-		if (skeleton.getState() != SKELETON::EAST)
-			skeleton.setState(SKELETON::EAST);
-		break;
-	case WEST:
-		if (skeleton.getState() != SKELETON::WEST)
-			skeleton.setState(SKELETON::WEST);
-		break;
-	case NORTH:
-		if (skeleton.getState() != SKELETON::NORTH)
-			skeleton.setState(SKELETON::NORTH);
-		break;
-	case SOUTH:
-		if (skeleton.getState() != SKELETON::SOUTH)
-			skeleton.setState(SKELETON::SOUTH);
-		break;
-	case NW:
-		if (skeleton.getState() != SKELETON::NW)
-			skeleton.setState(SKELETON::NW);
-		break;
-	case NE:
-		if (skeleton.getState() != SKELETON::NE)
-			skeleton.setState(SKELETON::NE);
-		break;
-	case SW:
-		if (skeleton.getState() != SKELETON::SW)
-			skeleton.setState(SKELETON::SW);
-		break;
-	case SE:
-		if (skeleton.getState() != SKELETON::SE)
-			skeleton.setState(SKELETON::SE);
-		break;
-	}
-	skeleton.x += dirX;
-	skeleton.y += dirY;
+	mouseX = max(0, min(SCREEN_WIDTH - 1, mouseX));
+	mouseY = max(0, min(SCREEN_HEIGHT - 1, mouseY));
 
-	if (skeleton.bMove)
+	static COLOR pointerCurColor = RGB_DX(0, 255, 0);
+
+	BeginDrawOn();
+	//在画布范围内的时候
+	if (mouseX > gap && mouseX < (canvasWidth - gap) && mouseY>3 && mouseY < (canvasHeight - gap))
 	{
-		skeleton.animate();
-		BeginDrawOn();
-		//当碰到障碍时
-		if (ScanColor(skeleton.x + 16, skeleton.y + 16, skeleton.x + skeleton.getWidth() - 16, skeleton.y + skeleton.getHeight() - 16, wallColor, wallColor))
+		if (mouse.getLButton())
 		{
-			skeleton.x -= dirX;
-			skeleton.y -= dirY;
+			if (button[PENCIL].state)
+			{
+				SetPixel(mouseX, mouseY, pointerCurColor, &canvas);
+				SetPixel(mouseX + 1, mouseY, pointerCurColor, &canvas);
+				SetPixel(mouseX, mouseY + 1, pointerCurColor, &canvas);
+				SetPixel(mouseX + 1, mouseY + 1, pointerCurColor, &canvas);
+			}
+			else
+			{
+				for (int index = 0; index < pointNum; index++)
+				{
+					int sx = mouseX + RAND_RANGE(-8, 9);
+					int sy = mouseY + RAND_RANGE(-8, 9);
+
+					if (sx > 0 && sx < canvasWidth && sy>0 && sy < canvasHeight)
+					{
+						SetPixel(mouseX, mouseY, pointerCurColor, &canvas);
+					}
+				}
+			}
 		}
-		EndDrawOn();
-
-
-		if (skeleton.x < 0 || skeleton.x > SCREEN_WIDTH - skeleton.getWidth())
+		else if (mouse.getRButton()) //表示清除
 		{
-			skeleton.x -= dirX;
-		}
-		if (skeleton.y < 0 || skeleton.y > SCREEN_HEIGHT - skeleton.getHeight())
-		{
-			skeleton.y -= dirY;
+			if (button[PENCIL].state)
+			{
+				SetPixel(mouseX, mouseY, 0, &canvas);
+				SetPixel(mouseX + 1, mouseY, 0, &canvas);
+				SetPixel(mouseX, mouseY + 1, 0, &canvas);
+				SetPixel(mouseX + 1, mouseY + 1, 0, &canvas);
+			}
+			else
+			{
+				for (int index = 0; index < pointNum; index++)
+				{
+					int sx = mouseX + RAND_RANGE(-8, 9);
+					int sy = mouseY + RAND_RANGE(-8, 9);
+
+					if (sx > 0 && sx < canvasWidth && sy>0 && sy < canvasHeight)
+					{
+						SetPixel(mouseX, mouseY, 0, &canvas);
+					}
+				}
+			}
 		}
 	}
-	
-	skeleton.bMove = false;
-	skeleton.drawOn();
+	else if ((mouseX > canvasWidth + paletteGapWidth) && (mouseX < canvasWidth + paletteGapWidth + palWidthNum * paletteWidth) &&
+		mouseY > paletteGapHeight && mouseY < mouseY < paletteGapHeight + palHeightNum * paletteHeight)
+	{
+		if (mouse.getLButton())
+		{
+			int cellX = (mouseX - (canvasWidth + paletteGapWidth)) / paletteWidth;
+			int cellY = (mouseY - (canvasHeight + paletteGapHeight)) / paletteHeight;
+
+			pointerCurColor = palette[cellY * palWidthNum + cellX];
+		}
+	}
+	else if (mouseX > buttonLeft && mouseX < buttonRight && mouseY > buttonTop && mouseY < buttonBottom)
+	{
+		int  cur;
+		for (int cur = 0; cur < buttonNum; cur++)
+		{
+			if (mouseX > button[cur].x && (mouseX < button[cur].x + buttonWidth) &&
+				mouseY > button[cur].y && (mouseY < button[cur].x + buttonHeight))
+			{
+				break;
+			}
+		}
+
+
+		switch (cur)
+		{
+		case SPRAY:
+			if (mouse.getLButton())
+			{
+				button[cur].state = true;
+				//关闭其他的按钮 异或嘛
+				button[PENCIL].state = false;
+			}
+			break;
+		case PENCIL:
+			if (mouse.getLButton())
+			{
+				button[cur].state = true;
+				button[SPRAY].state = false;
+			}
+			break;
+		case ERASE:
+			if (mouse.getLButton())
+			{
+				button[cur].state = true;
+			}
+			else
+			{
+				button[cur].state = false;
+			}
+			break;
+		case EXIT:
+			if (mouse.getLButton())
+			{
+				gameBox.exitFromGameBody();
+			}
+			break;
+		}
+	}
+	EndDrawOn();
+
+	if (button[ERASE].state)
+	{
+		canvas.fillColor();
+	}
+
+	for (int i = 0; i < 256; i++)
+	{
+		DrawRectangle(canvasWidth+ paletteGapWidth)
+	}
 
 	gPrintf(0, 0, RGB(0, 255, 0), TEXT("USE ARROW KEYS TO MOVE, <ESC> to Exit."));
 	gPrintf(0, SCREEN_HEIGHT - 32, RGB(0, 255, 0), TEXT("I STILL HAVE A BONE TO PICK!"));

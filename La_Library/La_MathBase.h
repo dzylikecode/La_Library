@@ -50,7 +50,8 @@ typedef int FIXPOINT;
 #define RAD_TO_DEG(rads) ((REAL)(rads)*(REAL)180/PI)
 #define DEG_STARDAND(ang) ( ((ang%=360) < 0) ? (ang+360):ang)
 
-#define RAND_RANGE(x,y) ( (x) + (rand()%((y)-(x)+1)))
+//Î¬³Ö×ó±ÕÓÒ¿ª
+#define RAND_RANGE(x,y) ( (x) + (rand()%((y)-(x))))
 
 
 // storage for our lookup tables
