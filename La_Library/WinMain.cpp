@@ -68,6 +68,13 @@ public:
 	SURFACE icon[2];
 	SURFACE& onIcon;
 	SURFACE& offIcon;
+	void show()
+	{
+		if (state)
+			onIcon.drawOn(x, y);
+		else
+			offIcon.drawOn(x, y);
+	}
 }button[buttonNum];
 
 using namespace INPUT_;
@@ -139,7 +146,7 @@ void GameBody(void)
 
 	static COLOR pointerCurColor = RGB_DX(0, 255, 0);
 
-	BeginDrawOn();
+	BeginDrawOn(&canvas);
 	//在画布范围内的时候
 	if (mouseX > gap && mouseX < (canvasWidth - gap) && mouseY>3 && mouseY < (canvasHeight - gap))
 	{
@@ -203,7 +210,7 @@ void GameBody(void)
 	}
 	else if (mouseX > buttonLeft && mouseX < buttonRight && mouseY > buttonTop && mouseY < buttonBottom)
 	{
-		int  cur;
+		int  cur = 0;
 		for (int cur = 0; cur < buttonNum; cur++)
 		{
 			if (mouseX > button[cur].x && (mouseX < button[cur].x + buttonWidth) &&
@@ -249,20 +256,32 @@ void GameBody(void)
 			break;
 		}
 	}
-	EndDrawOn();
+	EndDrawOn(&canvas);
 
 	if (button[ERASE].state)
 	{
 		canvas.fillColor();
 	}
+	canvas.drawOn(0, 0, false);
 
 	for (int i = 0; i < 256; i++)
 	{
-		DrawRectangle(canvasWidth+ paletteGapWidth)
+		int left = canvasWidth + paletteGapWidth + (i % 8) * paletteWidth;
+		int top = 8 + (i / 8) * paletteHeight;
+		DrawRectangle(left, top, left + 8, top + 8, palette[i]);
+	}
+	DrawRectangle(533, 306, 533 + 34, 306 + 34, pointerCurColor);
+
+	for (int index = 0; index < buttonNum; index++)
+	{
+		button[index].show();
 	}
 
-	gPrintf(0, 0, RGB(0, 255, 0), TEXT("USE ARROW KEYS TO MOVE, <ESC> to Exit."));
-	gPrintf(0, SCREEN_HEIGHT - 32, RGB(0, 255, 0), TEXT("I STILL HAVE A BONE TO PICK!"));
+	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Paint Version 2.0 - Press <ESC> to Exit."));
+	gPrintf(8, SCREEN_HEIGHT - 16, RGB(0, 255, 0), TEXT("Pointer (%d,%d)"), mouseX, mouseY);
+
+	pointer.drawOn(mouseX - 16, mouseY - 16);
+
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
 	Flush();  //在此之前必须关闭 GDI 要不然 无法切换
