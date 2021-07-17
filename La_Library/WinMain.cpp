@@ -29,7 +29,7 @@ const int canvasWidth = 500;
 const int canvasHeight = SCREEN_HEIGHT;
 COLOR palette[256];
 
-const int gap = 3;
+const int canvasGap = 3;
 const int pointNum = 10;
 
 enum STYLE
@@ -43,26 +43,42 @@ enum STYLE
 const int paletteWidth = 9;
 const int paletteHeight = 9;
 
+//8 * 32 = 256
 const int palWidthNum = 8;
 const int palHeightNum = 32;
 
 const int paletteGapWidth = 16;
 const int paletteGapHeight = 8;
 
-const int buttonLeft = 500;
-const int buttonRight = 500 + 100;
-const int buttonTop = 344;
-const int buttonBottom = 383 + 34;
+//
+const int paletteStartX = canvasWidth + paletteGapWidth;
+const int paletteStartY = paletteGapHeight;
+const int paletteEndX = paletteStartX + palWidthNum * paletteWidth;
+const int paletteEndY = paletteStartY + palHeightNum * paletteHeight;
+
+const int pointerWidth = 32;
+const int pointerHeight = 34;
 
 const int buttonNum = 4;
 const int buttonWidth = 32;
 const int buttonHeight = 34;
 
+//button 的范围
+const int buttonLeft = 500;
+const int buttonRight = 500 + 100;
+const int buttonTop = 344;
+const int buttonBottom = 383 + buttonHeight;
+
+
+const int curColorLeft = 533;
+const int curColorTop = 306;
+const int curColorRight = 533 + 34;
+const int curColorBottom = 306 + 34;
 
 class BUTTON
 {
 public:
-	BUTTON() :onIcon(icon[0]), offIcon(icon[1]) {};
+	BUTTON() :onIcon(icon[1]), offIcon(icon[0]) {};
 	bool state;
 	int x, y;
 	SURFACE icon[2];
@@ -86,7 +102,7 @@ void StartUp(void)
 	mouse.create();
 
 	TSTRING path = TEXT(".\\Resource\\demo10\\");
-	SURFACE temp;
+	SURFACE temp;	
 	temp.createFromBitmap(path + TEXT("PAINT.BMP"));
 
 	pointer.createFromSurface(buttonWidth, buttonHeight, temp, (0) * (buttonWidth + 1) + 1, (2) * (buttonHeight + 1) + 1);
@@ -148,27 +164,27 @@ void GameBody(void)
 
 	BeginDrawOn(&canvas);
 	//在画布范围内的时候
-	if (mouseX > gap && mouseX < (canvasWidth - gap) && mouseY>3 && mouseY < (canvasHeight - gap))
+	if (mouseX > canvasGap && mouseX < (canvasWidth - canvasGap) && mouseY > canvasGap && mouseY < (canvasHeight - canvasGap))
 	{
 		if (mouse.getLButton())
 		{
-			if (button[PENCIL].state)
+			if (button[PENCIL].state)//2*2作为点
 			{
 				SetPixel(mouseX, mouseY, pointerCurColor, &canvas);
 				SetPixel(mouseX + 1, mouseY, pointerCurColor, &canvas);
 				SetPixel(mouseX, mouseY + 1, pointerCurColor, &canvas);
 				SetPixel(mouseX + 1, mouseY + 1, pointerCurColor, &canvas);
 			}
-			else
+			else if(button[SPRAY].state)
 			{
 				for (int index = 0; index < pointNum; index++)
 				{
 					int sx = mouseX + RAND_RANGE(-8, 9);
 					int sy = mouseY + RAND_RANGE(-8, 9);
 
-					if (sx > 0 && sx < canvasWidth && sy>0 && sy < canvasHeight)
+					if (sx > 0 && sx < canvasWidth && sy > 0 && sy < canvasHeight)
 					{
-						SetPixel(mouseX, mouseY, pointerCurColor, &canvas);
+						SetPixel(sx, sy, pointerCurColor, &canvas);
 					}
 				}
 			}
@@ -182,7 +198,7 @@ void GameBody(void)
 				SetPixel(mouseX, mouseY + 1, 0, &canvas);
 				SetPixel(mouseX + 1, mouseY + 1, 0, &canvas);
 			}
-			else
+			else if (button[SPRAY].state)
 			{
 				for (int index = 0; index < pointNum; index++)
 				{
@@ -191,19 +207,18 @@ void GameBody(void)
 
 					if (sx > 0 && sx < canvasWidth && sy>0 && sy < canvasHeight)
 					{
-						SetPixel(mouseX, mouseY, 0, &canvas);
+						SetPixel(sx, sy, 0, &canvas);
 					}
 				}
 			}
 		}
 	}
-	else if ((mouseX > canvasWidth + paletteGapWidth) && (mouseX < canvasWidth + paletteGapWidth + palWidthNum * paletteWidth) &&
-		mouseY > paletteGapHeight && mouseY < mouseY < paletteGapHeight + palHeightNum * paletteHeight)
+	else if ((mouseX > paletteStartX) && (mouseX < paletteEndX) && mouseY > paletteStartY && mouseY < paletteEndY)
 	{
 		if (mouse.getLButton())
 		{
-			int cellX = (mouseX - (canvasWidth + paletteGapWidth)) / paletteWidth;
-			int cellY = (mouseY - (canvasHeight + paletteGapHeight)) / paletteHeight;
+			int cellX = (mouseX - (paletteStartX)) / paletteWidth;
+			int cellY = (mouseY - (paletteStartY)) / paletteHeight;
 
 			pointerCurColor = palette[cellY * palWidthNum + cellX];
 		}
@@ -211,13 +226,14 @@ void GameBody(void)
 	else if (mouseX > buttonLeft && mouseX < buttonRight && mouseY > buttonTop && mouseY < buttonBottom)
 	{
 		int  cur = 0;
-		for (int cur = 0; cur < buttonNum; cur++)
+		while (cur < buttonNum)
 		{
 			if (mouseX > button[cur].x && (mouseX < button[cur].x + buttonWidth) &&
-				mouseY > button[cur].y && (mouseY < button[cur].x + buttonHeight))
+				mouseY > button[cur].y && (mouseY < button[cur].y + buttonHeight))
 			{
 				break;
 			}
+			cur++;
 		}
 
 
@@ -226,7 +242,7 @@ void GameBody(void)
 		case SPRAY:
 			if (mouse.getLButton())
 			{
-				button[cur].state = true;
+				button[SPRAY].state = true;
 				//关闭其他的按钮 异或嘛
 				button[PENCIL].state = false;
 			}
@@ -234,18 +250,18 @@ void GameBody(void)
 		case PENCIL:
 			if (mouse.getLButton())
 			{
-				button[cur].state = true;
+				button[PENCIL].state = true;
 				button[SPRAY].state = false;
 			}
 			break;
 		case ERASE:
 			if (mouse.getLButton())
 			{
-				button[cur].state = true;
+				button[ERASE].state = true;
 			}
 			else
 			{
-				button[cur].state = false;
+				button[ERASE].state = false;
 			}
 			break;
 		case EXIT:
@@ -263,14 +279,14 @@ void GameBody(void)
 		canvas.fillColor();
 	}
 	canvas.drawOn(0, 0, false);
-
+	panel.drawOn(canvasWidth, 0, false);
 	for (int i = 0; i < 256; i++)
 	{
 		int left = canvasWidth + paletteGapWidth + (i % 8) * paletteWidth;
 		int top = 8 + (i / 8) * paletteHeight;
 		DrawRectangle(left, top, left + 8, top + 8, palette[i]);
 	}
-	DrawRectangle(533, 306, 533 + 34, 306 + 34, pointerCurColor);
+	DrawRectangle(curColorLeft, curColorTop, curColorRight, curColorBottom, pointerCurColor);
 
 	for (int index = 0; index < buttonNum; index++)
 	{
@@ -280,7 +296,7 @@ void GameBody(void)
 	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Paint Version 2.0 - Press <ESC> to Exit."));
 	gPrintf(8, SCREEN_HEIGHT - 16, RGB(0, 255, 0), TEXT("Pointer (%d,%d)"), mouseX, mouseY);
 
-	pointer.drawOn(mouseX - 16, mouseY - 16);
+	pointer.drawOn(mouseX - pointerWidth / 2, mouseY - pointerHeight / 2);
 
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
