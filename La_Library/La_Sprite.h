@@ -74,11 +74,10 @@ namespace GRAPHIC
 	class SPRITE
 	{
 	public:
-		const int LOOP = 2;
-		const int ONCE = 8;
-		const int VISIBLE = 16;
-		const int BOUNCE = 32;
-		const int ROUND = 64;
+		static const int LOOP = 2;
+		static const int VISIBLE = 16;
+		static const int BOUNCE = 32;
+		static const int ROUND = 64;
 	public:
 		aniCONTENT content;
 	private:
@@ -210,3 +209,4 @@ namespace GRAPHIC
 		int  getCurWord()const { return cur_word; }
 	};
 }
+

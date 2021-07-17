@@ -56,7 +56,7 @@ void StartUp(void)
 	ship.yC = SCREEN_HEIGHT / 2;
 	ship.vx = 0;
 	ship.vy = 0;
-	ship.color = GREEN;
+	ship.color = GREEN_GDI;
 }
 
 

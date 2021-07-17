@@ -226,6 +226,12 @@ namespace GRAPHIC
 		}
 		SURFACE& operator<<(const COLOR color) { (*this)(x, y, color); return *this; }
 	public:
+		void drawOn(SURFACE& dest, int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
+		{
+			RECT rect = { x, y, x + scaleWidth - 1, y + scaleHeight - 1 };
+			dest.lpddS->Blt(&rect, lpddS, nullptr, transparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT, nullptr);
+		}
+		void drawOn(SURFACE& dest, int x, int y, bool bTransparent = true) { drawOn(dest, x, y, width, height, bTransparent); }
 		void drawOn(int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
 		{
 			RECT rect = { x, y, x + scaleWidth - 1, y + scaleHeight - 1 };
