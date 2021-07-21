@@ -103,8 +103,11 @@
     <Filter Include="源文件\test\Input">
       <UniqueIdentifier>{0614ba91-6b2c-455a-a73b-b3ff6e2b1c62}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Audio">
+    <Filter Include="头文件\Audio">
       <UniqueIdentifier>{7654953e-44f5-4ab6-a9b1-ce10ad3f47d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Audio">
+      <UniqueIdentifier>{cd805c62-b86e-43d3-8f47-fd2292613bb8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -199,7 +202,10 @@
       <Filter>头文件\Input</Filter>
     </ClInclude>
     <ClInclude Include="dmusici.h">
-      <Filter>源文件\Audio</Filter>
+      <Filter>头文件\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="La_AudioBase.h">
+      <Filter>头文件\Audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -289,6 +295,9 @@
     </ClCompile>
     <ClCompile Include="demo11.cpp">
       <Filter>源文件\test\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="La_AudioBase.cpp">
+      <Filter>源文件\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

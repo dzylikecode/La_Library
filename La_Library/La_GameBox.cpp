@@ -3,6 +3,7 @@
 #include "La_WinGDI.h"
 #include "La_Graphic.h"
 #include "La_Input.h"
+#include "La_AudioBase.h"
 namespace
 {
 	void La_GameBody(void)
@@ -168,12 +169,12 @@ bool GAMEBox::create(int width, int height, LPCTSTR title, bool bTopLeft)
 	/*Initialize_Clock();
 	Initialize_WinGDI(LaDzy_global_hwnd);
 	Initialize_Mathematic();
-	Initialize_Audio(LaDzy_global_hwnd);
 	*/
 	if (bDX)
 	{
 		GRAPHIC::InitializeGraphics(hwnd, iWidth, iHeight, bWindowed);
 		INPUT_::InitializeInput(hwnd, hInst);
+		AUDIO::InitializeAudio(hwnd);
 	}
 
 	bCreated = true;
