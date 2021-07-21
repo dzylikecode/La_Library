@@ -25,7 +25,11 @@
 ***************************************************************************************
 */
 #pragma once
-#include "La_Windows.h"
+#define  _CRT_SECURE_NO_WARNINGS
+#ifndef INITGUID
+#define INITGUID  //使用一些预定义好的 guid
+#endif
+#include <windows.h>
 #include <windowsx.h> 
 #include <mmsystem.h>
 #include <dsound.h>
@@ -33,7 +37,7 @@
 #include <dmusics.h>
 #include <dmksctrl.h>
 #include "dmusici.h"
-
+#include "La_Windows.h"
 
 //DSBCAPS_CTRLPAN      //平衡控制
 //DSBCAPS_CTRLVOLUME   //音量控制
@@ -66,7 +70,7 @@ namespace AUDIO
 		~SOUND() { clear(); }
 		bool create(DWORD size, DWORD dwRate = 11025, WORD iWaveChannels = 1, WORD iAmplitudeSpan = 8);
 		bool create(LPCTCH fileName, ...);
-		void play(bool bLoop) { lpddS->Play(0, 0, bLoop ? DSBPLAY_LOOPING : 0); }
+		void play(bool bLoop = false) { lpddS->Play(0, 0, bLoop ? DSBPLAY_LOOPING : 0); }
 		void stop() { lpddS->Stop(); }
 		/// <summary>
 		/// Initially, the duplicate buffer will have the same parameters as the original buffer. 
@@ -82,14 +86,25 @@ namespace AUDIO
 		/// </summary>
 		void cloneFrom(const SOUND& source);
 	public:
-		DWORD getRate() { return rate; }
-		WORD  getChannels() { return waveChannels; }
-		WORD  getAplitude() { return amplitudeSpan; }
+		DWORD getRate()const { return rate; }
+		WORD  getChannels()const { return waveChannels; }
+		WORD  getAplitude()const { return amplitudeSpan; }
 		bool  isPlaying()
 		{
 			DWORD status;
 			lpddS->GetStatus(&status);
 			return (status == DSBSTATUS_PLAYING) ? true : false;
+		}
+		void* getBuffer1() { return buffer1; }
+		DWORD getLen1()const { return bufferLen1; }
+		void* getBuffer2() { return buffer2; }
+		DWORD getLen2()const { return bufferLen2; }
+	public:
+		void  copyContent(const BYTE* buffer, DWORD size)
+		{
+			CopyMemory(buffer1, buffer, bufferLen1);
+			if (bufferLen1 < size)
+				CopyMemory(buffer2, buffer + bufferLen1, bufferLen2);
 		}
 	public: 
 		friend void BeginComposeOn(SOUND* sound);
@@ -131,24 +146,14 @@ namespace AUDIO
 		IDirectMusicSegmentState* dm_segstate; // the state of the segment
 	public:
 		MUSIC() :dm_segment(nullptr), dm_segstate(nullptr) {};
-		void clear()
-		{
-			if (dm_segment)
-			{
-				//首先卸载数据
-				dm_segment->SetParam(GUID_Unload, -1, 0, 0, (void*)dm_perf);
-				dm_segment->Release();
-				dm_segment = nullptr;
-				dm_segstate = nullptr;
-			}
-		}
+		void clear();
 		~MUSIC() { clear(); }
 	public:
 		bool create(LPCTCH fileName, ...);
 	public:
 		bool isPlaying();
-		bool play();
-		bool stop();
+		void play();
+		void stop();
 	};
 
 

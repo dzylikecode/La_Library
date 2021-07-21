@@ -3,7 +3,7 @@
 #include "La_WinGDI.h"
 #include "La_Graphic.h"
 #include "La_Input.h"
-#include "La_AudioBase.h"
+#include "La_Audio.h"
 namespace
 {
 	void La_GameBody(void)

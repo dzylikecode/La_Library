@@ -109,6 +109,9 @@
     <Filter Include="源文件\Audio">
       <UniqueIdentifier>{cd805c62-b86e-43d3-8f47-fd2292613bb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test\Audio">
+      <UniqueIdentifier>{18e706a8-a14c-4871-8f1f-c00e8229fef5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -207,6 +210,9 @@
     <ClInclude Include="La_AudioBase.h">
       <Filter>头文件\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="La_Audio.h">
+      <Filter>头文件\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -298,6 +304,9 @@
     </ClCompile>
     <ClCompile Include="La_AudioBase.cpp">
       <Filter>源文件\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="demo12.cpp">
+      <Filter>源文件\test\Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

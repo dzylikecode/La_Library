@@ -382,13 +382,24 @@ namespace AUDIO
 
 		return true;
 	}
-	bool MUSIC::isPlaying() { (dm_perf->IsPlaying(dm_segment, nullptr) == S_OK) ? true : false; }
-	bool MUSIC::play()
+	void MUSIC::clear()
+	{
+		if (dm_segment)
+		{
+			//首先卸载数据
+			dm_segment->SetParam(GUID_Unload, -1, 0, 0, (void*)dm_perf);
+			dm_segment->Release();
+			dm_segment = nullptr;
+			dm_segstate = nullptr;
+		}
+	}
+	bool MUSIC::isPlaying() { return(dm_perf->IsPlaying(dm_segment, nullptr) == S_OK) ? true : false; }
+	void MUSIC::play()
 	{
 		//play segment and force tracking of state variable
 		dm_perf->PlaySegment(dm_segment, 0, 0, &dm_segstate);
 	}
-	bool MUSIC::stop(){ dm_perf->Stop(dm_segment, nullptr, 0, 0); }
+	void MUSIC::stop(){ dm_perf->Stop(dm_segment, nullptr, 0, 0); }
 
 	class AUDIOMaster
 	{
