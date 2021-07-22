@@ -299,34 +299,42 @@ namespace AUDIO
 	}
 
 
-	bool MUSIC::create(LPCTCH fileName, ...)
+	bool MUSIC::create(LPCTCH fileName, LPCTCH workDirectory/* = nullptr*/)
 	{
-		//找到文件所在的目录
-		char szDir[MAX_PATH];
-		WCHAR wszDir[MAX_PATH];
-
-		//Gets the current working directory.
-		if (_getcwd(szDir, MAX_PATH) == nullptr)
+		if (!workDirectory)
 		{
-			ERROR_MSG(ERR, TEXT("get current directory failed"));
+			//找到文件所在的目录
+			char szDir[MAX_PATH];
+			WCHAR wszDir[MAX_PATH];
 
-			return false;
+			//Gets the current working directory.
+			if (_getcwd(szDir, MAX_PATH) == nullptr)
+			{
+				ERROR_MSG(ERR, TEXT("get current directory failed"));
+
+				return false;
+			}
+
+			//统一转化为宽字符处理
+			MULTI_TO_WIDE(wszDir, szDir);
+
+			//tell the loader where to look for files
+			if (FAILED(dm_loader->SetSearchDirectory(GUID_DirectMusicAllTypes, wszDir, false)))
+			{
+				ERROR_MSG(ERR, TEXT("Can Not Set Current Directory As Working Directory!"));
+				return false;
+			}
+		}
+		else
+		{
+			if (FAILED(dm_loader->SetSearchDirectory(GUID_DirectMusicAllTypes, TToW(workDirectory), false)))
+			{
+				ERROR_MSG(ERR, TEXT("Can Not Set Current Directory As Working Directory!"));
+				return false;
+			}
 		}
 
-		//统一转化为宽字符处理
-		MULTI_TO_WIDE(wszDir, szDir);
-
-		//tell the loader where to look for files
-		if (FAILED(dm_loader->SetSearchDirectory(GUID_DirectMusicAllTypes, wszDir, false)))
-		{
-			ERROR_MSG(ERR, TEXT("Can Not Set Current Directory As Working Directory!"));
-			return false;
-		}
-
-		TCHAR path[MAX_PATH];
-		GetVariableArgument(path, MAX_PATH, fileName);
-
-		WSTRING wfilename = TToW(path);
+		WSTRING wfilename = TToW(fileName);
 
 
 		DMUS_OBJECTDESC ObjDesc;

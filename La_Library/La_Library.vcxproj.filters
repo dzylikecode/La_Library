@@ -308,6 +308,12 @@
     <ClCompile Include="demo12.cpp">
       <Filter>源文件\test\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="demo13.cpp">
+      <Filter>源文件\test\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="demo14.cpp">
+      <Filter>源文件\test\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">

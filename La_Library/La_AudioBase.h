@@ -149,7 +149,7 @@ namespace AUDIO
 		void clear();
 		~MUSIC() { clear(); }
 	public:
-		bool create(LPCTCH fileName, ...);
+		bool create(LPCTCH fileName, LPCTCH workDirectory = nullptr);
 	public:
 		bool isPlaying();
 		void play();
