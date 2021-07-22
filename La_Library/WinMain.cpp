@@ -10,7 +10,7 @@
 #include "La_GraphicEx.h"
 #include "La_Input.h"
 #include "La_Audio.h"
-#include "resource.h"
+#include ".\\Resource\\demo15\\resource.h"
 
 using namespace std;
 
