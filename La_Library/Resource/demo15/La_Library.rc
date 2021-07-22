@@ -1,0 +1,99 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 中文(简体，中国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "E&xit",                       MENU_FILE_ID_EXIT
+    END
+    POPUP "&Play_MIDI"
+    BEGIN
+        MENUITEM "MIDI FILE 0",                 MENU_PLAY_ID_0
+        MENUITEM "MIDI FILE 1",                 MENU_PLAY_ID_1
+        MENUITEM "MIDI FILE 2",                 MENU_PLAY_ID_2
+        MENUITEM "MIDI FILE 3",                 MENU_PLAY_ID_3
+        MENUITEM "MIDI FILE 4",                 MENU_PLAY_ID_4
+        MENUITEM "MIDI FILE 5",                 MENU_PLAY_ID_5
+        MENUITEM "MIDI FILE 6",                 MENU_PLAY_ID_6
+        MENUITEM "MIDI FILE 7",                 MENU_PLAY_ID_7
+        MENUITEM "MIDI FILE 8",                 MENU_PLAY_ID_8
+        MENUITEM "MIDI FILE 9",                 MENU_PLAY_ID_9
+    END
+    POPUP "Play_DIGITAL"
+    BEGIN
+        MENUITEM "WAV FILE 0",                  MENU_PLAY_ID_10
+        MENUITEM "WAV FILE 1",                  MENU_PLAY_ID_11
+        MENUITEM "WAV FILE 2",                  MENU_PLAY_ID_12
+        MENUITEM "WAV FILE 3",                  MENU_PLAY_ID_13
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "About",                       MENU_HELP_ABOUT
+    END
+END
+
+#endif    // 中文(简体，中国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

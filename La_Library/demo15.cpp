@@ -63,14 +63,14 @@ void GameBody(void)
 
 void GameClose()
 {
-	
+
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	PAINTSTRUCT		ps;		
+	PAINTSTRUCT		ps;
 	HDC				hdc;
-	TCHAR buffer[80];      
+	TCHAR buffer[80];
 	int id = 0;
 
 	switch (msg)
