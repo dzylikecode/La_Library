@@ -229,13 +229,13 @@ namespace GRAPHIC
 		void drawOn(SURFACE& dest, int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
 		{
 			RECT rect = { x, y, x + scaleWidth - 1, y + scaleHeight - 1 };
-			dest.lpddS->Blt(&rect, lpddS, nullptr, transparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT, nullptr);
+			dest.lpddS->Blt(&rect, lpddS, nullptr, (bTransparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT), nullptr);
 		}
 		void drawOn(SURFACE& dest, int x, int y, bool bTransparent = true) { drawOn(dest, x, y, width, height, bTransparent); }
 		void drawOn(int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
 		{
 			RECT rect = { x, y, x + scaleWidth - 1, y + scaleHeight - 1 };
-			lpddsback->Blt(&rect, lpddS, nullptr, transparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT, nullptr);
+			lpddsback->Blt(&rect, lpddS, nullptr, (bTransparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT), nullptr);
 		}
 		void drawOn(int x, int y, bool bTransparent = true) { drawOn(x, y, width, height, bTransparent); }
 		void scroll(int dx, int dy)

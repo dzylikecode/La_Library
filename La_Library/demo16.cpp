@@ -126,7 +126,7 @@ void GameBody(void)
 		gameBox.exitFromGameBody();
 
 	background.drawOn(0, 0, false);
-	
+
 	Fly_AI();
 	flyGroup.reset();
 	while (!flyGroup.endOfList())
@@ -137,12 +137,12 @@ void GameBody(void)
 
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
-	Flush();  
+	Flush();
 }
 
 void GameClose()
 {
-	
+
 }
 
 int main(int argc, char* argv[])

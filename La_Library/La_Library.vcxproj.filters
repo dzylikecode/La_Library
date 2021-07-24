@@ -112,6 +112,9 @@
     <Filter Include="源文件\test\Audio">
       <UniqueIdentifier>{18e706a8-a14c-4871-8f1f-c00e8229fef5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test\AI">
+      <UniqueIdentifier>{6c193a96-ef71-4e3a-b48d-e4613e4e86bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -316,6 +319,9 @@
     </ClCompile>
     <ClCompile Include="demo15.cpp">
       <Filter>源文件\test\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="demo16.cpp">
+      <Filter>源文件\test\AI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

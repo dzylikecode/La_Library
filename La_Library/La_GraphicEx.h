@@ -1,6 +1,7 @@
 #pragma once
 #include "La_GraphicBase.h"
 #include "La_Sprite.h"
+#include "La_LinearList.h"
 #define randColor	RGB_DX(rand()%256,rand()%256,rand()%256,)
 #define RED_GDI		RGB(255,0,0)
 #define GREEN_GDI	RGB(0,255,0)
@@ -16,4 +17,6 @@ namespace GRAPHIC
 			content.setDict(this);
 		}
 	};
+
+
 }
