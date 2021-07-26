@@ -103,8 +103,8 @@ namespace GRAPHIC
 
 			cur_string = cur_word = 0;
 		}
-		void drawOn(SURFACE* surface = nullptr) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, surface); }
-		void drawOn(int sx, int sy, SURFACE* surface = nullptr) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, sx, sy, surface); }
+		void drawOn() { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, true); }
+		void drawOn(int sx, int sy) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, sx, sy, true); }
 		void animate()
 		{
 			//anim_counter是用来调节画面的快慢的

@@ -323,6 +323,9 @@
     <ClCompile Include="demo16.cpp">
       <Filter>源文件\test\AI</Filter>
     </ClCompile>
+    <ClCompile Include="demo17.cpp">
+      <Filter>源文件\test\AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">
