@@ -216,6 +216,12 @@
     <ClInclude Include="La_Audio.h">
       <Filter>头文件\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="La_Palette.h">
+      <Filter>头文件\Graphic\Extend</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Blink.h">
+      <Filter>头文件\Graphic\Extend</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -325,6 +331,18 @@
     </ClCompile>
     <ClCompile Include="demo17.cpp">
       <Filter>源文件\test\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Vector.cpp">
+      <Filter>源文件\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="testttttt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Palette.cpp">
+      <Filter>源文件\Graphic\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Blink.cpp">
+      <Filter>源文件\Graphic\Extend</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

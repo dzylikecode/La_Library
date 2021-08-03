@@ -79,7 +79,7 @@ namespace GRAPHIC
 			lpddS = CreateSurface(width, height, colorKey, memoryFlag);
 			return lpddS;
 		}
-		bool createFromBitmap(const BITMAP& bitmap, DWORD dwColorKey, DWORD dwMemoryFlag = 0, bool bTransparent = true)
+		bool createFromBitmap(const laBITMAP& bitmap, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0, bool bTransparent = true)
 		{
 			if (create(bitmap.getWidth(), bitmap.getHeight(), dwColorKey, dwMemoryFlag, bTransparent) && bitmap.isLoad())
 			{
@@ -113,7 +113,7 @@ namespace GRAPHIC
 		{
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
-			BITMAP bitmap;
+			laBITMAP bitmap;
 			if (bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("Œﬁ∑®º”‘ÿÕº∆¨£°"));
@@ -125,7 +125,7 @@ namespace GRAPHIC
 		{
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
-			BITMAP bitmap;
+			laBITMAP bitmap;
 			if (!bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("Can not load bitmap"));

@@ -6,14 +6,16 @@
 
 namespace GRAPHIC
 {
-	class BITMAP
+	class laBITMAP
 	{
 	private:
 		BITMAPFILEHEADER bitmapfileheader; //描述文件结构的信息
 		BITMAPINFOHEADER bitmapinfoheader;//描述图片的信息，包含调色板
 		COLOR* buffer;
+		COLOR colPalette[PALETTE_NUM];
+		bool  bColor8;
 	private:
-		void copy(const BITMAP& bm)
+		void copy(const laBITMAP& bm)
 		{
 			if (!buffer)
 			{
@@ -25,9 +27,9 @@ namespace GRAPHIC
 			memcpy(buffer, bm.buffer, bm.getSizeByte());
 		}
 	public:
-		BITMAP() :bitmapfileheader{ 0 }, bitmapinfoheader{ 0 }, buffer(nullptr){};
-		BITMAP(const BITMAP& bm) :bitmapfileheader{ 0 }, bitmapinfoheader{ 0 }, buffer(nullptr){ copy(bm); }
-		BITMAP& operator=(const BITMAP& bm)
+		laBITMAP() :bitmapfileheader{ 0 }, bitmapinfoheader{ 0 }, buffer(nullptr), bColor8(false){};
+		laBITMAP(const laBITMAP& bm) :bitmapfileheader{ 0 }, bitmapinfoheader{ 0 }, buffer(nullptr){ copy(bm); }
+		laBITMAP& operator=(const laBITMAP& bm)
 		{
 			if (this != &bm)
 			{
@@ -41,6 +43,8 @@ namespace GRAPHIC
 		LONG getSizeByte()const { return bitmapinfoheader.biSizeImage; }
 		COLOR* getImage()const { return buffer; }
 		bool isLoad()const { return buffer; }
+		bool isColor8()const { return bColor8; }
+		void getPalette(COLOR* outPalette);
 		void flip() { Flip((BYTE*)buffer, bitmapinfoheader.biWidth * (bitmapinfoheader.biBitCount / 8), bitmapinfoheader.biHeight); }
 		void clear()
 		{
@@ -50,6 +54,6 @@ namespace GRAPHIC
 				buffer = nullptr;
 			}
 		}
-		~BITMAP() { clear(); }
+		~laBITMAP() { clear(); }
 	};
 }

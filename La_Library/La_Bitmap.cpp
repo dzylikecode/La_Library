@@ -3,7 +3,7 @@
 
 namespace GRAPHIC
 {
-	bool BITMAP::load(LPCTSTR fileName)
+	bool laBITMAP::load(LPCTSTR fileName)
 	{
 		HFILE file_handle;
 		OFSTRUCT file_data = { 0 };
@@ -26,7 +26,6 @@ namespace GRAPHIC
 
 		_lread(file_handle, &bitmapinfoheader, sizeof(BITMAPINFOHEADER));
 		PALETTEENTRY palette[256];
-		DWORD colorConvert[256];
 		if (bitmapinfoheader.biBitCount == 8)
 		{
 			//8 位需要读取调色板,到palette中
@@ -37,10 +36,11 @@ namespace GRAPHIC
 			{
 				//palette 反的
 				//但是对于一个字节没有颠倒，颠倒了调色板
-				//对于多字节的颜色，则储存为 bgr 格式
+				//对于多字节的颜色，则储存为 BGR 格式
 				//储存方式是从左到右，从上到下，也就是每行颜色颠倒了，但颜色的次序没有问题
-				colorConvert[i] = RGB_DX(palette[i].peBlue, palette[i].peGreen, palette[i].peRed);
+				colPalette[i] = RGB_DX(palette[i].peBlue, palette[i].peGreen, palette[i].peRed);
 			}
+			bColor8 = true;
 		}
 
 		//找到图像信息的入口
@@ -71,7 +71,7 @@ namespace GRAPHIC
 			for (ULONGLONG i = 0; i < bitmap_image_square; i++)
 			{
 				//实际上存储是就是索引 --> 调色板索引
-				buffer[i] = colorConvert[temp_buffer[i]];
+				buffer[i] = colPalette[temp_buffer[i]];
 			}
 		}
 
@@ -144,5 +144,12 @@ namespace GRAPHIC
 		flip();
 
 		return true;
+	}
+	void laBITMAP::getPalette(COLOR* outPalette)
+	{
+		for (int i = 0; i < PALETTE_NUM; i++)
+		{
+			outPalette[i] = colPalette[i];
+		}
 	}
 }

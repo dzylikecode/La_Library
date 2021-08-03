@@ -7,14 +7,17 @@
 #include "La_Windows.h"
 #include <ddraw.h>
 
+#define PALETTE_NUM			 256
 #define INIT_STRUCT(st)		{memset(&st, 0, sizeof(st)); st.dwSize = sizeof(st);}
 
 typedef  UINT  COLOR;
+typedef  COLOR laPALETTE[PALETTE_NUM];
 
 #define RGB_DX(r,g,b)          ((COLOR)(((BYTE)(b)|((WORD)((BYTE)(g))<<8))|(((COLOR)(BYTE)(r))<<16)))
 #define GetBValue_DX(rgb)      (LOBYTE(rgb))
 #define GetGValue_DX(rgb)      (LOBYTE(((WORD)(rgb)) >> 8))
 #define GetRValue_DX(rgb)      (LOBYTE((rgb)>>16))
+#define GetAValue_DX(rgb)	   (LOBYTE((rgb)>>24))
 
 namespace GRAPHIC
 {

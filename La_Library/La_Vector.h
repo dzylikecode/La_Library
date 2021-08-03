@@ -18,6 +18,7 @@
 
 #pragma once
 #include "La_LinearList.h"
+#include "La_MathBase.h"
 #include <assert.h>
 template <typename T>
 class VECTOR :public ARRAY<T>
@@ -60,3 +61,14 @@ class vVECTOR :public VECTOR<T>
 {
 
 };
+
+template <typename T>
+REAL Distance(T x, T y) { return sqrt(x * x + y * y); }
+template <typename T>
+REAL Distance(T x, T y, T z) { return sqrt(x * x + y * y + z * z); }
+
+
+int DistanceFast(int x, int y);
+REAL DistanceFast(REAL x, REAL y);
+REAL DistanceFast(REAL x, REAL y, REAL z);
+

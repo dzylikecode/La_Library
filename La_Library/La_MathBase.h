@@ -50,9 +50,17 @@ typedef int FIXPOINT;
 #define RAD_TO_DEG(rads) ((REAL)(rads)*(REAL)180/PI)
 #define DEG_STARDAND(ang) ( ((ang%=360) < 0) ? (ang+360):ang)
 
-//Î¬³Ö×ó±ÕÓÒ¿ª
-#define RAND_RANGE(x,y) ( (x) + (rand()%((y)-(x))))
+//×ó±ÕÓÒ±Õ
+#define RAND_RANGE(x,y) ( (x) + (rand()%((y)-(x) + 1)))
 
+
+#ifndef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
 
 // storage for our lookup tables
 extern REAL cos_look[360];

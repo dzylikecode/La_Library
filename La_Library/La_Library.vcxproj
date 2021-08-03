@@ -143,6 +143,7 @@
     <ClInclude Include="La_Audio.h" />
     <ClInclude Include="La_AudioBase.h" />
     <ClInclude Include="La_Bitmap.h" />
+    <ClInclude Include="La_Blink.h" />
     <ClInclude Include="La_Complex.h" />
     <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="La_MathBase.h" />
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
+    <ClInclude Include="La_Palette.h" />
     <ClInclude Include="La_Polygon.h" />
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_Sprite.h" />
@@ -223,7 +225,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_AudioBase.cpp" />
+    <ClCompile Include="La_Blink.cpp" />
     <ClCompile Include="La_InputBase.cpp" />
+    <ClCompile Include="La_Palette.cpp" />
+    <ClCompile Include="La_Vector.cpp" />
+    <ClCompile Include="testttttt.cpp" />
     <ClCompile Include="WinMain.cpp" />
     <ClCompile Include="Interesting.cpp" />
     <ClCompile Include="La_Bitmap.cpp" />
