@@ -3,6 +3,7 @@
 
 namespace GRAPHIC
 {
+	LIGHT BLINKER::light[blinkerNum];
 	int BLINKER::command(LIGHT& newLight, OPERATOR opera, int id)
 	{
 		switch (opera)

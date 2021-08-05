@@ -115,6 +115,12 @@
     <Filter Include="源文件\test\AI">
       <UniqueIdentifier>{6c193a96-ef71-4e3a-b48d-e4613e4e86bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Physics">
+      <UniqueIdentifier>{35b4a8d0-b24a-4990-a18a-abfa48d1e9ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Physics">
+      <UniqueIdentifier>{e84f5ebd-fa0b-425e-8262-7597a16b2219}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -222,6 +228,12 @@
     <ClInclude Include="La_Blink.h">
       <Filter>头文件\Graphic\Extend</Filter>
     </ClInclude>
+    <ClInclude Include="La_PhysicsBase.h">
+      <Filter>头文件\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Physics.h">
+      <Filter>头文件\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -259,9 +271,6 @@
     </ClCompile>
     <ClCompile Include="La_Surface.cpp">
       <Filter>源文件\Graphic\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Interesting.cpp">
-      <Filter>源文件\Graphic\Extend</Filter>
     </ClCompile>
     <ClCompile Include="La_GeometryBase.cpp">
       <Filter>源文件\Graphic\Geometry</Filter>
@@ -335,14 +344,14 @@
     <ClCompile Include="La_Vector.cpp">
       <Filter>源文件\Math</Filter>
     </ClCompile>
-    <ClCompile Include="testttttt.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="La_Palette.cpp">
       <Filter>源文件\Graphic\Extend</Filter>
     </ClCompile>
     <ClCompile Include="La_Blink.cpp">
       <Filter>源文件\Graphic\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="La_PhysicsBase.cpp">
+      <Filter>源文件\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

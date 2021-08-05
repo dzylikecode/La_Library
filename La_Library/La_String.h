@@ -11,7 +11,7 @@
 *  创建时间: 2021/05/20 11:10:35
 *  最后修改: 
 *
-*  简    介: 
+*  简    介: 问题-->对于 const 字符 path + text 会导致无限循环
 *
 ***************************************************************************************
 */
@@ -60,7 +60,8 @@ public:
 	}
 	friend STRING<T, endFlag> operator+(const T* source, const STRING<T, endFlag>& sourceString)
 	{
-		return sourceString + source;
+		STRING<T, endFlag> temp = sourceString;
+		return temp += source;
 	}
 	STRING<T, endFlag>  operator+ (const T* source) { STRING<T, endFlag> temp = *this; return temp += source; }
 	STRING<T, endFlag>& operator<<(const T* source)

@@ -29,7 +29,7 @@ namespace GRAPHIC
 #define SURFACE_LOCALVIDEO	DDSCAPS_VIDEOMEMORY | DDSCAPS_LOCALVIDMEM
 #define SURFACE_NONLOCALVM	DDSCAPS_VIDEOMEMORY | DDSCAPS_NONLOCALVIDMEM
 
-	extern LPDIRECTDRAWSURFACE7 lpddsback;
+	extern LPDIRECTDRAWSURFACE7 curWorkSur;
 
 	class SURFACE
 	{
@@ -56,6 +56,7 @@ namespace GRAPHIC
 		{
 			lpddS = lpddSurface; width = iWidth; height = iHeight; colorKey = dwColorKey; memoryFlag = flag;
 		}
+		void modifySurface(LPDIRECTDRAWSURFACE7 lpddSurface) { lpddS = lpddSurface; }
 	public:
 		LPDIRECTDRAWSURFACE7 getlpdds(void)const { return lpddS; }
 		COLOR* getMemory(void)const { return memory; }
@@ -79,7 +80,7 @@ namespace GRAPHIC
 			lpddS = CreateSurface(width, height, colorKey, memoryFlag);
 			return lpddS;
 		}
-		bool createFromBitmap(const laBITMAP& bitmap, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0, bool bTransparent = true)
+		bool createFromBitmap(const BITMAP& bitmap, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0, bool bTransparent = true)
 		{
 			if (create(bitmap.getWidth(), bitmap.getHeight(), dwColorKey, dwMemoryFlag, bTransparent) && bitmap.isLoad())
 			{
@@ -113,7 +114,7 @@ namespace GRAPHIC
 		{
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
-			laBITMAP bitmap;
+			BITMAP bitmap;
 			if (bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("ÎÞ·¨¼ÓÔØÍ¼Æ¬£¡"));
@@ -125,7 +126,7 @@ namespace GRAPHIC
 		{
 			TCHAR path[MAX_PATH];
 			GetVariableArgument(path, MAX_PATH, fileName);
-			laBITMAP bitmap;
+			BITMAP bitmap;
 			if (!bitmap.load(path))
 			{
 				ERROR_MSG(ERR, TEXT("Can not load bitmap"));
@@ -235,7 +236,7 @@ namespace GRAPHIC
 		void drawOn(int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
 		{
 			RECT rect = { x, y, x + scaleWidth - 1, y + scaleHeight - 1 };
-			lpddsback->Blt(&rect, lpddS, nullptr, (bTransparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT), nullptr);
+			curWorkSur->Blt(&rect, lpddS, nullptr, (bTransparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT), nullptr);
 		}
 		void drawOn(int x, int y, bool bTransparent = true) { drawOn(x, y, width, height, bTransparent); }
 		void scroll(int dx, int dy)
@@ -344,6 +345,8 @@ namespace GRAPHIC
 	void WaitForVsync(void);
 
 	void ResetClipper(int left, int top, int right, int bottom);
+
+	void SwitchSurface(bool bFront);
 
 	extern int min_clip_x, max_clip_x, min_clip_y, max_clip_y;
 }

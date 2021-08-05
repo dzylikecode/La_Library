@@ -5,10 +5,11 @@ namespace GRAPHIC
 	SURFACE graphicOut;  //由他来管理 back surface
 
 
+	LPDIRECTDRAWSURFACE7 curWorkSur = nullptr;
 	
-	LPDIRECTDRAWSURFACE7 lpddsback = nullptr;
 	namespace
 	{
+		LPDIRECTDRAWSURFACE7 lpddsback = nullptr;
 		bool bInitialize_Graphics = false;
 		const DWORD SCREEN_COLOR_KEY = 0;
 		const DWORD SCREEN_BACK_MEMORY = 0;
@@ -143,7 +144,7 @@ namespace GRAPHIC
 		}
 
 		graphicOut.modifyAllData(lpddsback, width, height, SCREEN_COLOR_KEY, SCREEN_BACK_MEMORY);
-
+		curWorkSur = lpddsback;
 
 		//清空表面，用黑色做背景
 		if (bWindowed)
@@ -207,6 +208,20 @@ namespace GRAPHIC
 		globalHwnd = hwnd;
 
 		return true;
+	}
+
+	void SwitchSurface(bool bFront)
+	{
+		if (bFront)
+		{
+			graphicOut.modifySurface(lpddsprimary);
+			curWorkSur = lpddsprimary;
+		}
+		else
+		{
+			graphicOut.modifySurface(lpddsback);
+			curWorkSur = lpddsback;
+		}
 	}
 
 	//全局变量代理者

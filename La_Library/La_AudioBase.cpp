@@ -138,6 +138,12 @@ namespace AUDIO
 		}
 	}
 
+	class AUDIOMaster
+	{
+	public:
+		~AUDIOMaster() { CloseAudio(); }
+	}audioMaster;
+
 	bool SOUND::create(DWORD size, DWORD dwRate /* = 11025 */, WORD iWaveChannels /* = 1 */, WORD iAmplitudeSpan /* = 8 */)
 	{
 		clear();
@@ -409,9 +415,5 @@ namespace AUDIO
 	}
 	void MUSIC::stop(){ dm_perf->Stop(dm_segment, nullptr, 0, 0); }
 
-	class AUDIOMaster
-	{
-	public:
-		~AUDIOMaster() { CloseAudio(); }
-	}audioMaster;
+	
 }

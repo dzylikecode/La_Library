@@ -3,7 +3,7 @@
 
 namespace GRAPHIC
 {
-	bool laBITMAP::load(LPCTSTR fileName)
+	bool BITMAP::load(LPCTSTR fileName)
 	{
 		HFILE file_handle;
 		OFSTRUCT file_data = { 0 };
@@ -145,7 +145,7 @@ namespace GRAPHIC
 
 		return true;
 	}
-	void laBITMAP::getPalette(COLOR* outPalette)
+	void BITMAP::getPalette(laPALETTE& outPalette)
 	{
 		for (int i = 0; i < PALETTE_NUM; i++)
 		{

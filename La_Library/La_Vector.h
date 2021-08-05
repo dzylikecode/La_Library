@@ -31,9 +31,9 @@ public:
 template <typename T>
 T VECTOR<T>::operator*(const VECTOR<T>& v1)const
 {
-	assert(getSize() == v1.getSize());
+	assert(this->getSize() == v1.getSize());
 	T sum = 0;
-	for (int i = 0; i < getSize(); i++)
+	for (int i = 0; i < this->getSize(); i++)
 	{
 		sum += *this[i] * v1[i];
 	}
@@ -43,7 +43,7 @@ T VECTOR<T>::operator*(const VECTOR<T>& v1)const
 template <typename T>
 void VECTOR<T>::zero()
 {
-	for (int i = 0; i < getSize(); i++)
+	for (int i = 0; i < this->getSize(); i++)
 	{
 		*this[i] = 0;
 	}

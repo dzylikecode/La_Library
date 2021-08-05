@@ -25,6 +25,7 @@
 */
 #pragma once
 #include "La_Surface.h"
+#include "La_Math.h"
 
 namespace GRAPHIC
 {
@@ -44,8 +45,25 @@ namespace GRAPHIC
 		aniDICT*  aniDict;
 	public:
 		void	setDict(aniDICT* dict) { aniDict = dict; }
+		const aniDICT* getDict()const { return aniDict; }
+		aniDICT* getDict() { return aniDict; }
 		aniPARAPHRASE& operator()(int i, int j) { return (*aniDict)[(*this)[i][j]]; }
+		aniPARAPHRASE& operator()(int i) { return (*aniDict)[i]; }
+		const aniPARAPHRASE& operator()(int i)const { return (*aniDict)[i]; }
 		const aniPARAPHRASE& operator()(int i, int j)const { return (*aniDict)[(*this)[i][j]]; }
+		void autoOrder()
+		{
+			int num = aniDict->getSize();
+			autoOrder(num);
+		}
+		void autoOrder(int num)
+		{
+			this->resize(1);
+			(*this)[0].resize(num + 1);
+			for (int i = 0; i < num; i++)
+				(*this)[0][i] = i;
+			(*this)[0][num] = ANIM_NULL;
+		}
 	};
 
 	//这是没有参数时候
@@ -87,8 +105,8 @@ namespace GRAPHIC
 		int cur_word;
 		int cur_string;
 	public:
-		double x, y;
-		double vx, vy;
+		REAL x, y;
+		REAL vx, vy;
 	public:
 		SPRITE()
 		{
@@ -104,7 +122,9 @@ namespace GRAPHIC
 			cur_string = cur_word = 0;
 		}
 		void drawOn() { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, true); }
+		void drawOn(int i){ if (attr & VISIBLE) content(i).drawOn(x, y, true); }
 		void drawOn(int sx, int sy) { if (attr & VISIBLE) content(cur_string, cur_word).drawOn(x, y, sx, sy, true); }
+		void drawOn(int i, int sx, int sy) { if (attr & VISIBLE) content(i).drawOn(x, y, sx, sy, true); }
 		void animate()
 		{
 			//anim_counter是用来调节画面的快慢的
@@ -130,6 +150,7 @@ namespace GRAPHIC
 		}
 		int  getWidth()const { return content(cur_string, cur_word).getWidth(); }
 		int  getHeight()const { return content(cur_string, cur_word).getHeight(); }
+		int  getDictIndex()const { return content[cur_string][cur_word]; }
 		void move()
 		{
 			x += vx;
@@ -175,6 +196,8 @@ namespace GRAPHIC
 		}
 		void setAniSpeed(int speed){ anim_count_max = speed; }
 		void setAniString(int index) { cur_string = index; cur_word = 0; }
+		void setAniWord(int word = 0) { cur_word = word; }
+		void restart() { setAniWord(0); }
 		bool isCollsion(const SPRITE& sp)
 		{
 			//调整形心为3/8，3/8处
@@ -207,6 +230,35 @@ namespace GRAPHIC
 		void reset(int attrSprite) { RESET_BIT(attr, attrSprite); }
 		int  getCurString()const { return cur_string; }
 		int  getCurWord()const { return cur_word; }
+		void clone(const SPRITE& sprite)
+		{
+			attr = sprite.attr;
+			anim_counter = sprite.anim_counter;
+			anim_count_max = sprite.anim_count_max;
+			cur_word = sprite.cur_word;
+			cur_string = sprite.cur_string;
+			x = sprite.x; y = sprite.y;
+			vx = sprite.vx; vy = sprite.vy;
+			content = sprite.content;
+		}
+	private:
+		void copy(const SPRITE& sprite)
+		{
+			clone(sprite);
+			static aniDICT anidict = *sprite.content.getDict();
+			content.setDict(&anidict);
+		}
+	public:
+		SPRITE& operator=(const SPRITE& sprite)
+		{
+			if (this == &sprite)
+			{
+				return *this;
+			}
+			copy(sprite);
+			return *this;
+		}
+		SPRITE(const SPRITE& sprite) { copy(sprite); }
 	};
 }
 

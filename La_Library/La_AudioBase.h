@@ -95,6 +95,12 @@ namespace AUDIO
 			lpddS->GetStatus(&status);
 			return (status == DSBSTATUS_PLAYING) ? true : false;
 		}
+		HRESULT getStatus()
+		{
+			DWORD status;
+			lpddS->GetStatus(&status);
+			return status;
+		}
 		void* getBuffer1() { return buffer1; }
 		DWORD getLen1()const { return bufferLen1; }
 		void* getBuffer2() { return buffer2; }

@@ -163,6 +163,8 @@
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Palette.h" />
+    <ClInclude Include="La_Physics.h" />
+    <ClInclude Include="La_PhysicsBase.h" />
     <ClInclude Include="La_Polygon.h" />
     <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_Sprite.h" />
@@ -228,10 +230,11 @@
     <ClCompile Include="La_Blink.cpp" />
     <ClCompile Include="La_InputBase.cpp" />
     <ClCompile Include="La_Palette.cpp" />
+    <ClCompile Include="La_PhysicsBase.cpp" />
     <ClCompile Include="La_Vector.cpp" />
-    <ClCompile Include="testttttt.cpp" />
-    <ClCompile Include="WinMain.cpp" />
-    <ClCompile Include="Interesting.cpp" />
+    <ClCompile Include="WinMain.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="La_Bitmap.cpp" />
     <ClCompile Include="La_File.cpp" />
     <ClCompile Include="La_GameBox.cpp" />
@@ -247,7 +250,7 @@
     <ClCompile Include="La_Shell.cpp" />
     <ClCompile Include="La_WinGDI.cpp" />
     <ClCompile Include="test.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="demo6.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
