@@ -234,6 +234,9 @@
     <ClInclude Include="La_Physics.h">
       <Filter>头文件\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="La_Master.h">
+      <Filter>头文件\GameBox</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -352,6 +355,9 @@
     </ClCompile>
     <ClCompile Include="La_PhysicsBase.cpp">
       <Filter>源文件\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo18.cpp">
+      <Filter>源文件\test\AI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

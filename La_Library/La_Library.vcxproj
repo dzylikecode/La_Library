@@ -158,6 +158,7 @@
     <ClInclude Include="La_Input.h" />
     <ClInclude Include="La_InputBase.h" />
     <ClInclude Include="La_Log.h" />
+    <ClInclude Include="La_Master.h" />
     <ClInclude Include="La_Math.h" />
     <ClInclude Include="La_MathBase.h" />
     <ClInclude Include="La_Matrix.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="demo17.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="demo18.cpp" />
     <ClCompile Include="demo2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -250,7 +252,7 @@
     <ClCompile Include="La_Shell.cpp" />
     <ClCompile Include="La_WinGDI.cpp" />
     <ClCompile Include="test.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="demo6.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

@@ -28,18 +28,16 @@ namespace INPUT_
 		return true;
 	}
 	
-	class INPUTMaster
+	void CloseInput()
 	{
-	public:
-		~INPUTMaster()
+		if (lpdi8)
 		{
-			if (lpdi8)
-			{
-				lpdi8->Release();
-				lpdi8 = nullptr;
-			}
+			lpdi8->Release();
+			lpdi8 = nullptr;
 		}
-	};
+	}
+
+	
 
 
 	bool KEYBOARD::create()

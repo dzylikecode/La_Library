@@ -1,32 +1,39 @@
+// DEMO12_3.CPP - vector tracking demo min game
+// the vector tracking code can be found in Move_Mines()
 
-#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
+// INCLUDES ///////////////////////////////////////////////
+
+#define INITGUID
+
+#define WIN32_LEAN_AND_MEAN  
+
+#include <windows.h>   // include important windows stuff
+#include <windowsx.h> 
+#include <mmsystem.h>
+#include <iostream.h> // include important C/C++ stuff
 #include <conio.h>
-#include <iostream>
-#include "La_Windows.h"
-#include "La_WinGDI.h"
-#include "La_GameBox.h"
-#include "La_Graphic.h"
-#include "La_GraphicEx.h"
-#include "La_Input.h"
-#include "La_Audio.h"
-#include "La_Physics.h"
-#include "La_Math.h"
-using namespace std;
+#include <stdlib.h>
+#include <malloc.h>
+#include <memory.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h> 
+#include <math.h>
+#include <io.h>
+#include <fcntl.h>
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+#include <ddraw.h>  // directX includes
+#include <dsound.h>
+#include <dmksctrl.h>
+#include <dmusici.h>
+#include <dmusicc.h>
+#include <dmusicf.h>
+#include <dinput.h>
+#include "T3DLIB1.h" // game library includes
+#include "T3DLIB2.h"
+#include "T3DLIB3.h"
 
-FRAMECounter fpsSet;
-GAMEBox gameBox;
 
-using namespace AUDIO;
-using namespace GDI;
-using namespace GRAPHIC;
-using namespace INPUT_;
-using namespace LADZY;
-
-KEYBOARD keyboard;
 //#include "mono.h"
 
 // DEFINES ////////////////////////////////////////////////
@@ -34,6 +41,11 @@ KEYBOARD keyboard;
 // mathematical defines
 CONST float FRICTION = 0.1;
 
+// defines for windows 
+#define WINDOW_CLASS_NAME "WINCLASS"  // class name
+
+#define WINDOW_WIDTH    640            // size of window viewport
+#define WINDOW_HEIGHT   480
 
 // size of universe
 #define UNIVERSE_MIN_X   (-8000)
@@ -203,9 +215,86 @@ CONST float FRICTION = 0.1;
 #define NUM_ACTIVE_STATIONS          8
 
 
+// PROTOTYPES /////////////////////////////////////////////
 
+// game console
+int  Game_Init(void* parms = NULL);
+int  Game_Shutdown(void* parms = NULL);
+int  Game_Main(void* parms = NULL);
+void Game_Reset(void);
+
+// helper functions for game logic
+void Draw_Info(void);
 void Start_Burst(int x, int y, int width, int height, int xv, int yv);
+void Draw_Bursts(void);
+void Move_Bursts(void);
+void Delete_Bursts(void);
+void Init_Bursts(void);
+void Reset_Bursts(void);
+
+void Draw_Rocks(void);
 void Start_Rock(int x, int y, int size, int xv, int yv);
+void Move_Rocks(void);
+void Delete_Rocks(void);
+void Init_Rocks(void);
+void Reset_Rocks(void);
+
+
+void Fire_Plasma(int x, int y, int xv, int yv, int source);
+void Draw_Plasma(void);
+void Move_Plasma(void);
+void Delete_Plasma(void);
+void Init_Plasma(void);
+void Reset_Plasma(void);
+
+void Move_Stars(void);
+void Draw_Stars(void);
+void Init_Stars(void);
+void Reset_Stars(void);
+
+
+void Init_Reset_Particles(void);
+void Draw_Particles(void);
+void Move_Particles(void);
+void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv);
+void Start_Particle_Explosion(int type, int color, int count,
+	int x, int y, int xv, int yv, int num_particles);
+
+void Reset_Particles(void);
+
+
+void Init_Stations(void);
+void Move_Stations(void);
+void Draw_Stations(void);
+void Start_Station(int override, int x, int y);
+void Reset_Stations(void);
+
+
+void Init_Mines(void);
+void Move_Mines(void);
+void Draw_Mines(void);
+void Start_Mine(int override, int x, int y, int ai_state);
+void Reset_Mines(void);
+
+
+void Create_Tables(void);
+float Fast_Distance_2D(float x, float y);
+void Seed_Rocks(void);
+int Load_Player(void);
+void Draw_Scanner(void);
+int Pad_Name(char* filename, char* extension, char* padstring, int num);
+
+int Copy_Screen(UCHAR* source_bitmap, UCHAR* dest_buffer, int lpitch, int transparent);
+
+void Load_Buttons(void);
+void Load_HUD(void);
+
+
+inline void Copy_Palette(LPPALETTEENTRY dest, LPPALETTEENTRY source)
+{
+	memcpy(dest, source, 256 * sizeof(PALETTEENTRY));
+}
+
 
 // TYPES //////////////////////////////////////////////////
 
@@ -234,30 +323,34 @@ typedef struct PARTICLE_TYP
 
 } PARTICLE, * PARTICLE_PTR;
 
-class specialSPRITE :public SPRITE
-{
-public:
-	int varsI[30];
-	int state;
-	int anim_state;
-	int counter_1;
-};
+// MACROS ////////////////////////////////////////////////
 
-SURFACE andre;
+// used to compute the min and max of two expresions
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b)) 
+#define MAX(a, b)  (((a) > (b)) ? (b) : (a)) 
 
-specialSPRITE wraith;                   // the player 
-aniDICT plasmaDict;
-specialSPRITE plasma[MAX_PLASMA];       // plasma pulses
-specialSPRITE rocks[MAX_ROCKS];         // the asteroids
-specialSPRITE rock_s, rock_m, rock_l;   // the master templates for surface info
-specialSPRITE bursts[MAX_BURSTS];       // the explosion bursts
-aniDICT stationsDict;
-specialSPRITE stations[MAX_STATIONS];   // the starbase stations
-aniDICT minesDict;
-specialSPRITE mines[MAX_MINES];         // the predator mines
-specialSPRITE hud;                      // the art for the scanner hud
-aniDICT stationsmallDict;
-specialSPRITE stationsmall;             // small station bob
+// returns a rand in a range
+#define RAND_RANGE(a,b) ((a)+(rand()%((b)-(a)+1)))
+
+// GLOBALS ////////////////////////////////////////////////
+
+HWND main_window_handle = NULL; // save the window handle
+HINSTANCE main_instance = NULL; // save the instance
+char buffer[80];                // used to print text
+
+BITMAP_IMAGE background_bmp, menu_bmp; // used to hold backgrounds
+BITMAP_IMAGE menu_sel_bmps[3];   // holds the menu selections
+BITMAP_IMAGE andre;
+
+BOB wraith;                   // the player 
+BOB plasma[MAX_PLASMA];       // plasma pulses
+BOB rocks[MAX_ROCKS];         // the asteroids
+BOB rock_s, rock_m, rock_l;   // the master templates for surface info
+BOB bursts[MAX_BURSTS];       // the explosion bursts
+BOB stations[MAX_STATIONS];   // the starbase stations
+BOB mines[MAX_MINES];         // the predator mines
+BOB hud;                      // the art for the scanner hud
+BOB stationsmall;             // small station bob
 
 int rock_sizes[3] = { 96,56,32 }; // X,Y dims for scaler
 
@@ -295,9 +388,9 @@ huds_debounce = 0,
 scanner_debounce = 0;
 
 // color palettes, so we don't have to reload all the time
-laPALETTE         game_palette; // holds the main game palette
-laPALETTE         menu_palette; // gee what do you think
-laPALETTE        andre_palette; // for me
+PALETTEENTRY         game_palette[256]; // holds the main game palette
+PALETTEENTRY         menu_palette[256]; // gee what do you think
+PALETTEENTRY         andre_palette[256]; // for me
 
 // positional and state info for player
 float player_x = 0,
@@ -307,29 +400,11 @@ player_dy = 0,
 player_xv = 0,
 player_yv = 0,
 vel = 0;
-//math
-REAL cos_look16[16];
-REAL sin_look16[16];
-
-class MATHSHEET
-{
-public:
-	MATHSHEET()
-	{
-		int ang = 0; // looping var to track angle
-
-		for (ang = 0; ang < 16; ang++)
-		{
-			float fang = PI * (ang * 22.5) / 180;
-
-			cos_look16[ang] = -cos(fang + PI / 2);
-			sin_look16[ang] = -sin(fang + PI / 2);
-		}
-	}
-}mathSheet;
+// these contain the virual cos, sin lookup tables for the 16 sector circle
+float cos_look16[16],
+sin_look16[16];
 
 // sound id's
-SOUND sound[80];
 int intro_music_id = -1,
 main_music_id = -1,
 ready_id = -1,
@@ -348,32 +423,157 @@ int expl_ids[MAX_EXPL_SOUNDS] = { -1,-1,-1,-1,-1,-1,-1,-1 };
 int fire_ids[MAX_FIRE_SOUNDS] = { -1,-1,-1,-1,-1,-1,-1,-1 };
 int game_state = GAME_STATE_INIT;   // initial game state
 
+// FUNCTIONS //////////////////////////////////////////////
 
-TSTRING path = TEXT("./Resource/demo18/");
+LRESULT CALLBACK WindowProc(HWND hwnd,
+	UINT msg,
+	WPARAM wparam,
+	LPARAM lparam)
+{
+	// this is the main message handler of the system
+	PAINTSTRUCT	ps;		   // used in WM_PAINT
+	HDC			hdc;	   // handle to a device context
+
+	// what is the message 
+	switch (msg)
+	{
+	case WM_CREATE:
+	{
+		// do initialization stuff here
+
+
+		return(0);
+	} break;
+
+	case WM_PAINT:
+	{
+		// start painting
+		hdc = BeginPaint(hwnd, &ps);
+
+		// end painting
+		EndPaint(hwnd, &ps);
+		return(0);
+	} break;
+
+
+	case WM_DESTROY:
+	{
+
+		// kill the application			
+		PostQuitMessage(0);
+		return(0);
+	} break;
+
+	default:break;
+
+	} // end switch
+
+// process any messages that we didn't take care of 
+	return (DefWindowProc(hwnd, msg, wparam, lparam));
+
+} // end WinProc
+
+// WINMAIN ////////////////////////////////////////////////
+
+int WINAPI WinMain(HINSTANCE hinstance,
+	HINSTANCE hprevinstance,
+	LPSTR lpcmdline,
+	int ncmdshow)
+{
+	// this is the winmain function
+
+	WNDCLASS winclass;	// this will hold the class we create
+	HWND	 hwnd;		// generic window handle
+	MSG		 msg;		// generic message
+	HDC      hdc;       // generic dc
+	PAINTSTRUCT ps;     // generic paintstruct
+
+	// first fill in the window class stucture
+	winclass.style = CS_DBLCLKS | CS_OWNDC |
+		CS_HREDRAW | CS_VREDRAW;
+	winclass.lpfnWndProc = WindowProc;
+	winclass.cbClsExtra = 0;
+	winclass.cbWndExtra = 0;
+	winclass.hInstance = hinstance;
+	winclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	winclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	winclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	winclass.lpszMenuName = NULL;
+	winclass.lpszClassName = WINDOW_CLASS_NAME;
+
+	// register the window class
+	if (!RegisterClass(&winclass))
+		return(0);
+
+	// create the window, note the use of WS_POPUP
+	if (!(hwnd = CreateWindow(WINDOW_CLASS_NAME, // class
+		"Vector tracking demo",	 // title
+		WS_POPUP | WS_VISIBLE,
+		0, 0,	   // x,y
+		WINDOW_WIDTH,  // width
+		WINDOW_HEIGHT, // height
+		NULL,	   // handle to parent 
+		NULL,	   // handle to menu
+		hinstance,// instance
+		NULL)))	// creation parms
+		return(0);
+
+	// save the window handle and instance in a global
+	main_window_handle = hwnd;
+	main_instance = hinstance;
+
+	// perform all game console specific initialization
+	Game_Init();
+
+	// enter main event loop
+	while (1)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			// test if this is a quit
+			if (msg.message == WM_QUIT)
+				break;
+
+			// translate any accelerator keys
+			TranslateMessage(&msg);
+
+			// send the message to the window proc
+			DispatchMessage(&msg);
+		} // end if
+
+	// main game processing goes here
+		Game_Main();
+
+	} // end while
+
+
+// shutdown game and release all resources
+	Game_Shutdown();
+
+	// return to Windows like this
+	return(msg.wParam);
+
+} // end WinMain
+
 //////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////
-
-void Pad_Name(LPCTCH filename, LPCTCH extension, LPTCH padstring, int num)
+void Load_Andre(void)
 {
-	// build up blank padstring
-	_stprintf(padstring, TEXT("%s%04d.%s"), filename, num, extension);
-}
+	// this function loads all the buttons for the interface
 
-bool Load_Andre(void)
-{
-	GRAPHIC::BITMAP bitmap;
-	if (bitmap.load(path + TEXT("OUTART/ENEMYAI.DAT")))
-	{
-		bitmap.getPalette(andre_palette);
-		SURFACE temp;
-		temp.createFromBitmap(bitmap);
-		andre.createFromSurface(216, 166, temp, 320 - 216 / 2, 240 - 166 / 2);
+	// load image
+	Load_Bitmap_File(&bitmap8bit, "OUTART/ENEMYAI.DAT");
 
-		return true;
-	}
-	return false;
-}
+	// save the palette
+	Copy_Palette(andre_palette, bitmap8bit.palette);
+
+	Create_Bitmap(&andre, 320 - 216 / 2, 240 - 166 / 2, 216, 166);
+	Load_Image_Bitmap(&andre, &bitmap8bit, 0, 0, BITMAP_EXTRACT_MODE_ABS);
+
+	// unload object bitmap
+	Unload_Bitmap_File(&bitmap8bit);
+
+} // end Load_Andre
 
 /////////////////////////////////////////////////////////////////
 
@@ -395,9 +595,9 @@ void Init_Reset_Particles(void)
 		particles[index].curr_color = 0;
 		particles[index].counter = 0;
 		particles[index].max_count = 0;
-	}
+	} // end if
 
-}
+} // end Init_Reset_Particles
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -465,17 +665,17 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 	if (type == PARTICLE_TYPE_FLICKER)
 	{
 		// set current color
-		particles[pindex].curr_color = RAND_RANGE(particles[pindex].start_color, particles[pindex].end_color);
+		particles[index].curr_color = RAND_RANGE(particles[index].start_color, particles[index].end_color);
 
 	} // end if
 	else
 	{
 		// particle is fade type
 		// set current color
-		particles[pindex].curr_color = particles[pindex].start_color;
-	} 
+		particles[index].curr_color = particles[index].start_color;
+	} // end if
 
-} 
+} // end Start_Particle
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -496,9 +696,9 @@ void Start_Particle_Explosion(int type, int color, int count,
 			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
 			xv + cos_look16[ang] * vel, yv + sin_look16[ang] * 16);
 
-	}
+	} // end while
 
-}
+} // end Start_Particle_Explosion
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -506,7 +706,8 @@ void Draw_Particles(void)
 {
 	// this function draws all the particles
 
-	BeginDrawOn();
+	// lock back surface
+	DDraw_Lock_Back_Surface();
 
 	for (int index = 0; index < MAX_PARTICLES; index++)
 	{
@@ -522,15 +723,16 @@ void Draw_Particles(void)
 				continue;
 
 			// draw the pixel
-			GRAPHIC::SetPixel(x, y, curPalette[particles[index].curr_color]);
+			Draw_Pixel(x, y, particles[index].curr_color, back_buffer, back_lpitch);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-	EndDrawOn();
+// unlock the secondary surface
+	DDraw_Unlock_Back_Surface();
 
-}
+} // end Draw_Particles
 
 ////////////////////////////////////////////////////////////////////
 
@@ -559,9 +761,9 @@ void Move_Particles(void)
 					// kill the particle
 					particles[index].state = PARTICLE_STATE_DEAD;
 
-				}
+				} // end if
 
-			}
+			} // end if
 			else
 			{
 				// must be a fade, be careful!
@@ -577,17 +779,17 @@ void Move_Particles(void)
 						// transition is complete, terminate particle
 						particles[index].state = PARTICLE_STATE_DEAD;
 
-					}
+					} // end if
 
-				}
+				} // end if
 
-			}
+			} // end else
 
-		}
+		} // end if 
 
-	}
+	} // end for index
 
-}
+} // end Move_Particles
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -624,15 +826,15 @@ void Init_Stars(void)
 
 		default:break;
 
-		}
+		} // end switch
 
-		// set fields that aren't plane specific
+   // set fields that aren't plane specific
 		stars[index].x = rand() % SCREEN_WIDTH;   // change this latter to reflect clipping
 		stars[index].y = rand() % SCREEN_HEIGHT;  // region
 
-	}
+	} // end for index
 
-}
+} // end Init_Stars
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -725,9 +927,9 @@ void Move_Stars(void)
 		stars[index].x = star_x;
 		stars[index].y = star_y;
 
-	}
+	} // end for index
 
-}
+} // end Move_Stars
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -736,20 +938,20 @@ void Draw_Stars(void)
 	// this function draws all the stars
 
 	// lock back surface
-	BeginDrawOn();
+	DDraw_Lock_Back_Surface();
 
 	// draw all the stars
 	for (int index = 0; index < MAX_STARS; index++)
 	{
 		// draw stars 
-		GRAPHIC::SetPixel(stars[index].x, stars[index].y, curPalette[stars[index].color]);
+		Draw_Pixel(stars[index].x, stars[index].y, stars[index].color, back_buffer, back_lpitch);
 
-	}
+	} // end for index
 
+// unlock the secondary surface
+	DDraw_Unlock_Back_Surface();
 
-	EndDrawOn();
-
-}
+} // end Draw_Stars
 
 ///////////////////////////////////////////////////
 
@@ -759,7 +961,8 @@ void Draw_Scanner(void)
 
 	int index, sx, sy; // looping and position
 
-	BeginDrawOn();
+	// lock back surface
+	DDraw_Lock_Back_Surface();
 
 	// draw all the rocks
 	for (index = 0; index < MAX_ROCKS; index++)
@@ -770,12 +973,12 @@ void Draw_Scanner(void)
 			sx = ((rocks[index].varsI[INDEX_WORLD_X] - UNIVERSE_MIN_X) >> 7) + (SCREEN_WIDTH / 2) - ((UNIVERSE_MAX_X - UNIVERSE_MIN_X) >> 8);
 			sy = ((rocks[index].varsI[INDEX_WORLD_Y] - UNIVERSE_MIN_Y) >> 7) + 32;
 
-			GRAPHIC::SetPixel(sx, sy, curPalette[8]);
-		}
+			Draw_Pixel(sx, sy, 8, back_buffer, back_lpitch);
+		} // end if
 
-	}
+	} // end for index
 
-	// draw all the mines
+// draw all the mines
 	for (index = 0; index < MAX_MINES; index++)
 	{
 		// draw gunship blips
@@ -784,14 +987,15 @@ void Draw_Scanner(void)
 			sx = ((mines[index].varsI[INDEX_WORLD_X] - UNIVERSE_MIN_X) >> 7) + (SCREEN_WIDTH / 2) - ((UNIVERSE_MAX_X - UNIVERSE_MIN_X) >> 8);
 			sy = ((mines[index].varsI[INDEX_WORLD_Y] - UNIVERSE_MIN_Y) >> 7) + 32;
 
-			GRAPHIC::SetPixel(sx, sy, curPalette[12]);
-			GRAPHIC::SetPixel(sx, sy + 1, curPalette[12]);
+			Draw_Pixel(sx, sy, 12, back_buffer, back_lpitch);
+			Draw_Pixel(sx, sy + 1, 12, back_buffer, back_lpitch);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-	EndDrawOn();
+// unlock the secondary surface
+	DDraw_Unlock_Back_Surface();
 
 	// draw all the stations
 	for (index = 0; index < MAX_STATIONS; index++)
@@ -805,29 +1009,31 @@ void Draw_Scanner(void)
 			// test for state
 			if (stations[index].anim_state == STATION_SHIELDS_ANIM_ON)
 			{
+				stationsmall.curr_frame = 0;
 				stationsmall.x = sx - 3;
 				stationsmall.y = sy - 3;
-				stationsmall.drawOn(0);
+				Draw_BOB(&stationsmall, lpddsback);
 
 
-			}
+			} // end if
 			else
 			{
 
+				stationsmall.curr_frame = 1;
 				stationsmall.x = sx - 3;
 				stationsmall.y = sy - 3;
-				stationsmall.drawOn(1);
+				Draw_BOB(&stationsmall, lpddsback);
 
 
-			}
+			} // end if
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
 
-	// unlock the secondary surface
-	BeginDrawOn();
+// unlock the secondary surface
+	DDraw_Lock_Back_Surface();
 
 	// draw player as white blip
 	sx = ((int(player_x) - UNIVERSE_MIN_X) >> 7) + (SCREEN_WIDTH / 2) - ((UNIVERSE_MAX_X - UNIVERSE_MIN_X) >> 8);
@@ -835,63 +1041,73 @@ void Draw_Scanner(void)
 
 	int col = rand() % 256;
 
-	GRAPHIC::SetPixel(sx, sy, curPalette[col]);
-	GRAPHIC::SetPixel(sx + 1, sy, curPalette[col]);
-	GRAPHIC::SetPixel(sx, sy + 1, curPalette[col]);
-	GRAPHIC::SetPixel(sx + 1, sy + 1, curPalette[col]);
+	Draw_Pixel(sx, sy, col, back_buffer, back_lpitch);
+	Draw_Pixel(sx + 1, sy, col, back_buffer, back_lpitch);
+	Draw_Pixel(sx, sy + 1, col, back_buffer, back_lpitch);
+	Draw_Pixel(sx + 1, sy + 1, col, back_buffer, back_lpitch);
 
 	// unlock the secondary surface
-	EndDrawOn();
+	DDraw_Unlock_Back_Surface();
 
 	// now draw the art around the edges
 
 	hud.x = 320 - 64;
 	hud.y = 32 - 4;
-	hud.drawOn(0);
+	hud.curr_frame = 0;
+	Draw_BOB(&hud, lpddsback);
 
 	hud.x = 320 + 64 - 16;
 	hud.y = 32 - 4;
-	hud.drawOn(1);
+	hud.curr_frame = 1;
+	Draw_BOB(&hud, lpddsback);
 
 	hud.x = 320 - 64;
 	hud.y = 32 + 128 - 20;
-	hud.drawOn(2);
+	hud.curr_frame = 2;
+	Draw_BOB(&hud, lpddsback);
 
 
 	hud.x = 320 + 64 - 16;
 	hud.y = 32 + 128 - 20;
-	hud.drawOn(3);
+	hud.curr_frame = 3;
+	Draw_BOB(&hud, lpddsback);
 
 
-}
+} // end Draw_Scanner
 
-void Start_Mine(int override, int x, int y, int ai_state);
+
 ///////////////////////////////////////////////////////////
 
 void Init_Stations(void)
 {
 	// this function loads and initializes the stations to a known state
 
+	static int shields_on_anim[16] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 },
+		shields_off_anim[1] = { 16 };
+
+	int frame;  // looping va
 
 	// create the first bob
-	stations[0].x = 0;
-	stations[0].y = 0;
+	Create_BOB(&stations[0], 0, 0, 192, 144, 17,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_ANIM,
+		DDSCAPS_SYSTEMMEMORY);
 
-	TCHAR buffer[80];
 	// load animation frames 
-	stationsDict.resize(17);
-	SURFACE temp;
-	for (int frame = 0; frame <= 16; frame++)
+	for (frame = 0; frame <= 16; frame++)
 	{
 		// load the rocks imagery 
+		Pad_Name("OUTART/STATION", "BMP", buffer, frame);
+		Load_Bitmap_File(&bitmap8bit, buffer);
 
-		Pad_Name(path + TEXT("OUTART/STATION"), TEXT("BMP"), buffer, frame);
-		temp.createFromBitmap(buffer);
-		stationsDict[frame].createFromSurface(192, 144, temp, 0, 0);
+		// load the actual .BMP
+		Load_Frame_BOB(&stations[0], &bitmap8bit, frame, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-	}
-	stations[0].content.setDict(&stationsDict);
-	// set state to off
+		// unload data infile
+		Unload_Bitmap_File(&bitmap8bit);
+
+	} // end if
+
+// set state to off
 	stations[0].state = STATION_STATE_ALIVE;
 
 	// set anim state
@@ -901,34 +1117,38 @@ void Init_Stations(void)
 	stations[0].varsI[INDEX_STATION_DAMAGE] = 0;
 
 	// set animation rate
-	stations[0].setAniSpeed(15);
+	Set_Anim_Speed_BOB(&stations[0], 15);
 
 	// load in the shield on/off animations
-	stations[0].content.resize(2);
-	stations[0].content[STATION_SHIELDS_ANIM_ON] = ANIM(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-	stations[0].content[STATION_SHIELDS_ANIM_OFF] = ANIM(16);
+	Load_Animation_BOB(&stations[0], STATION_SHIELDS_ANIM_ON, 16, shields_on_anim);
+	Load_Animation_BOB(&stations[0], STATION_SHIELDS_ANIM_OFF, 1, shields_off_anim);
 
 	// set animation to on
-	stations[0].setAniString(STATION_SHIELDS_ANIM_ON);
+	Set_Animation_BOB(&stations[0], STATION_SHIELDS_ANIM_ON);
 
 	// make copies
 	for (int ship = 1; ship < MAX_STATIONS; ship++)
 	{
-		stations[ship].clone(stations[0]);
-	}
-
-	stationsmall.x = 0;
-	stationsmall.y = 0;
+		memcpy(&stations[ship], &stations[0], sizeof(BOB));
+	} // end for pulse
 
 
-	temp.createFromBitmap(path + TEXT("OUTART/STATIONSMALL8.BMP"));
+	// load the miniature station
+	Create_BOB(&stationsmall, 0, 0, 8, 8, 2,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
 
-	stationsmallDict.resize(2);
-	stationsmallDict[0].createFromSurface(8, 8, temp, 0 * (8 + 1) + 1, 0 * (8 + 1) + 1);
-	stationsmallDict[1].createFromSurface(8, 8, temp, 1 * (8 + 1) + 1, 0 * (8 + 1) + 1);
-	stationsmall.content.setDict(&stationsmallDict);
+	Load_Bitmap_File(&bitmap8bit, "OUTART/STATIONSMALL8.BMP");
 
-}
+	// load the actual .BMP
+	Load_Frame_BOB(&stationsmall, &bitmap8bit, 0, 0, 0, BITMAP_EXTRACT_MODE_CELL);
+	Load_Frame_BOB(&stationsmall, &bitmap8bit, 1, 1, 0, BITMAP_EXTRACT_MODE_CELL);
+
+	// unload data infile
+	Unload_Bitmap_File(&bitmap8bit);
+
+
+} // end Init_Stations
 
 ///////////////////////////////////////////////////////////
 
@@ -947,9 +1167,9 @@ void Reset_Stations(void)
 		// set damage to 0
 		stations[index].varsI[INDEX_STATION_DAMAGE] = 0;
 
-	}
+	} // end for
 
-}
+} // end Reset_Stations
 
 ///////////////////////////////////////////////////////////
 
@@ -982,14 +1202,14 @@ void Start_Station(int override = 0, int x = 0, int y = 0)
 			Start_Mine(1, mine_x, mine_y, MINE_STATE_AI_SLEEP);
 
 			// set velocity
-			stations[index].vx = 0;
-			stations[index].vy = 0;
+			stations[index].xv = 0;
+			stations[index].yv = 0;
 
 			// set remaining state variables
 			stations[index].state = STATION_STATE_ALIVE;
 
 			// set animation to on
-			stations[index].setAniString(STATION_SHIELDS_ANIM_ON);
+			Set_Animation_BOB(&stations[index], STATION_SHIELDS_ANIM_ON);
 
 			// set anim state
 			stations[index].anim_state = STATION_SHIELDS_ANIM_ON;
@@ -1000,11 +1220,11 @@ void Start_Station(int override = 0, int x = 0, int y = 0)
 			// done so exit
 			return;
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Start_Station
 
 ////////////////////////////////////////////////////////////
 
@@ -1018,49 +1238,51 @@ void Move_Stations(void)
 		if (stations[index].state == STATION_STATE_ALIVE)
 		{
 			// move the stations
-			stations[index].varsI[INDEX_WORLD_X] += stations[index].vx;
-			stations[index].varsI[INDEX_WORLD_Y] += stations[index].vy;
+			stations[index].varsI[INDEX_WORLD_X] += stations[index].xv;
+			stations[index].varsI[INDEX_WORLD_Y] += stations[index].yv;
 
 			// test for boundaries
 			if (stations[index].varsI[INDEX_WORLD_X] > UNIVERSE_MAX_X)
 			{
 				stations[index].varsI[INDEX_WORLD_X] = UNIVERSE_MIN_X;
-			}
-			else if (stations[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
-			{
-				stations[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
-			}
+			} // end if
+			else
+				if (stations[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
+				{
+					stations[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
+				} // end if	    
 
 			if (stations[index].varsI[INDEX_WORLD_Y] > UNIVERSE_MAX_Y)
 			{
 				stations[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MIN_Y;
-			}
-			else if (stations[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
-			{
-				stations[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
-			}
+			} // end if
+			else
+				if (stations[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
+				{
+					stations[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
+				} // end if
 
-			// test for damage level
+			 // test for damage level
 			if (stations[index].varsI[INDEX_STATION_DAMAGE] > (MAX_STATION_DAMAGE / 4) &&
 				(rand() % (20 - (stations[index].varsI[INDEX_STATION_DAMAGE] >> 3))) == 1)
 			{
 				int width = 20 + rand() % 60;
 
 				// start a burst
-				Start_Burst(stations[index].varsI[INDEX_WORLD_X] - (stations[index].getWidth() * .5) + RAND_RANGE(0, stations[index].getWidth()),
-					stations[index].varsI[INDEX_WORLD_Y] - (stations[index].getHeight() * .5) + RAND_RANGE(0, stations[index].getHeight()),
+				Start_Burst(stations[index].varsI[INDEX_WORLD_X] - (stations[index].width * .5) + RAND_RANGE(0, stations[index].width),
+					stations[index].varsI[INDEX_WORLD_Y] - (stations[index].height * .5) + RAND_RANGE(0, stations[index].height),
 					width, (width >> 2) + (width >> 1),
-					int(stations[index].vx) * .5, int(stations[index].vy) * .5);
+					int(stations[index].xv) * .5, int(stations[index].yv) * .5);
 
 				// add some particles
 
-			}
+			} // end if
 
-		}
+		} // end if alive
 
-	}
+	} // end for index
 
-}
+} // end Move_Stations
 
 ///////////////////////////////////////////////////////////
 
@@ -1074,22 +1296,32 @@ void Draw_Stations(void)
 		if (stations[index].state == STATION_STATE_ALIVE)
 		{
 			// transform to screen coords
-			stations[index].x = stations[index].varsI[INDEX_WORLD_X] - (stations[index].getWidth() >> 1) - player_x + (SCREEN_WIDTH / 2);
-			stations[index].y = stations[index].varsI[INDEX_WORLD_Y] - (stations[index].getHeight() >> 1) - player_y + (SCREEN_HEIGHT / 2);
+			stations[index].x = stations[index].varsI[INDEX_WORLD_X] - (stations[index].width >> 1) - player_x + (SCREEN_WIDTH / 2);
+			stations[index].y = stations[index].varsI[INDEX_WORLD_Y] - (stations[index].height >> 1) - player_y + (SCREEN_HEIGHT / 2);
 
 			// draw the station
-			stations[index].drawOn();
+			Draw_BOB(&stations[index], lpddsback);
 
 			// animate the station
-			stations[index].animate();
+			Animate_BOB(&stations[index]);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Draw_Stations
+
 ////////////////////////////////////////////////////////////
 
+void Delete_Stations(void)
+{
+	// this function simply deletes all memory and surfaces
+	// related to the gunships
+
+	for (int index = 0; index < MAX_STATIONS; index++)
+		Destroy_BOB(&stations[index]);
+
+} // end Delete_Stations
 
 ///////////////////////////////////////////////////////////
 
@@ -1097,27 +1329,29 @@ void Init_Mines(void)
 {
 	// this function loads and initializes the mines to a known state
 
+	int frame;  // looping va
 
-	mines[0].x = 0;
-	mines[0].y = 0;
+	// create the first bob
+	Create_BOB(&mines[0], 0, 0, 48, 36, 16,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
 
 	// load animation frames 
-	SURFACE temp;
-	minesDict.resize(16);
-	for (int frame = 0; frame <= 15; frame++)
+	for (frame = 0; frame <= 15; frame++)
 	{
 		// load the mine
-		TCHAR buffer[80];
-		Pad_Name(path + TEXT("OUTART/PREDMINE"), TEXT("BMP"), buffer, frame);
-		temp.createFromBitmap(buffer);
+		Pad_Name("OUTART/PREDMINE", "BMP", buffer, frame);
+		Load_Bitmap_File(&bitmap8bit, buffer);
 
 		// load the actual .BMP
-		minesDict[frame].createFromSurface(48, 36, temp, 0, 0);
+		Load_Frame_BOB(&mines[0], &bitmap8bit, frame, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-	}
-	mines[0].content.setDict(&minesDict);
-	mines[0].content.autoOrder();
-	// set state to off
+		// unload data infile
+		Unload_Bitmap_File(&bitmap8bit);
+
+	} // end if
+
+// set state to off
 	mines[0].state = MINE_STATE_DEAD;
 
 	// set ai state to sleep mode
@@ -1130,15 +1364,15 @@ void Init_Mines(void)
 	mines[0].varsI[INDEX_MINE_CONTACT_COUNT] = 0;
 
 	// set animation rate
-	mines[0].setAniSpeed(3);
+	Set_Anim_Speed_BOB(&mines[0], 3);
 
 	// make copies
 	for (int mine = 1; mine < MAX_MINES; mine++)
 	{
-		mines[mine].clone(mines[0]);
-	}
+		memcpy(&mines[mine], &mines[0], sizeof(BOB));
+	} // end for mine
 
-}
+} // end Init_Mines
 
 ////////////////////////////////////////////////////////////
 
@@ -1161,9 +1395,9 @@ void Reset_Mines(void)
 		// set contact count to 0
 		mines[mine].varsI[INDEX_MINE_CONTACT_COUNT] = 0;
 
-	}
+	} // end for mine
 
-}
+} // end Reset_Mines
 
 ///////////////////////////////////////////////////////////
 
@@ -1190,8 +1424,8 @@ void Start_Mine(int override = 0, int x = 0, int y = 0, int ai_state = MINE_STAT
 				mines[index].varsI[INDEX_WORLD_Y] = ypos;
 
 				// set velocity
-				mines[index].vx = RAND_RANGE(-8, 8);
-				mines[index].vy = RAND_RANGE(-8, 8);
+				mines[index].xv = RAND_RANGE(-8, 8);
+				mines[index].yv = RAND_RANGE(-8, 8);
 
 				// set remaining state variables
 				mines[index].state = MINE_STATE_ALIVE;
@@ -1216,8 +1450,8 @@ void Start_Mine(int override = 0, int x = 0, int y = 0, int ai_state = MINE_STAT
 				mines[index].varsI[INDEX_WORLD_Y] = y;
 
 				// set velocity
-				mines[index].vx = 0;
-				mines[index].vy = 0;
+				mines[index].xv = 0;
+				mines[index].yv = 0;
 
 				// set remaining state variables
 				mines[index].state = MINE_STATE_ALIVE;
@@ -1234,14 +1468,14 @@ void Start_Mine(int override = 0, int x = 0, int y = 0, int ai_state = MINE_STAT
 				// done so exit
 				return;
 
-			}
+			} // end else
 
 
-		}
+		} // end if alive
 
-	}
+	} // end for index
 
-}
+} // end Start_Mine
 
 ////////////////////////////////////////////////////////////
 
@@ -1260,8 +1494,8 @@ void Move_Mines(void)
 			{
 
 				// move the mines
-				mines[index].varsI[INDEX_WORLD_X] += mines[index].vx;
-				mines[index].varsI[INDEX_WORLD_Y] += mines[index].vy;
+				mines[index].varsI[INDEX_WORLD_X] += mines[index].xv;
+				mines[index].varsI[INDEX_WORLD_Y] += mines[index].yv;
 
 
 				// add damage trails
@@ -1271,14 +1505,14 @@ void Move_Mines(void)
 					Start_Particle(PARTICLE_TYPE_FLICKER, PARTICLE_COLOR_WHITE, 30 + rand() % 25,
 						mines[index].varsI[INDEX_WORLD_X] + RAND_RANGE(-4, 4),
 						mines[index].varsI[INDEX_WORLD_Y] + RAND_RANGE(-4, 4),
-						(mines[index].vx * .125), (mines[index].vy * .125));
+						(mines[index].xv * .125), (mines[index].yv * .125));
 
 					Start_Particle(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED, 5,
 						mines[index].varsI[INDEX_WORLD_X] + RAND_RANGE(-4, 4),
 						mines[index].varsI[INDEX_WORLD_Y] + RAND_RANGE(-4, 4),
-						(mines[index].vx * .125), (mines[index].vy * .125));
+						(mines[index].xv * .125), (mines[index].yv * .125));
 
-				}
+				} // end if
 
 				// tracking algorithm
 
@@ -1287,7 +1521,7 @@ void Move_Mines(void)
 				float vy = player_y - mines[index].varsI[INDEX_WORLD_Y];
 
 				// normalize vector (sorta :)
-				float length = DistanceFast(vx, vy);
+				float length = Fast_Distance_2D(vx, vy);
 
 
 				// only track if reasonable close
@@ -1297,31 +1531,31 @@ void Move_Mines(void)
 					vy = mine_tracking_rate * vy / length;
 
 					// add velocity vector to current velocity
-					mines[index].vx += vx;
-					mines[index].vy += vy;
+					mines[index].xv += vx;
+					mines[index].yv += vy;
 
 					// add a little noise
 					if ((rand() % 10) == 1)
 					{
 						vx = RAND_RANGE(-1, 1);
 						vy = RAND_RANGE(-1, 1);
-						mines[index].vx += vx;
-						mines[index].vy += vy;
-					}
+						mines[index].xv += vx;
+						mines[index].yv += vy;
+					} // end if
 
-					// test velocity vector of mines
-					length = DistanceFast(mines[index].vx, mines[index].vy);
+				// test velocity vector of mines
+					length = Fast_Distance_2D(mines[index].xv, mines[index].yv);
 
 					// test for velocity overflow and slow
 					if (length > MAX_MINE_VELOCITY)
 					{
 						// slow down
-						mines[index].vx *= 0.75;
-						mines[index].vy *= 0.75;
+						mines[index].xv *= 0.75;
+						mines[index].yv *= 0.75;
 
-					}
+					} // end if
 
-				}
+				} // end if
 				else
 				{
 					// add a random velocity component
@@ -1331,71 +1565,73 @@ void Move_Mines(void)
 						vy = RAND_RANGE(-2, 2);
 
 						// add velocity vector to current velocity
-						mines[index].vx += vx;
-						mines[index].vy += vy;
+						mines[index].xv += vx;
+						mines[index].yv += vy;
 
 						// test velocity vector of mines
-						length = DistanceFast(mines[index].vx, mines[index].vy);
+						length = Fast_Distance_2D(mines[index].xv, mines[index].yv);
 
 						// test for velocity overflow and slow
 						if (length > MAX_MINE_VELOCITY)
 						{
 							// slow down
-							mines[index].vx *= 0.75;
-							mines[index].vy *= 0.75;
+							mines[index].xv *= 0.75;
+							mines[index].yv *= 0.75;
 
-						}
+						} // end if
 
-					}
+					} // end if
 
-				}
+				} // end else
 
-			}
+			} // end if activated
 			else
 			{
 				// compute dist from player
 				float vx = player_x - mines[index].varsI[INDEX_WORLD_X];
 				float vy = player_y - mines[index].varsI[INDEX_WORLD_Y];
 
-				float length = DistanceFast(vx, vy);
+				float length = Fast_Distance_2D(vx, vy);
 
 				if (length < MIN_MINE_ACTIVATION_DIST)
 				{
 					mines[index].varsI[INDEX_MINE_AI_STATE] = MINE_STATE_AI_ACTIVATED;
 
 					// sound off
-					sound[mine_powerup_id].play();
-				}
+					DSound_Play(mine_powerup_id);
+				} // end if
 
-			}
+			} // end else
 
 			// test for boundaries
 			if (mines[index].varsI[INDEX_WORLD_X] > UNIVERSE_MAX_X)
 			{
 				mines[index].varsI[INDEX_WORLD_X] = UNIVERSE_MIN_X;
-			}
-			else if (mines[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
-			{
-				mines[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
-			}
+			} // end if
+			else
+				if (mines[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
+				{
+					mines[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
+				} // end if	    
 
 			if (mines[index].varsI[INDEX_WORLD_Y] > UNIVERSE_MAX_Y)
 			{
 				mines[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MIN_Y;
-			}
-			else if (mines[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
-			{
-				mines[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
-			}
+			} // end if
+			else
+				if (mines[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
+				{
+					mines[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
+				} // end if
 
-			// check for collision with player
+		 // check for collision with player
 			if (player_state == PLAYER_STATE_ALIVE && player_state == PLAYER_STATE_ALIVE &&
-				Collision_Test(player_x - (wraith.getWidth() * .5),
-					player_y - (wraith.getHeight() * .5),
-					wraith.getWidth(), wraith.getHeight(),
-					mines[index].varsI[INDEX_WORLD_X] - (mines[index].getWidth() * .5),
-					mines[index].varsI[INDEX_WORLD_Y] - (mines[index].getHeight() * .5),
-					mines[index].getWidth(), mines[index].getHeight()))
+				Collision_Test(player_x - (wraith.width * .5),
+					player_y - (wraith.height * .5),
+					wraith.width, wraith.height,
+					mines[index].varsI[INDEX_WORLD_X] - (mines[index].width * .5),
+					mines[index].varsI[INDEX_WORLD_Y] - (mines[index].height * .5),
+					mines[index].width, mines[index].height))
 			{
 
 				// test for contact count
@@ -1417,7 +1653,7 @@ void Move_Mines(void)
 					Start_Burst(mines[index].varsI[INDEX_WORLD_X],
 						mines[index].varsI[INDEX_WORLD_Y],
 						width, (width * .5) + (width * .25),
-						int(mines[index].vx) * .5, int(mines[index].vy) * .5);
+						int(mines[index].xv) * .5, int(mines[index].yv) * .5);
 
 
 					// kill the mine
@@ -1429,19 +1665,19 @@ void Move_Mines(void)
 					// process next mine
 					continue;
 
-				}
+				} // end if contact count
 
-			}
+			} // end if
 			else // no collision or other problem, so reset
 			{
 				mines[index].varsI[INDEX_MINE_CONTACT_COUNT] = 0;
-			}
+			} // end else
 
-		}
+		} // end if alive
 
-	}
+	} // end for index
 
-}
+} // end Move_Mines
 
 ///////////////////////////////////////////////////////////
 
@@ -1455,26 +1691,36 @@ void Draw_Mines(void)
 		if (mines[index].state == MINE_STATE_ALIVE)
 		{
 			// transform to screen coords
-			mines[index].x = mines[index].varsI[INDEX_WORLD_X] - (mines[index].getWidth() >> 1) - player_x + (SCREEN_WIDTH / 2);
-			mines[index].y = mines[index].varsI[INDEX_WORLD_Y] - (mines[index].getHeight() >> 1) - player_y + (SCREEN_HEIGHT / 2);
+			mines[index].x = mines[index].varsI[INDEX_WORLD_X] - (mines[index].width >> 1) - player_x + (SCREEN_WIDTH / 2);
+			mines[index].y = mines[index].varsI[INDEX_WORLD_Y] - (mines[index].height >> 1) - player_y + (SCREEN_HEIGHT / 2);
 
 			// draw the station
-			mines[index].drawOn();
+			Draw_BOB(&mines[index], lpddsback);
 
 			// animate the mine
-			mines[index].animate();
+			Animate_BOB(&mines[index]);
 
 			// draw info text above mine
+			sprintf(buffer, "VELOCITY[%f, %f]", mines[index].xv, mines[index].yv);
+			Draw_Text_GDI(buffer, mines[index].x - 32, mines[index].y - 16, RGB(0, 255, 0), lpddsback);
 
-			gPrintf(mines[index].x - 32, mines[index].y - 16, RGB(0, 255, 0), TEXT("VELOCITY[%f, %f]"), mines[index].vx, mines[index].vy);
+		} // end if
 
-		}
+	} // end for index
 
-	}
+} // end Draw_Mines
 
-}
+////////////////////////////////////////////////////////////
 
+void Delete_Mines(void)
+{
+	// this function simply deletes all memory and surfaces
+	// related to the mines
 
+	for (int index = 0; index < MAX_MINES; index++)
+		Destroy_BOB(&mines[index]);
+
+} // end Delete_Mines
 
 
 //////////////////////////////////////////////////////
@@ -1485,38 +1731,41 @@ void Init_Plasma(void)
 	// this function initializes and loads all the plasma 
 	// weapon pulses
 
+	// the plasma animations
+	static int plasma_anim_player[] = { 0,1,2,3,4,5,6,7 },
+		plasma_anim_enemy[] = { 8,9,10,11,12,13,14,15 };
 
 	// load the plasma imagery 
+	Load_Bitmap_File(&bitmap8bit, "OUTART/ENERGY8.BMP");
 
-	SURFACE temp;
-	temp.createFromBitmap(path + TEXT("OUTART/ENERGY8.BMP"));
+	// create the first bob
+	Create_BOB(&plasma[0], 0, 0, 8, 8, 16,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_ANIM,
+		DDSCAPS_SYSTEMMEMORY);
 
-	plasma[0].x = 0;
-	plasma[0].y = 0;
 	// load animation frames
-	plasmaDict.resize(16);
 	for (int frame = 0; frame < 16; frame++)
-		plasmaDict[frame].createFromSurface(8, 8, temp, (frame % 8) * (8 + 1) + 1, (frame / 8) * (8 + 1) + 1);
+		Load_Frame_BOB(&plasma[0], &bitmap8bit, frame, frame % 8, frame / 8, BITMAP_EXTRACT_MODE_CELL);
 
-	plasma[0].content.setDict(&plasmaDict);
 	// set animation rate
-	plasma[0].setAniSpeed(1);
+	Set_Anim_Speed_BOB(&plasma[0], 1);
 
 	// load animations
-	plasma[0].content.resize(2);
-	plasma[0].content[PLASMA_ANIM_PLAYER] = ANIM(0, 1, 2, 3, 4, 5, 6, 7);
-	plasma[0].content[PLASMA_ANIM_ENEMY] = ANIM(8, 9, 10, 11, 12, 13, 14, 15);
+	Load_Animation_BOB(&plasma[0], PLASMA_ANIM_PLAYER, 8, plasma_anim_player);
+	Load_Animation_BOB(&plasma[0], PLASMA_ANIM_ENEMY, 8, plasma_anim_enemy);
 
 	// set state to off
 	plasma[0].state = PLASMA_STATE_OFF;
 
 	for (int pulse = 1; pulse < MAX_PLASMA; pulse++)
 	{
-		plasma[pulse].clone(plasma[0]);
-	}
+		memcpy(&plasma[pulse], &plasma[0], sizeof(BOB));
+	} // end for pulse
 
+// unload data infile
+	Unload_Bitmap_File(&bitmap8bit);
 
-}
+} // end Init_Plasma
 
 /////////////////////////////////////////////////////////
 
@@ -1526,12 +1775,21 @@ void Reset_Plasma(void)
 	for (int pulse = 0; pulse < MAX_PLASMA; pulse++)
 	{
 		plasma[pulse].state = PLASMA_STATE_OFF;
-	}
+	} // end for pulse
 
-}
+} // end Reset_Plasma
 
 ///////////////////////////////////////////////////////////
 
+void Delete_Plasma(void)
+{
+	// this function simply deletes all memory and surfaces
+	// related to the plasma pulses
+
+	for (int index = 0; index < MAX_PLASMA; index++)
+		Destroy_BOB(&plasma[index]);
+
+} // end Delete_Plasma
 
 ///////////////////////////////////////////////////////////
 
@@ -1546,8 +1804,8 @@ void Move_Plasma(void)
 		if (plasma[index].state == PLASMA_STATE_ON)
 		{
 			// move the pulse 
-			plasma[index].varsI[INDEX_WORLD_X] += plasma[index].vx;
-			plasma[index].varsI[INDEX_WORLD_Y] += plasma[index].vy;
+			plasma[index].varsI[INDEX_WORLD_X] += plasma[index].xv;
+			plasma[index].varsI[INDEX_WORLD_Y] += plasma[index].yv;
 
 			// test for boundaries
 			if ((++plasma[index].counter_1 > PLASMA_RANGE_1) ||
@@ -1562,22 +1820,24 @@ void Move_Plasma(void)
 
 				// move to next pulse
 				continue;
-			}
+			} // end if
 
 
-			// test for mines
+// test for mines
+
+ // test for mines
 			for (int mine = 0; mine < MAX_MINES; mine++)
 			{
 				if (mines[mine].state == MINE_STATE_ALIVE &&
 					plasma[index].anim_state == PLASMA_ANIM_PLAYER)
 				{
 					// test for collision 
-					if (Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].getWidth() * .5),
-						plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].getHeight() * .5),
-						plasma[index].getWidth(), plasma[index].getHeight(),
-						mines[mine].varsI[INDEX_WORLD_X] - (mines[mine].getWidth() * .5),
-						mines[mine].varsI[INDEX_WORLD_Y] - (mines[mine].getHeight() * .5),
-						mines[mine].getWidth(), mines[mine].getHeight()))
+					if (Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].width * .5),
+						plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].height * .5),
+						plasma[index].width, plasma[index].height,
+						mines[mine].varsI[INDEX_WORLD_X] - (mines[mine].width * .5),
+						mines[mine].varsI[INDEX_WORLD_Y] - (mines[mine].height * .5),
+						mines[mine].width, mines[mine].height))
 					{
 						// kill pulse
 						plasma[index].state = PLASMA_STATE_OFF;
@@ -1598,7 +1858,7 @@ void Move_Plasma(void)
 							// add to players score
 							player_score += 250;
 
-						}
+						} // end if
 
 						int width = 30 + rand() % 40;
 
@@ -1606,18 +1866,18 @@ void Move_Plasma(void)
 						Start_Burst(plasma[index].varsI[INDEX_WORLD_X],
 							plasma[index].varsI[INDEX_WORLD_Y],
 							width, (width * .5) + (width * .25),
-							int(mines[mine].vx) * .5, int(mines[mine].vy) * .5);
+							int(mines[mine].xv) * .5, int(mines[mine].yv) * .5);
 						break;
-					}
+					} // end if
 
-				}
+				} // end if alive
 
-			}
+			} // end for mines
 
 
-			///////////////////////////////////////////////////////
+	   ///////////////////////////////////////////////////////
 
-			// test for stations
+	   // test for stations
 			for (int station = 0; station < MAX_STATIONS; station++)
 			{
 				if (stations[station].state == STATION_STATE_ALIVE &&
@@ -1625,12 +1885,12 @@ void Move_Plasma(void)
 				{
 					// test for collision 
 					if ( //stations[station].anim_state == STATION_SHIELDS_ANIM_OFF &&
-						Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].getWidth() * .5),
-							plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].getHeight() * .5),
-							plasma[index].getWidth(), plasma[index].getHeight(),
-							stations[station].varsI[INDEX_WORLD_X] - (stations[station].getWidth() * .5),
-							stations[station].varsI[INDEX_WORLD_Y] - (stations[station].getHeight() * .5),
-							stations[station].getWidth(), stations[station].getHeight()))
+						Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].width * .5),
+							plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].height * .5),
+							plasma[index].width, plasma[index].height,
+							stations[station].varsI[INDEX_WORLD_X] - (stations[station].width * .5),
+							stations[station].varsI[INDEX_WORLD_Y] - (stations[station].height * .5),
+							stations[station].width, stations[station].height))
 					{
 						// kill pulse
 						plasma[index].state = PLASMA_STATE_OFF;
@@ -1653,37 +1913,37 @@ void Move_Plasma(void)
 							{
 								win_counter = 0;
 								player_won = 1;
-							}
+							} // end if
 
-							// make big sound
-							sound[station_blow_id].play();
+						 // make big sound
+							DSound_Play(station_blow_id);
 
-						}
+						} // end if
 
-						// start a burst
+					 // start a burst
 						Start_Burst(plasma[index].varsI[INDEX_WORLD_X],
 							plasma[index].varsI[INDEX_WORLD_Y],
 							40 + rand() % 20, 30 + rand() % 16,
-							int(stations[station].vx) * .5, int(stations[station].vy) * .5);
+							int(stations[station].xv) * .5, int(stations[station].yv) * .5);
 						break;
-					}
+					} // end if
 
-				}
+				} // end if alive
 
-			}
-
-
-			///////////////////////////////////////////////////////
+			} // end for stations
 
 
-				// test for collision with player
+	   ///////////////////////////////////////////////////////
+
+
+		   // test for collision with player
 			if (plasma[index].anim_state == PLASMA_ANIM_ENEMY && player_state == PLAYER_STATE_ALIVE &&
-				Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].getWidth() * .5),
-					plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].getHeight() * .5),
-					plasma[index].getWidth(), plasma[index].getHeight(),
-					player_x - (wraith.getWidth() * .5),
-					player_y - (wraith.getHeight() * .5),
-					wraith.getWidth(), wraith.getHeight()))
+				Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].width * .5),
+					plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].height * .5),
+					plasma[index].width, plasma[index].height,
+					player_x - (wraith.width * .5),
+					player_y - (wraith.height * .5),
+					wraith.width, wraith.height))
 			{
 
 				Start_Burst(plasma[index].varsI[INDEX_WORLD_X],
@@ -1704,23 +1964,23 @@ void Move_Plasma(void)
 
 				// plasma is dead
 				continue;
-			}
+			} // end if
 
-			////////////////////////////////////////////////////////
+	 ////////////////////////////////////////////////////////
 
 
-				   // test for collision with rocks
+			// test for collision with rocks
 			for (int rock = 0; rock < MAX_ROCKS; rock++)
 			{
 				if (rocks[rock].state == ROCK_STATE_ON)
 				{
 					// test for collision 
-					if (Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].getWidth() * .5),
-						plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].getHeight() * .5),
-						plasma[index].getWidth(), plasma[index].getHeight(),
-						rocks[rock].varsI[INDEX_WORLD_X] - (rocks[rock].getWidth() * .5),
-						rocks[rock].varsI[INDEX_WORLD_Y] - (rocks[rock].getHeight() * .5),
-						rocks[rock].getWidth(), rocks[rock].getHeight()))
+					if (Collision_Test(plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].width * .5),
+						plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].height * .5),
+						plasma[index].width, plasma[index].height,
+						rocks[rock].varsI[INDEX_WORLD_X] - (rocks[rock].width * .5),
+						rocks[rock].varsI[INDEX_WORLD_Y] - (rocks[rock].height * .5),
+						rocks[rock].width, rocks[rock].height))
 					{
 						// kill pulse
 						plasma[index].state = PLASMA_STATE_OFF;
@@ -1733,7 +1993,7 @@ void Move_Plasma(void)
 							// start explosion
 							Start_Burst(plasma[index].varsI[INDEX_WORLD_X], plasma[index].varsI[INDEX_WORLD_Y],
 								68 + rand() % 12, 54 + rand() % 10,
-								rocks[rock].vx * .5, rocks[rock].vy * .5);
+								rocks[rock].xv * .5, rocks[rock].yv * .5);
 
 						} break;
 
@@ -1742,7 +2002,7 @@ void Move_Plasma(void)
 							// start explosion
 							Start_Burst(plasma[index].varsI[INDEX_WORLD_X], plasma[index].varsI[INDEX_WORLD_Y],
 								52 + rand() % 10, 44 + rand() % 8,
-								rocks[rock].vx * .5, rocks[rock].vy * .5);
+								rocks[rock].xv * .5, rocks[rock].yv * .5);
 
 						} break;
 
@@ -1752,13 +2012,13 @@ void Move_Plasma(void)
 							// start explosion
 							Start_Burst(plasma[index].varsI[INDEX_WORLD_X], plasma[index].varsI[INDEX_WORLD_Y],
 								34 - 4 + rand() % 8, 30 - 3 + rand() % 6,
-								rocks[rock].vx * .5, rocks[rock].vy * .5);
+								rocks[rock].xv * .5, rocks[rock].yv * .5);
 
 						} break;
 
-						}
+						} // end switch
 
-						// update score
+				  // update score
 						player_score += rocks[rock].varsI[2];
 
 						// test strength of rock, cause damage
@@ -1775,17 +2035,17 @@ void Move_Plasma(void)
 								// split into two medium
 								Start_Rock(rocks[rock].varsI[INDEX_WORLD_X] + rand() % 16, rocks[rock].varsI[INDEX_WORLD_Y] + rand() % 16,
 									ROCK_MEDIUM,
-									rocks[rock].vx - 2 + rand() % 4, rocks[rock].vy - 2 + rand() % 4);
+									rocks[rock].xv - 2 + rand() % 4, rocks[rock].yv - 2 + rand() % 4);
 
 								Start_Rock(rocks[rock].varsI[INDEX_WORLD_X] + rand() % 16, rocks[rock].varsI[INDEX_WORLD_Y] + rand() % 16,
 									ROCK_MEDIUM,
-									rocks[rock].vx - 2 + rand() % 4, rocks[rock].vy - 2 + rand() % 4);
+									rocks[rock].xv - 2 + rand() % 4, rocks[rock].yv - 2 + rand() % 4);
 
 								// throw in a small?
 								if ((rand() % 3) == 1)
 									Start_Rock(rocks[rock].varsI[INDEX_WORLD_X] + rand() % 16, rocks[rock].varsI[INDEX_WORLD_Y] + rand() % 16,
 										ROCK_SMALL,
-										rocks[rock].vx - 2 + rand() % 4, rocks[rock].vy - 2 + rand() % 4);
+										rocks[rock].xv - 2 + rand() % 4, rocks[rock].yv - 2 + rand() % 4);
 
 								// kill the original
 								rocks[rock].state = ROCK_STATE_OFF;
@@ -1801,10 +2061,11 @@ void Move_Plasma(void)
 								{
 									Start_Rock(rocks[rock].varsI[INDEX_WORLD_X] + rand() % 8, rocks[rock].varsI[INDEX_WORLD_Y] + rand() % 8,
 										ROCK_SMALL,
-										rocks[rock].vx - 2 + rand() % 4, rocks[rock].vy - 2 + rand() % 4);
+										rocks[rock].xv - 2 + rand() % 4, rocks[rock].yv - 2 + rand() % 4);
 
-								}
-								// kill the original
+								} // end for num_rocks
+
+							// kill the original
 								rocks[rock].state = ROCK_STATE_OFF;
 
 							} break;
@@ -1819,29 +2080,30 @@ void Move_Plasma(void)
 							default:break;
 
 
-							}
+							} // end switch
 
-						}
-						else if (rocks[rock].varsI[2] <= 0)
-						{
-							// kill rock
-							rocks[rock].state = ROCK_STATE_OFF;
-						} // end else
+						} // end if split
+						else
+							if (rocks[rock].varsI[2] <= 0)
+							{
+								// kill rock
+								rocks[rock].state = ROCK_STATE_OFF;
+							} // end else
 
-					// break out of loop
+						// break out of loop
 						break;
 
-					}
+					} // end if collision
 
-				}
+				} // end if rock alive
 
-			}
+			} // end for rock
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Move_Plasma
 
 ///////////////////////////////////////////////////////////
 
@@ -1855,20 +2117,20 @@ void Draw_Plasma(void)
 		if (plasma[index].state == PLASMA_STATE_ON)
 		{
 			// transform to screen coords
-			plasma[index].x = plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].getWidth() >> 1) - player_x + (SCREEN_WIDTH / 2);
-			plasma[index].y = plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].getHeight() >> 1) - player_y + (SCREEN_HEIGHT / 2);
+			plasma[index].x = plasma[index].varsI[INDEX_WORLD_X] - (plasma[index].width >> 1) - player_x + (SCREEN_WIDTH / 2);
+			plasma[index].y = plasma[index].varsI[INDEX_WORLD_Y] - (plasma[index].height >> 1) - player_y + (SCREEN_HEIGHT / 2);
 
 			// draw the pulse
-			plasma[index].drawOn();
+			Draw_BOB(&plasma[index], lpddsback);
 
 			// animate the pulse
-			plasma[index].animate();
+			Animate_BOB(&plasma[index]);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Draw_Plasma
 
 ///////////////////////////////////////////////////////////
 
@@ -1886,43 +2148,64 @@ void Fire_Plasma(int x, int y, int xv, int yv, int source = PLASMA_ANIM_PLAYER)
 		if (plasma[index].state == PLASMA_STATE_OFF)
 		{
 			// start this one up, note the use of world coords
-			plasma[index].varsI[INDEX_WORLD_X] = x - (plasma[0].getWidth() * .5);
-			plasma[index].varsI[INDEX_WORLD_Y] = y - (plasma[0].getHeight() * .5);
+			plasma[index].varsI[INDEX_WORLD_X] = x - (plasma[0].width * .5);
+			plasma[index].varsI[INDEX_WORLD_Y] = y - (plasma[0].height * .5);
 
-			plasma[index].vx = xv;
-			plasma[index].vy = yv;
-			plasma[index].restart();
+			plasma[index].xv = xv;
+			plasma[index].yv = yv;
+			plasma[index].curr_frame = 0;
 			plasma[index].state = PLASMA_STATE_ON;
 			plasma[index].counter_1 = 0; // used to track distance
 
 			// set animation and typing info for collision engine
 			plasma[index].anim_state = source;
-			plasma[index].setAniString(source);
+			Set_Animation_BOB(&plasma[index], source);
 
 			// start sound up
 			for (int sound_index = 0; sound_index < MAX_FIRE_SOUNDS; sound_index++)
 			{
 				// test if this sound is playing
-
-				if (sound[fire_ids[sound_index]].getStatus() == 0)
+				if (DSound_Status_Sound(fire_ids[sound_index]) == 0)
 				{
-					sound[fire_ids[sound_index]].play();
+					DSound_Play(fire_ids[sound_index]);
 					break;
-				}
+				} // end if
 
-			}
+			} // end for sound_index
 
-			// later
+		// later
 			return;
 
-		}
+		} // end if
 
-	}
+	} // end for
 
-}
+} // end Fire_Plasma
 
 
+///////////////////////////////////////////////////////////
 
+int Pad_Name(char* filename, char* extension, char* padstring, int num)
+{
+	int index;
+	char buffer[80];
+
+	// build up blank padstring
+	sprintf(padstring, "%s0000.%s", filename, extension);
+
+	// this function pads a string with 0's
+	itoa(num, buffer, 10);
+
+	// compute the position of the last digit
+	int last_digit = strlen(filename) + 4 - 1;
+
+	// now copy the number into the padstring at the correct position
+	memcpy(padstring + last_digit - strlen(buffer) + 1, buffer, strlen(buffer));
+
+	// return success
+	return(1);
+
+} // end Pad_Name
 
 ///////////////////////////////////////////////////////////
 
@@ -1930,30 +2213,32 @@ void Init_Rocks(void)
 {
 	// this function initializes and loads all the rocks 
 
+	int frame; // used as loop index
+
 	// create the large rock
+	Create_BOB(&rock_l, 0, 0, 96, 96, 16,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
 
 	// load animation frames
-	static aniDICT rock_lDict;
-	rock_lDict.resize(16);
-	SURFACE temp;
-	for (int frame = 0; frame <= 15; frame++)
+	for (frame = 0; frame <= 15; frame++)
 	{
 		// load the rocks imagery 
-		TCHAR buffer[80];
-		Pad_Name(path + TEXT("OUTART/ROCKL"), TEXT("BMP"), buffer, frame);
-		temp.createFromBitmap(buffer);
-		rock_lDict[frame].createFromSurface(96, 96, temp, 0, 0);
+		Pad_Name("OUTART/ROCKL", "BMP", buffer, frame);
+		Load_Bitmap_File(&bitmap8bit, buffer);
 
-	}
-	rock_l.content.setDict(&rock_lDict);
-	rock_l.content.autoOrder();
-	// set animation rate
-	rock_l.setAniSpeed(1 + rand() % 5);
-	rock_l.vx = -4 + rand() % 8;
-	rock_l.vy = 4 + rand() % 4;
+		// load the actual .BMP
+		Load_Frame_BOB(&rock_l, &bitmap8bit, frame, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-	rock_l.x = rand() % SCREEN_WIDTH;
-	rock_l.y = rand() % SCREEN_HEIGHT;
+		// unload data infile
+		Unload_Bitmap_File(&bitmap8bit);
+
+	} // end if
+
+// set animation rate
+	Set_Anim_Speed_BOB(&rock_l, 1 + rand() % 5);
+	Set_Vel_BOB(&rock_l, -4 + rand() % 8, 4 + rand() % 4);
+	Set_Pos_BOB(&rock_l, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT);
 
 	// set size of rock
 	rock_l.varsI[0] = ROCK_LARGE;
@@ -1963,29 +2248,29 @@ void Init_Rocks(void)
 	rock_l.state = ROCK_STATE_OFF;
 
 	// create the medium rock
-	static aniDICT rock_mDict;
-	rock_mDict.resize(16);
+	Create_BOB(&rock_m, 0, 0, 56, 56, 16,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
+
 	// load animation frames
-	for (int frame = 0; frame <= 15; frame++)
+	for (frame = 0; frame <= 15; frame++)
 	{
 		// load the rocks imagery 
-		TCHAR buffer[80];
-		Pad_Name(path + TEXT("OUTART/ROCKM"), TEXT("BMP"), buffer, frame);
-		temp.createFromBitmap(buffer);
+		Pad_Name("OUTART/ROCKM", "BMP", buffer, frame);
+		Load_Bitmap_File(&bitmap8bit, buffer);
+
 		// load the actual .BMP
-		rock_mDict[frame].createFromSurface(56, 56, temp, 0, 0);
+		Load_Frame_BOB(&rock_m, &bitmap8bit, frame, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-	}
-	rock_m.content.setDict(&rock_mDict);
-	rock_m.content.autoOrder();
+		// unload data infile
+		Unload_Bitmap_File(&bitmap8bit);
 
-	// set animation rate
-	rock_m.setAniSpeed(1 + rand() % 5);
+	} // end if
 
-	rock_m.vx = -4 + rand() % 8;
-	rock_m.vy = 4 + rand() % 4;
-	rock_m.x = rand() % SCREEN_WIDTH;
-	rock_m.y = rand() % SCREEN_HEIGHT;
+// set animation rate
+	Set_Anim_Speed_BOB(&rock_m, 1 + rand() % 5);
+	Set_Vel_BOB(&rock_m, -4 + rand() % 8, 4 + rand() % 4);
+	Set_Pos_BOB(&rock_m, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT);
 
 	// set size of rock
 	rock_m.varsI[0] = ROCK_MEDIUM;
@@ -1995,31 +2280,29 @@ void Init_Rocks(void)
 	rock_m.state = ROCK_STATE_OFF;
 
 	// create the small rock
-	static aniDICT rock_sDict;
-	rock_sDict.resize(16);
+	Create_BOB(&rock_s, 0, 0, 32, 32, 16,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
+
 	// load animation frames
-	for (int frame = 0; frame <= 15; frame++)
+	for (frame = 0; frame <= 15; frame++)
 	{
 		// load the rocks imagery 
-		TCHAR buffer[80];
-		Pad_Name(path + TEXT("OUTART/ROCKS"), TEXT("BMP"), buffer, frame);
-		temp.createFromBitmap(buffer);
+		Pad_Name("OUTART/ROCKS", "BMP", buffer, frame);
+		Load_Bitmap_File(&bitmap8bit, buffer);
 
+		// load the actual .BMP
+		Load_Frame_BOB(&rock_s, &bitmap8bit, frame, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-		rock_sDict[frame].createFromSurface(32, 32, temp, 0, 0);
+		// unload data infile
+		Unload_Bitmap_File(&bitmap8bit);
 
+	} // end if
 
-	}
-	rock_s.content.setDict(&rock_sDict);
-	rock_s.content.autoOrder();
-
-	// set animation rate
-	rock_s.setAniSpeed(1 + rand() % 5);
-	rock_s.vx = -4 + rand() % 8;
-	rock_s.vy = -4 + rand() % 8;
-	rock_s.x = rand() % SCREEN_WIDTH;
-	rock_s.y = rand() % SCREEN_HEIGHT;
-
+// set animation rate
+	Set_Anim_Speed_BOB(&rock_s, 1 + rand() % 5);
+	Set_Vel_BOB(&rock_s, -4 + rand() % 8, -4 + rand() % 8);
+	Set_Pos_BOB(&rock_s, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT);
 
 	// set size of rock
 	rock_s.varsI[0] = ROCK_SMALL;
@@ -2031,18 +2314,16 @@ void Init_Rocks(void)
 	// make semi copies
 	for (int rock = 0; rock < MAX_ROCKS; rock++)
 	{
-		rocks[rock].clone(rock_l);
+		memcpy(&rocks[rock], &rock_l, sizeof(BOB));
+
 		// set animation rate
-		rocks[rock].setAniSpeed(1 + rand() % 5);
+		Set_Anim_Speed_BOB(&rocks[rock], 1 + rand() % 5);
 
-		rocks[rock].vx = -4 + rand() % 8;
-		rocks[rock].vy = -4 + rand() % 8;
-
-		rocks[rock].x = 0;
-		rocks[rock].y = 0;
-
+		// set velocity
+		Set_Vel_BOB(&rocks[rock], -4 + rand() % 8, -4 + rand() % 8);
 
 		// set position
+		Set_Pos_BOB(&rocks[rock], 0, 0);
 		rocks[rock].varsI[INDEX_WORLD_X] = RAND_RANGE(UNIVERSE_MIN_X, UNIVERSE_MAX_X);
 		rocks[rock].varsI[INDEX_WORLD_Y] = RAND_RANGE(UNIVERSE_MIN_Y, UNIVERSE_MAX_Y);
 
@@ -2056,31 +2337,43 @@ void Init_Rocks(void)
 		case ROCK_LARGE:
 		{
 			// copy dd bitmap surfaces
-			rocks[rock].content.setDict(&rock_lDict);
+			memcpy(rocks[rock].images, rock_l.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+			// set width and height (incase)
+			rocks[rock].width = rock_l.width;
+			rocks[rock].height = rock_l.height;
 
 		} break;
 
 		case ROCK_MEDIUM:
 		{
 			// copy dd bitmap surfaces
-			rocks[rock].content.setDict(&rock_mDict);
+			memcpy(rocks[rock].images, rock_m.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+			// set width and height (incase)
+			rocks[rock].width = rock_m.width;
+			rocks[rock].height = rock_m.height;
 
 		} break;
 
 		case ROCK_SMALL:
 		{
 			// copy dd bitmap surfaces
-			rocks[rock].content.setDict(&rock_sDict);
+			memcpy(rocks[rock].images, rock_s.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+			// set width and height (incase)
+			rocks[rock].width = rock_s.width;
+			rocks[rock].height = rock_s.height;
 
 		} break;
 
 		default: break;
 
-		}
+		} // end switch
 
-	}
+	} // end for rock
 
-}
+} // end Init_Rocks
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -2093,11 +2386,21 @@ void Reset_Rocks(void)
 		// reset state
 		rocks[rock].state = ROCK_STATE_OFF;
 
-	}
+	} // end for rocks
 
-}
+} // end Reset_Rocks
 
+//////////////////////////////////////////////////////////////////////////////
 
+void Delete_Rocks(void)
+{
+	// this function simply deletes all memory and surfaces
+	// related to the rocks pulses
+
+	for (int index = 0; index < MAX_ROCKS; index++)
+		Destroy_BOB(&rocks[index]);
+
+} // end Delete_Rocks
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -2114,15 +2417,13 @@ void Seed_Rocks(void)
 		if (rocks[index].state == ROCK_STATE_OFF)
 		{
 			// set animation rate
-			rocks[index].setAniSpeed(1 + rand() % 5);
+			Set_Anim_Speed_BOB(&rocks[index], 1 + rand() % 5);
 
 			// set velocity
-			rocks[index].vx = -6 + rand() % 12;
-			rocks[index].vy = -6 + rand() % 12;
+			Set_Vel_BOB(&rocks[index], -6 + rand() % 12, -6 + rand() % 12);
 
 			// set position
-			rocks[index].x = 0;
-			rocks[index].y = 0;
+			Set_Pos_BOB(&rocks[index], 0, 0);
 			rocks[index].varsI[INDEX_WORLD_X] = RAND_RANGE(UNIVERSE_MIN_X, UNIVERSE_MAX_X);
 			rocks[index].varsI[INDEX_WORLD_Y] = RAND_RANGE(UNIVERSE_MIN_Y, UNIVERSE_MAX_Y);
 
@@ -2139,7 +2440,12 @@ void Seed_Rocks(void)
 				rocks[index].varsI[2] = 100 + rand() % 100;
 
 				// copy dd bitmap surfaces
-				rocks[index].content.setDict(rock_l.content.getDict());
+				memcpy(rocks[index].images, rock_l.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+
+				// set width and height (incase)
+				rocks[index].width = rock_l.width;
+				rocks[index].height = rock_l.height;
 
 			} break;
 
@@ -2148,7 +2454,13 @@ void Seed_Rocks(void)
 				// set hardness of rock
 				rocks[index].varsI[2] = 40 + rand() % 30;
 
-				rocks[index].content.setDict(rock_m.content.getDict());
+				// copy dd bitmap surfaces
+				memcpy(rocks[index].images, rock_m.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+
+				// set width and height (incase)
+				rocks[index].width = rock_m.width;
+				rocks[index].height = rock_m.height;
 
 			} break;
 
@@ -2157,21 +2469,26 @@ void Seed_Rocks(void)
 				// set hardness of rock
 				rocks[index].varsI[2] = 10;
 
-				rocks[index].content.setDict(rock_s.content.getDict());
+				// copy dd bitmap surfaces
+				memcpy(rocks[index].images, rock_s.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+				// set width and height (incase)
+				rocks[index].width = rock_s.width;
+				rocks[index].height = rock_s.height;
 			} break;
 
 			default:break;
 
-			}
+			} // end switch
 
-			// turn rock on
+	  // turn rock on
 			rocks[index].state = ROCK_STATE_ON;
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Seed_Rocks
 
 
 //////////////////////////////////////////////////////////
@@ -2187,27 +2504,29 @@ void Move_Rocks(void)
 		if (rocks[index].state == ROCK_STATE_ON)
 		{
 			// move the rock
-			rocks[index].varsI[INDEX_WORLD_X] += rocks[index].vx;
-			rocks[index].varsI[INDEX_WORLD_Y] += rocks[index].vy;
+			rocks[index].varsI[INDEX_WORLD_X] += rocks[index].xv;
+			rocks[index].varsI[INDEX_WORLD_Y] += rocks[index].yv;
 
 			// test if rock is out of universe, but persist object
 			if (rocks[index].varsI[INDEX_WORLD_X] > UNIVERSE_MAX_X)
 				rocks[index].varsI[INDEX_WORLD_X] = UNIVERSE_MIN_X;
-			else if (rocks[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
-				rocks[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
+			else
+				if (rocks[index].varsI[INDEX_WORLD_X] < UNIVERSE_MIN_X)
+					rocks[index].varsI[INDEX_WORLD_X] = UNIVERSE_MAX_X;
 
 			if (rocks[index].varsI[INDEX_WORLD_Y] > UNIVERSE_MAX_X)
 				rocks[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MIN_X;
-			else if (rocks[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
-				rocks[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
+			else
+				if (rocks[index].varsI[INDEX_WORLD_Y] < UNIVERSE_MIN_Y)
+					rocks[index].varsI[INDEX_WORLD_Y] = UNIVERSE_MAX_Y;
 
 
 			// test for collision with rocks
-			if (player_state == PLAYER_STATE_ALIVE && Collision_Test(player_x - (wraith.getWidth() * .5), player_y - (wraith.getHeight() * .5),
-				wraith.getWidth(), wraith.getHeight(),
-				rocks[index].varsI[INDEX_WORLD_X] - (rocks[index].getWidth() * .5),
-				rocks[index].varsI[INDEX_WORLD_Y] - (rocks[index].getHeight() * .5),
-				rocks[index].getWidth(), rocks[index].getHeight()))
+			if (player_state == PLAYER_STATE_ALIVE && Collision_Test(player_x - (wraith.width * .5), player_y - (wraith.height * .5),
+				wraith.width, wraith.height,
+				rocks[index].varsI[INDEX_WORLD_X] - (rocks[index].width * .5),
+				rocks[index].varsI[INDEX_WORLD_Y] - (rocks[index].height * .5),
+				rocks[index].width, rocks[index].height))
 			{
 				// what size rock did we hit?
 
@@ -2218,21 +2537,22 @@ void Move_Rocks(void)
 					// start explosion
 					Start_Burst(rocks[index].varsI[INDEX_WORLD_X], rocks[index].varsI[INDEX_WORLD_Y],
 						68 + rand() % 12, 54 + rand() % 10,
-						rocks[index].vx * .5, rocks[index].vy * .5);
+						rocks[index].xv * .5, rocks[index].yv * .5);
 
 					// update players damage
 					player_damage += 35;
 
 					// update velocity vector
-					player_xv += (rocks[index].vx);
-					player_yv += (rocks[index].vy);
+					player_xv += (rocks[index].xv);
+					player_yv += (rocks[index].yv);
 
 					// rotate ship a bit
 					wraith.varsI[WRAITH_INDEX_DIR] += (RAND_RANGE(-4, 4));
 					if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
 						wraith.varsI[WRAITH_INDEX_DIR] -= 15;
-					else if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-						wraith.varsI[WRAITH_INDEX_DIR] += 15;
+					else
+						if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
+							wraith.varsI[WRAITH_INDEX_DIR] += 15;
 
 
 				} break;
@@ -2242,21 +2562,22 @@ void Move_Rocks(void)
 					// start explosion
 					Start_Burst(rocks[index].varsI[INDEX_WORLD_X], rocks[index].varsI[INDEX_WORLD_Y],
 						52 + rand() % 10, 44 + rand() % 8,
-						rocks[index].vx * .5, rocks[index].vy * .5);
+						rocks[index].xv * .5, rocks[index].yv * .5);
 
 					// update players damage
 					player_damage += 15;
 
 					// update velocity vector
-					player_xv += (rocks[index].vx * .5);
-					player_yv += (rocks[index].vy * .5);
+					player_xv += (rocks[index].xv * .5);
+					player_yv += (rocks[index].yv * .5);
 
 					// rotate ship a bit
 					wraith.varsI[WRAITH_INDEX_DIR] += (RAND_RANGE(-4, 4));
 					if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
 						wraith.varsI[WRAITH_INDEX_DIR] -= 15;
-					else if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-						wraith.varsI[WRAITH_INDEX_DIR] += 15;
+					else
+						if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
+							wraith.varsI[WRAITH_INDEX_DIR] += 15;
 
 				} break;
 
@@ -2265,26 +2586,27 @@ void Move_Rocks(void)
 					// start explosion
 					Start_Burst(rocks[index].varsI[INDEX_WORLD_X], rocks[index].varsI[INDEX_WORLD_Y],
 						34 - 4 + rand() % 8, 30 - 3 + rand() % 6,
-						rocks[index].vx * .5, rocks[index].vy * .5);
+						rocks[index].xv * .5, rocks[index].yv * .5);
 
 					// update players damage
 					player_damage += 5;
 
 					// update velocity vector
-					player_xv += (rocks[index].vx * .25);
-					player_yv += (rocks[index].vy * .25);
+					player_xv += (rocks[index].xv * .25);
+					player_yv += (rocks[index].yv * .25);
 
 					// rotate ship a bit
 					wraith.varsI[WRAITH_INDEX_DIR] += (RAND_RANGE(-4, 4));
 					if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
 						wraith.varsI[WRAITH_INDEX_DIR] -= 15;
-					else if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-						wraith.varsI[WRAITH_INDEX_DIR] += 15;
+					else
+						if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
+							wraith.varsI[WRAITH_INDEX_DIR] += 15;
 
 
 				} break;
 
-				}
+				} // end switch
 
 				// update score
 				player_score += rocks[index].varsI[2];
@@ -2295,31 +2617,29 @@ void Move_Rocks(void)
 				// kill the original
 				rocks[index].state = ROCK_STATE_OFF;
 
-			}
+			} // end if collision
 
-		}
+		} // end if rock
 
-	}
+	} // end for index
 
-	// now test if it's time to add a new rock to the list
+// now test if it's time to add a new rock to the list
 	if ((rand() % 100) == 50)
 	{
 		// scan for a rock to initialize
-		for (int index = 0; index < MAX_ROCKS; index++)
+		for (index = 0; index < MAX_ROCKS; index++)
 		{
 			// is this rock available?
 			if (rocks[index].state == ROCK_STATE_OFF)
 			{
 				// set animation rate
-				rocks[index].setAniSpeed(1 + rand() % 5);
+				Set_Anim_Speed_BOB(&rocks[index], 1 + rand() % 5);
 
 				// set velocity
-				rocks[index].vx = -6 + rand() % 12;
-				rocks[index].vy = -6 + rand() % 12;
+				Set_Vel_BOB(&rocks[index], -6 + rand() % 12, -6 + rand() % 12);
 
 				// set position
-				rocks[index].x = 0;
-				rocks[index].y = 0;
+				Set_Pos_BOB(&rocks[index], 0, 0);
 				rocks[index].varsI[INDEX_WORLD_X] = RAND_RANGE(UNIVERSE_MIN_X, UNIVERSE_MAX_X);
 				rocks[index].varsI[INDEX_WORLD_Y] = RAND_RANGE(UNIVERSE_MIN_Y, UNIVERSE_MAX_Y);
 
@@ -2336,7 +2656,12 @@ void Move_Rocks(void)
 					rocks[index].varsI[2] = 100 + rand() % 100;
 
 					// copy dd bitmap surfaces
-					rocks[index].content.setDict(rock_l.content.getDict());
+					memcpy(rocks[index].images, rock_l.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+
+					// set width and height (incase)
+					rocks[index].width = rock_l.width;
+					rocks[index].height = rock_l.height;
 
 				} break;
 
@@ -2346,7 +2671,12 @@ void Move_Rocks(void)
 					rocks[index].varsI[2] = 40 + rand() % 30;
 
 					// copy dd bitmap surfaces
-					rocks[index].content.setDict(rock_m.content.getDict());
+					memcpy(rocks[index].images, rock_m.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+
+					// set width and height (incase)
+					rocks[index].width = rock_m.width;
+					rocks[index].height = rock_m.height;
 
 				} break;
 
@@ -2356,27 +2686,31 @@ void Move_Rocks(void)
 					rocks[index].varsI[2] = 10;
 
 					// copy dd bitmap surfaces
-					rocks[index].content.setDict(rock_s.content.getDict());
+					memcpy(rocks[index].images, rock_s.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+					// set width and height (incase)
+					rocks[index].width = rock_s.width;
+					rocks[index].height = rock_s.height;
 				} break;
 
 				default:break;
 
-				}
+				} // end switch
 
 
-				// turn rock on
+		  // turn rock on
 				rocks[index].state = ROCK_STATE_ON;
 
 				// later
 				return;
 
-			}
+			} // end if
 
-		}
+		} // end for index
 
-	}
+	} // end if
 
-}
+} // end Move_Rocks
 
 ///////////////////////////////////////////////////////////
 
@@ -2392,17 +2726,13 @@ void Start_Rock(int x, int y, int size, int xv, int yv)
 		if (rocks[index].state == ROCK_STATE_OFF)
 		{
 			// set animation rate
-			rocks[index].setAniSpeed(1 + rand() % 5);
+			Set_Anim_Speed_BOB(&rocks[index], 1 + rand() % 5);
 
 			// set velocity
-			rocks[index].vx = xv;
-			rocks[index].vy = yv;
-
-
+			Set_Vel_BOB(&rocks[index], xv, yv);
 
 			// set position
-			rocks[index].x = 0;
-			rocks[index].y = 0;
+			Set_Pos_BOB(&rocks[index], 0, 0);
 			rocks[index].varsI[INDEX_WORLD_X] = x;
 			rocks[index].varsI[INDEX_WORLD_Y] = y;
 
@@ -2418,7 +2748,12 @@ void Start_Rock(int x, int y, int size, int xv, int yv)
 				// set hardness of rock
 				rocks[index].varsI[2] = 100 + rand() % 100;
 
-				rocks[index].content.setDict(rock_l.content.getDict());
+				// copy dd bitmap surfaces
+				memcpy(rocks[index].images, rock_l.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+				// set width and height (incase)
+				rocks[index].width = rock_l.width;
+				rocks[index].height = rock_l.height;
 
 			} break;
 
@@ -2427,7 +2762,12 @@ void Start_Rock(int x, int y, int size, int xv, int yv)
 				// set hardness of rock
 				rocks[index].varsI[2] = 40 + rand() % 30;
 
-				rocks[index].content.setDict(rock_m.content.getDict());
+				// copy dd bitmap surfaces
+				memcpy(rocks[index].images, rock_m.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+				// set width and height (incase)
+				rocks[index].width = rock_m.width;
+				rocks[index].height = rock_m.height;
 			} break;
 
 			case ROCK_SMALL:
@@ -2435,24 +2775,29 @@ void Start_Rock(int x, int y, int size, int xv, int yv)
 				// set hardness of rock
 				rocks[index].varsI[2] = 10;
 
-				rocks[index].content.setDict(rock_s.content.getDict());
+				// copy dd bitmap surfaces
+				memcpy(rocks[index].images, rock_s.images, sizeof(LPDIRECTDRAWSURFACE) * MAX_BOB_FRAMES);
+
+				// set width and height (incase)
+				rocks[index].width = rock_s.width;
+				rocks[index].height = rock_s.height;
 			} break;
 
 			default:break;
 
-			}
+			} // end switch
 
-			// turn rock on
+	  // turn rock on
 			rocks[index].state = ROCK_STATE_ON;
 
 			// later
 			return;
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Start_Rock
 
 ///////////////////////////////////////////////////////////
 
@@ -2466,19 +2811,20 @@ void Draw_Rocks(void)
 		if (rocks[index].state == ROCK_STATE_ON)
 		{
 			// transform to screen coords
-			rocks[index].x = rocks[index].varsI[INDEX_WORLD_X] - (rocks[index].getWidth() * .5) - player_x + (SCREEN_WIDTH / 2);
-			rocks[index].y = rocks[index].varsI[INDEX_WORLD_Y] - (rocks[index].getHeight() * .5) - player_y + (SCREEN_HEIGHT / 2);
+			rocks[index].x = rocks[index].varsI[INDEX_WORLD_X] - (rocks[index].width * .5) - player_x + (SCREEN_WIDTH / 2);
+			rocks[index].y = rocks[index].varsI[INDEX_WORLD_Y] - (rocks[index].height * .5) - player_y + (SCREEN_HEIGHT / 2);
 
 			// draw the rock
-			rocks[index].drawOn();
-			rocks[index].animate();
+			Draw_BOB(&rocks[index], lpddsback);
 
+			// animate the pulse
+			Animate_BOB(&rocks[index]);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Draw_Rocks
 
 ///////////////////////////////////////////////////////////
 
@@ -2487,37 +2833,36 @@ void Init_Bursts(void)
 	// this function initializes and loads all the bursts 
 
 	// load the bursts imagery 
-	SURFACE temp;
-	temp.createFromBitmap(path + TEXT("OUTART/EXPL8.BMP"));
+	Load_Bitmap_File(&bitmap8bit, "OUTART/EXPL8.BMP");
 
-	bursts[0].x = 0;
-	bursts[0].y = 0;
-	static aniDICT burstsDict;
-	burstsDict.resize(14);
+	// create the first bob
+	Create_BOB(&bursts[0], 0, 0, 42, 36, 14,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
+
 	// load animation frames
 	for (int frame = 0; frame < 14; frame++)
-		burstsDict[frame].createFromSurface(42, 36, temp, (frame % 6) * (42 + 1) + 1, (frame / 6) * (36 + 1) + 1);
+		Load_Frame_BOB(&bursts[0], &bitmap8bit, frame, frame % 6, frame / 6, BITMAP_EXTRACT_MODE_CELL);
 
-	bursts[0].content.setDict(&burstsDict);
-	bursts[0].content.autoOrder();
 	// set animation rate
-	bursts[0].setAniSpeed(1);
+	Set_Anim_Speed_BOB(&bursts[0], 1);
 
 	// set size of burst
-	bursts[0].varsI[0] = bursts[0].getWidth();
-	bursts[0].varsI[1] = bursts[0].getHeight();
+	bursts[0].varsI[0] = bursts[0].width;
+	bursts[0].varsI[1] = bursts[0].height;
 
 	// set state to off
 	bursts[0].state = BURST_STATE_OFF;
 
 	for (int burst = 1; burst < MAX_BURSTS; burst++)
 	{
-		bursts[burst].clone(bursts[0]);
-	}
+		memcpy(&bursts[burst], &bursts[0], sizeof(BOB));
+	} // end for burst
 
+// unload data infile
+	Unload_Bitmap_File(&bitmap8bit);
 
-
-}
+} // end Init_Bursts
 
 ///////////////////////////////////////////////////////////
 
@@ -2529,11 +2874,23 @@ void Reset_Bursts(void)
 	{
 		// set state to off
 		bursts[burst].state = BURST_STATE_OFF;
-	}
+	} // end for burst
 
 
-}
+} // end Reset_Bursts
 
+
+////////////////////////////////////////////////////////////
+
+void Delete_Bursts(void)
+{
+	// this function simply deletes all memory and surfaces
+	// related to the bursts pulses
+
+	for (int index = 0; index < MAX_BURSTS; index++)
+		Destroy_BOB(&bursts[index]);
+
+} // end Delete_Bursts
 
 ///////////////////////////////////////////////////////////
 
@@ -2548,21 +2905,21 @@ void Move_Bursts(void)
 		{
 			// move the burst
 			// Move_BOB(&bursts[index]);
-			bursts[index].varsI[INDEX_WORLD_X] += bursts[index].vx;
-			bursts[index].varsI[INDEX_WORLD_Y] += bursts[index].vy;
+			bursts[index].varsI[INDEX_WORLD_X] += bursts[index].xv;
+			bursts[index].varsI[INDEX_WORLD_Y] += bursts[index].yv;
 
 			// test if burst is off screen or done with animation
-			if (bursts[index].getDictIndex() >= bursts[index].content.getDict()->getSize() - 1)
+			if (bursts[index].curr_frame >= bursts[index].num_frames - 1)
 			{
 				// kill burst and put back on available list
 				bursts[index].state = BURST_STATE_OFF;
-			}
+			} // end if
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Move_Bursts
 
 ///////////////////////////////////////////////////////////
 
@@ -2575,27 +2932,29 @@ void Draw_Bursts(void)
 		if (bursts[index].state == BURST_STATE_ON)
 		{
 			// transform bursts to screen space
-			bursts[index].x = bursts[index].varsI[INDEX_WORLD_X] - (bursts[index].getWidth() * .5) - player_x + (SCREEN_WIDTH / 2);
-			bursts[index].y = bursts[index].varsI[INDEX_WORLD_Y] - (bursts[index].getHeight() * .5) - player_y + (SCREEN_HEIGHT / 2);
+			bursts[index].x = bursts[index].varsI[INDEX_WORLD_X] - (bursts[index].width * .5) - player_x + (SCREEN_WIDTH / 2);
+			bursts[index].y = bursts[index].varsI[INDEX_WORLD_Y] - (bursts[index].height * .5) - player_y + (SCREEN_HEIGHT / 2);
 
 			// is scaling needed
-			if (bursts[index].varsI[0] != bursts[index].getWidth() ||
-				bursts[index].varsI[1] != bursts[index].getHeight())
+			if (bursts[index].varsI[0] != bursts[index].width ||
+				bursts[index].varsI[1] != bursts[index].height)
 			{
 				// draw the burst scaled
-				bursts[index].drawOn(bursts[index].varsI[0], bursts[index].varsI[1]);
+				Draw_Scaled_BOB(&bursts[index],
+					bursts[index].varsI[0], bursts[index].varsI[1],
+					lpddsback);
 			}
 			else // draw normal
-				bursts[index].drawOn();
+				Draw_BOB(&bursts[index], lpddsback);
 
 			// animate the explosion
-			bursts[index].animate();
+			Animate_BOB(&bursts[index]);
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Draw_Bursts
 
 ///////////////////////////////////////////////////////////
 
@@ -2612,13 +2971,14 @@ void Start_Burst(int x, int y, int width, int height, int xv, int yv)
 		if (bursts[index].state == BURST_STATE_OFF)
 		{
 			// set animation rate
-			bursts[index].setAniSpeed(1);
-			bursts[index].restart();
+			Set_Anim_Speed_BOB(&bursts[index], 1);
+			bursts[index].curr_frame = 0;
 
 			// set velocity
-			bursts[index].vx = xv; bursts[index].vy = yv;
+			Set_Vel_BOB(&bursts[index], xv, yv);
+
 			// set position
-			bursts[index].x = bursts[index].y = 0;
+			Set_Pos_BOB(&bursts[index], 0, 0);
 			bursts[index].varsI[INDEX_WORLD_X] = x;
 			bursts[index].varsI[INDEX_WORLD_Y] = y;
 
@@ -2632,7 +2992,7 @@ void Start_Burst(int x, int y, int width, int height, int xv, int yv)
 			// shoot some particles out
 			Start_Particle_Explosion(PARTICLE_TYPE_FLICKER, RAND_RANGE(PARTICLE_COLOR_RED, PARTICLE_COLOR_GREEN), 20 + rand() % 40,
 				bursts[index].varsI[INDEX_WORLD_X], bursts[index].varsI[INDEX_WORLD_Y],
-				bursts[index].vx, bursts[index].vy,
+				bursts[index].xv, bursts[index].yv,
 				8 + rand() % 8);
 
 
@@ -2640,22 +3000,22 @@ void Start_Burst(int x, int y, int width, int height, int xv, int yv)
 			for (int sound_index = 0; sound_index < MAX_EXPL_SOUNDS; sound_index++)
 			{
 				// test if this sound is playing
-				if (sound[expl_ids[sound_index]].getStatus() == 0)
+				if (DSound_Status_Sound(expl_ids[sound_index]) == 0)
 				{
-					sound[expl_ids[sound_index]].play();
+					DSound_Play(expl_ids[sound_index]);
 					break;
-				}
+				} // end if
 
-			}
+			} // end for sound_index       
 
-			// later
+		// later
 			return;
 
-		}
+		} // end if
 
-	}
+	} // end for index
 
-}
+} // end Start_Burst
 
 ///////////////////////////////////////////////////////////
 
@@ -2663,174 +3023,230 @@ void Draw_Info(void)
 {
 	// this function draws all the information at the top of the screen
 
+	char score[16]; // hold score
 	static int red_glow = 0; // used for damage display
 	static int warning_count = 0;
-	TCHAR buffer[MAX_BUFFER];
 
+	// build up scrore string
+	sprintf(score, "0000000%d", player_score);
 
 	// build up final string
-	_stprintf(buffer, TEXT("SCORE %08d"), player_score);
-	gPrintf(10, 10, RGB(0, 255, 0), buffer);
-	// draw damage----为什么要这么多呢，因为有三层套娃用了 printf  2^3 = 8
-	_stprintf(buffer, TEXT("DAMAGE %d%%%%%%%%"), player_damage);
+	sprintf(buffer, "SCORE %s", &score[strlen(score) - 8]);
+	Draw_Text_GDI(buffer, 10, 10, RGB(0, 255, 0), lpddsback);
+
+	// draw damage
+	sprintf(buffer, "DAMAGE %d%%", player_damage);
 
 	if (player_damage < 90)
-		gPrintf(350 - 8 * lstrlen(buffer), 10, RGB(0, 255, 0), buffer);
+		Draw_Text_GDI(buffer, 350 - 8 * strlen(buffer), 10, RGB(0, 255, 0), lpddsback);
 	else
-		gPrintf(350 - 8 * lstrlen(buffer), 10, RGB(red_glow, 0, 0), buffer);
+		Draw_Text_GDI(buffer, 350 - 8 * strlen(buffer), 10, RGB(red_glow, 0, 0), lpddsback);
 
 	// update red glow
 	if ((red_glow += 15) > 255)
 		red_glow = 0;
 
 	// draw ships
-	gPrintf(520, 10, RGB(0, 255, 0), TEXT("SHIPS %d"), player_ships);
+	sprintf(buffer, "SHIPS %d", player_ships);
+	Draw_Text_GDI(buffer, 520, 10, RGB(0, 255, 0), lpddsback);
 
-	gPrintf(10, 460, RGB(0, 255, 0), TEXT("VEL %.2f Kps"), vel * (100 / MAX_PLAYER_SPEED));
+	sprintf(buffer, "VEL %.2f Kps", vel * (100 / MAX_PLAYER_SPEED));
+	Draw_Text_GDI(buffer, 10, 460, RGB(0, 255, 0), lpddsback);
 
-	gPrintf(480, 460, RGB(0, 255, 0), TEXT("POS [%.2f,%.2f]"), player_x, player_y);
+	sprintf(buffer, "POS [%.2f,%.2f]", player_x, player_y);
+	Draw_Text_GDI(buffer, 480, 460, RGB(0, 255, 0), lpddsback);
 
-	gPrintf(320 - 120, 460, RGB(0, 255, 0), TEXT("TRACKING RATE = %.2f"), mine_tracking_rate);
-
-
-}
-
+	sprintf(buffer, "TRACKING RATE = %.2f", mine_tracking_rate);
+	Draw_Text_GDI(buffer, 320 - 120, 460, RGB(0, 255, 0), lpddsback);
 
 
+} // end Draw_Info
+
+
+///////////////////////////////////////////////////////////
+
+int Copy_Screen(UCHAR* source_bitmap, UCHAR* dest_buffer, int lpitch, int transparent)
+{
+	// this function draws the bitmap onto the destination memory surface
+	// if transparent is 1 then color 0 will be transparent
+	// note this function does NOT clip, so be carefull!!!
+
+	UCHAR* dest_addr,   // starting address of bitmap in destination
+		* source_addr; // starting adddress of bitmap data in source
+
+	UCHAR pixel;        // used to hold pixel value
+
+	int index,          // looping vars
+		pixel_x;
+
+	// test if this bitmap is loaded
+
+	   // compute starting destination address
+	dest_addr = dest_buffer;
+
+	// compute the starting source address
+	source_addr = source_bitmap;
+
+	// is this bitmap transparent
+	if (transparent)
+	{
+		// copy each line of bitmap into destination with transparency
+		for (index = 0; index < SCREEN_HEIGHT; index++)
+		{
+			// copy the memory
+			for (pixel_x = 0; pixel_x < SCREEN_WIDTH; pixel_x++)
+			{
+				if ((pixel = source_addr[pixel_x]) != 0)
+					dest_addr[pixel_x] = pixel;
+
+			} // end if
+
+		// advance all the pointers
+			dest_addr += lpitch;
+			source_addr += SCREEN_WIDTH;
+
+		} // end for index
+	} // end if
+	else
+	{
+		// non-transparent version
+		// copy each line of bitmap into destination
+
+		for (index = 0; index < SCREEN_HEIGHT; index++)
+		{
+			// copy the memory
+			memcpy(dest_addr, source_addr, SCREEN_WIDTH);
+
+			// advance all the pointers
+			dest_addr += lpitch;
+			source_addr += SCREEN_WIDTH;
+
+		} // end for index
+
+	} // end else
+
+	// return success
+	return(1);
+
+} // end Copy_Screen
 
 /////////////////////////////////////////////////////////////////////
 
 void Do_Intro(void)
 {
 	// the worlds simples intro
-	SwitchSurface(true);
+
 	// clear out buffers
-	graphicOut.fillColor();
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDraw_Fill_Surface(lpddsprimary, 0);
 
 	// draw in logo screen
-	GRAPHIC::BITMAP bitmap;
-	bitmap.load(path + TEXT("OUTART/TRACKINTRO.BMP"));
-	laPALETTE temp;
-	bitmap.getPalette(temp);
-	curPalette.set(temp);
+	Load_Bitmap_File(&bitmap8bit, "OUTART/TRACKINTRO.BMP");
+
 	// set the palette to background image palette
+	Set_Palette(bitmap8bit.palette);
 
-	SURFACE introduct;
-	introduct.createFromBitmap(bitmap);
-	introduct.drawOn(0, 0, false);
+	// copy the bitmap to primary buffer
+	DDraw_Lock_Primary_Surface();
+	Copy_Screen(bitmap8bit.buffer, primary_buffer, primary_lpitch, 0);
+	DDraw_Unlock_Primary_Surface();
 
+	// unload bitmap file
+	Unload_Bitmap_File(&bitmap8bit);
 
 	Sleep(5000);
-	
-	BeginDrawOn();
+
 	// transition to black
-	ScreenTransitions(SCREEN_DARKNESS);
-	EndDrawOn();
+	Screen_Transitions(SCREEN_DARKNESS, NULL, 0);
+
 	// clear out buffers
-	graphicOut.fillColor();
-	SwitchSurface(false);
-}
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDraw_Fill_Surface(lpddsprimary, 0);
+
+} // end Do_Intro
 
 ///////////////////////////////////////////////////////////
 
-void Load_Sound_Music(void)
+int Load_Sound_Music(void)
 {
 	// this function loads all the sounds and music
 
 	// load in intro music
-	int soundIndex = 0;
+	if ((intro_music_id = DSound_Load_WAV("OUTSOUND/INTRO.WAV")) == -1)
+		return(0);
 
-	intro_music_id = soundIndex;
-	sound[intro_music_id].create(path + TEXT("OUTSOUND/INTRO.WAV"));
-	soundIndex++;
-
-	main_music_id = soundIndex;
-	sound[main_music_id].create(path + TEXT("OUTSOUND/STARSNG.WAV"));
-	soundIndex++;
+	// load the main music
+	if ((main_music_id = DSound_Load_WAV("OUTSOUND/STARSNG.WAV")) == -1)
+		return(0);
 
 	// load get ready
-	ready_id = soundIndex;
-	sound[ready_id].create(path + TEXT("OUTSOUND/ENTERING1.WAV"));
-	soundIndex++;
+	if ((ready_id = DSound_Load_WAV("OUTSOUND/ENTERING1.WAV")) == -1)
+		return(0);
 
 	// load engines
-	engines_id = soundIndex;
-	sound[engines_id].create(path + TEXT("OUTSOUND/ENGINES.WAV"));
-	soundIndex++;
+	if ((engines_id = DSound_Load_WAV("OUTSOUND/ENGINES.WAV")) == -1)
+		return(0);
 
 	// load scream
-	scream_id = soundIndex;
-	sound[scream_id].create(path + TEXT("OUTSOUND/BREAKUP.WAV"));
-	soundIndex++;
+	if ((scream_id = DSound_Load_WAV("OUTSOUND/BREAKUP.WAV")) == -1)
+		return(0);
 
 	// load game over
-	game_over_id = soundIndex;
-	sound[game_over_id].create(path + TEXT("OUTSOUND/GAMEOVER.WAV"));
-	soundIndex++;
+	if ((game_over_id = DSound_Load_WAV("OUTSOUND/GAMEOVER.WAV")) == -1)
+		return(0);
 
 	// load mine powerup
-	mine_powerup_id = soundIndex;
-	sound[mine_powerup_id].create(path + TEXT("OUTSOUND/MINEPOWER1.WAV"));
-	soundIndex++;
+	if ((mine_powerup_id = DSound_Load_WAV("OUTSOUND/MINEPOWER1.WAV")) == -1)
+		return(0);
 
-	deactivate_id = soundIndex;
-	sound[deactivate_id].create(path + TEXT("OUTSOUND/DEACTIVATE1.WAV"));
-	soundIndex++;
+	if ((deactivate_id = DSound_Load_WAV("OUTSOUND/DEACTIVATE1.WAV")) == -1)
+		return(0);
 
-	station_throb_id = soundIndex;
-	sound[station_throb_id].create(path + TEXT("OUTSOUND/STATIONTHROB2.WAV"));
-	soundIndex++;
-
-	beep0_id = soundIndex;
-	sound[beep0_id].create(path + TEXT("OUTSOUND/BEEP3.WAV"));
-	soundIndex++;
+	if ((station_throb_id = DSound_Load_WAV("OUTSOUND/STATIONTHROB2.WAV")) == -1)
+		return(0);
 
 
-	beep1_id = soundIndex;
-	sound[beep1_id].create(path + TEXT("OUTSOUND/BEEP1.WAV"));
-	soundIndex++;
+	if ((beep0_id = DSound_Load_WAV("OUTSOUND/BEEP3.WAV")) == -1)
+		return(0);
+
+	if ((beep1_id = DSound_Load_WAV("OUTSOUND/BEEP1.WAV")) == -1)
+		return(0);
 
 	// load the explosions sounds
+	if ((station_blow_id = DSound_Load_WAV("OUTSOUND/STATIONBLOW.WAV")) == -1)
+		return(0);
 
-	station_blow_id = soundIndex;
-	sound[station_blow_id].create(path + TEXT("OUTSOUND/STATIONBLOW.WAV"));
-	soundIndex++;
 
 	// these are the two different source masters
-	expl_ids[0] = soundIndex;
-	sound[expl_ids[0]].create(path + TEXT("OUTSOUND/EXPL1.WAV"));
-	soundIndex++;
+	if ((expl_ids[0] = DSound_Load_WAV("OUTSOUND/EXPL1.WAV")) == -1)
+		return(0);
 
-
-	expl_ids[1] = soundIndex;
-	sound[expl_ids[1]].create(path + TEXT("OUTSOUND/EXPL2.WAV"));
-	soundIndex++;
+	if ((expl_ids[1] = DSound_Load_WAV("OUTSOUND/EXPL2.WAV")) == -1)
+		return(0);
 
 	// now make copies
 	for (int index = 2; index < MAX_EXPL_SOUNDS; index++)
 	{
 		// replicate sound
-		expl_ids[index] = soundIndex;
-		sound[expl_ids[index]].cloneFrom(sound[expl_ids[rand() % 2]]);
-		soundIndex++;
+		expl_ids[index] = DSound_Replicate_Sound(expl_ids[rand() % 2]);
 
-	}
+	} // end for index
 
-	// load the plasma weapons sounds
-	fire_ids[0] = soundIndex;
-	sound[fire_ids[0]].create(path + TEXT("OUTSOUND/PULSE.WAV"));
-	soundIndex++;
+// load the plasma weapons sounds
+	if ((fire_ids[0] = DSound_Load_WAV("OUTSOUND/PULSE.WAV")) == -1)
+		return(0);
 
 	// now make copies
-	for (int index = 1; index < MAX_FIRE_SOUNDS; index++)
+	for (index = 1; index < MAX_FIRE_SOUNDS; index++)
 	{
 		// replicate sound
-		fire_ids[index] = soundIndex;
-		sound[fire_ids[index]].cloneFrom(sound[fire_ids[0]]);
-		soundIndex++;
-	}
+		fire_ids[index] = DSound_Replicate_Sound(fire_ids[0]);
+	} // end for index
 
-}
+// return sucess
+	return(1);
+
+} // end Load_Sound_Music
 
 ///////////////////////////////////////////////////////////////////
 
@@ -2838,66 +3254,103 @@ void Load_HUD(void)
 {
 	// this function loads the animation for the hud
 
+	int index; // looping variable
 
 	// load the wraith ship
-	SURFACE temp;
-	temp.createFromBitmap(path + TEXT("OUTART/HUDART8.BMP"));
+	Load_Bitmap_File(&bitmap8bit, "OUTART/HUDART8.BMP");
 
-	hud.x = hud.y = 0;
-	static aniDICT hudDict;
-	hudDict.resize(4);
+	// now create the wraith
+	Create_BOB(&hud, 0, 0, 24, 26, 4,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
+
 	// load hud frames
-	for (int index = 0; index < 4; index++)
-		hudDict[index].createFromSurface(24, 26, temp, index * (24 + 1) + 1, index * (26 + 1) + 1);
-	hud.content.setDict(&hudDict);
-	hud.content.autoOrder();
-}
+	for (index = 0; index < 4; index++)
+		Load_Frame_BOB(&hud, &bitmap8bit, index, index, 0, BITMAP_EXTRACT_MODE_CELL);
+
+	// unload data infile
+	Unload_Bitmap_File(&bitmap8bit);
+
+} // end Load_HUD
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Load_Player(void)
+int Load_Player(void)
 {
 	// this function loads the animation for the player
 
+	int index; // looping variable
 
 	// load the wraith ship
-	GRAPHIC::BITMAP bitmap;
-	bitmap.load(path + TEXT("OUTART/WRAITHB8.BMP"));
+	Load_Bitmap_File(&bitmap8bit, "OUTART/WRAITHB8.BMP");
 
-	bitmap.getPalette(game_palette);
-	curPalette.set(game_palette);
 	// set the palette to background image palette
-
+	Set_Palette(bitmap8bit.palette);
 
 	// save this palette
-
+	Save_Palette(game_palette);
 
 	// now create the wraith
+	Create_BOB(&wraith, 0, 0, 64, 64, 35,
+		BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME,
+		DDSCAPS_SYSTEMMEMORY);
 
-
-	static aniDICT wraithDict;
-	wraithDict.resize(35);
-	SURFACE temp;
-	temp.createFromBitmap(bitmap);
 	// load wraith frames
-	for (int index = 0; index < 35; index++)
-		wraithDict[index].createFromSurface(64, 64, temp, (index % 8) * (64 + 1) + 1, (index / 8) * (64 + 1) + 1);
-
-	wraith.content.setDict(&wraithDict);
-	wraith.content.autoOrder();
+	for (index = 0; index < 35; index++)
+		Load_Frame_BOB(&wraith, &bitmap8bit, index, index % 8, index / 8, BITMAP_EXTRACT_MODE_CELL);
 
 	// set position
-	wraith.x = (SCREEN_WIDTH / 2) - wraith.getWidth() / 2;
-	wraith.y = (SCREEN_HEIGHT / 2) - wraith.getHeight() / 2;
+	Set_Pos_BOB(&wraith, (SCREEN_WIDTH / 2) - wraith.width / 2, (SCREEN_HEIGHT / 2) - wraith.height / 2);
 
 	// set starting direction
 	wraith.varsI[WRAITH_INDEX_DIR] = 0;
 
+	// unload data infile
+	Unload_Bitmap_File(&bitmap8bit);
 
-}
+	// return success
+	return(1);
 
+} // end Load_Player
 
+////////////////////////////////////////////////////////////////////
+
+void Create_Tables(void)
+{
+	// this function creates all the lookup tables for the game
+
+	int ang = 0; // looping var to track angle
+
+	// create the 16 sector sin, cos lookup
+	for (ang = 0; ang < 16; ang++)
+	{
+		float fang = PI * (ang * 22.5) / 180;
+
+		cos_look16[ang] = -cos(fang + PI / 2);
+		sin_look16[ang] = -sin(fang + PI / 2);
+
+	} // end for ang
+
+} // end Create_Tables
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+float Fast_Distance_2D(float x, float y)
+{
+	// this function computes the distance from 0,0 to x,y with 3.5% error
+
+	// first compute the absolute value of x,y
+	x = fabs(x);
+	y = fabs(y);
+
+	// compute the minimum of x,y
+	float mn = MIN(x, y);
+
+	// return the distance
+	return(x + y - (mn / 2) - (mn / 4) + (mn / 8));
+
+} // end Fast_Distance_2D
 
 ///////////////////////////////////////////////////////////
 
@@ -2960,22 +3413,38 @@ void Game_Reset(void)
 	for (index = 0; index < NUM_ACTIVE_STATIONS; index++)
 		Start_Station();
 
-}
+} // end Game_Reset
 
 ////////////////////////////////////////////////////////////
 
-void StartUp(void)
+int Game_Init(void* parms)
 {
 	// this function is where you do all the initialization 
 	// for your game
+
+	int index;         // looping var
+	char filename[80]; // used to build up files names
 
 	//mono.clear();
 	//mono.print("\ndebugger on-line\n");
 
 	// seed random number generate
-	srand(rand());
+	srand(Start_Clock());
 
+	// create all lookup tables
+	Create_Tables();
 
+	// initialize directdraw
+	DDraw_Init(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP);
+
+	// initialize directsound
+	DSound_Init();
+
+	// initialize Directinput
+	DInput_Init();
+
+	// initialize all input devices
+	DInput_Init_Keyboard();
 
 	// load all the sound and music
 	Load_Sound_Music();
@@ -3004,14 +3473,18 @@ void StartUp(void)
 
 	Load_Andre();
 
+	// set clipping rectangle to screen extents so objects dont
+	// mess up at edges
+	RECT screen_rect = { 0,0,screen_width,screen_height };
+	lpddclipper = DDraw_Attach_Clipper(lpddsback, 1, &screen_rect);
 
 	// hide the mouse
 	ShowCursor(FALSE);
 
 	// start the intro music
-	sound[intro_music_id].play();
+	DSound_Play(intro_music_id);
 
-	// do the introduction
+	// do the introdcution
 	Do_Intro();
 
 	// load the player
@@ -3020,14 +3493,55 @@ void StartUp(void)
 	// load the hud art
 	Load_HUD();
 
-	keyboard.create();
+	// return success
+	return(1);
 
-}
-
+} // end Game_Init
 
 ///////////////////////////////////////////////////////////
 
-void GameBody(void)
+int Game_Shutdown(void* parms)
+{
+	// this function is where you shutdown your game and
+	// release all resources that you allocated
+
+	// delete all the explosions
+	Delete_Bursts();
+
+	// delete the player
+	Destroy_BOB(&wraith);
+
+	// delete all the rocks
+	Delete_Rocks();
+
+	// delete all the plasma pulses
+	Delete_Plasma();
+
+	// delete all the stations
+	Delete_Stations();
+
+	// delete the mines
+	Delete_Mines();
+
+	// shutdown directdraw
+	DDraw_Shutdown();
+
+	// unload sounds
+	DSound_Delete_All_Sounds();
+
+	// shutdown directsound
+	DSound_Shutdown();
+
+	// release all input devices
+	DInput_Release_Keyboard();
+
+	// return success
+	return(1);
+} // end Game_Shutdown
+
+///////////////////////////////////////////////////////////
+
+int Game_Main(void* parms)
 {
 	// this is the workhorse of your game it will be called
 	// continuously in real-time this is like main() in C
@@ -3051,518 +3565,530 @@ void GameBody(void)
 		// transition into run state
 		game_state = GAME_STATE_RESTART;
 	} // end game_state is game init
-	else if (game_state == GAME_STATE_MENU)
-	{
-
-		game_state = GAME_STATE_RESTART;
-
-	} // end if in menu state
-	else if (game_state == GAME_STATE_RESTART)
-	{
-		// start the main music
-		sound[main_music_id].play(true);
-		// restart the game
-		Game_Reset();
-
-		// set to run state
-		game_state = GAME_STATE_RUNNING;
-
-
-	}
-	else if (game_state == GAME_STATE_RUNNING)
-	{
-
-		// start the timing clock
-		fpsSet.start();
-
-		// clear the drawing surface
-		graphicOut.fillColor();
-
-		// read all input devices
-		keyboard.read();
-
-		// only process player if alive
-		if (player_state == PLAYER_STATE_ALIVE)
+	else
+		if (game_state == GAME_STATE_MENU)
 		{
 
-			// test for tracking rate change
-			if (keyboard[DIK_EQUALS])
-			{
-				if ((mine_tracking_rate += 0.1) > 4.0)
-					mine_tracking_rate = 4.0;
-			} // end if
-			else
-				if (keyboard[DIK_MINUS])
-				{
-					if ((mine_tracking_rate -= 0.1) < 0)
-						mine_tracking_rate = 0;
-				}
+			game_state = GAME_STATE_RESTART;
 
-
-			// test if player is moving
-			if (keyboard[DIK_RIGHT])
-			{
-				// rotate player to right
-				if (++wraith.varsI[WRAITH_INDEX_DIR] > 15)
-					wraith.varsI[WRAITH_INDEX_DIR] = 0;
-
-			} // end if
-			else if (keyboard[DIK_LEFT])
-			{
-				// rotate player to left
-				if (--wraith.varsI[WRAITH_INDEX_DIR] < 0)
-					wraith.varsI[WRAITH_INDEX_DIR] = 15;
-
-			}
-
-			// vertical/speed motion
-			if (keyboard[DIK_UP])
-			{
-				// move player forward
-				xv = cos_look16[wraith.varsI[WRAITH_INDEX_DIR]];
-				yv = sin_look16[wraith.varsI[WRAITH_INDEX_DIR]];
-
-				// test to turn on engines
-				if (!engines_on)
-					sound[engines_id].play(true);
-
-
-				// set engines to on
-				engines_on = 1;
-
-				Start_Particle(PARTICLE_TYPE_FADE, PARTICLE_COLOR_GREEN, 3,
-					player_x + RAND_RANGE(-2, 2), player_y + RAND_RANGE(-2, 2), (-int(player_xv) * .125), (-int(player_yv) * .125));
-
-			}
-			else if (engines_on)
-			{
-				// reset the engine on flag and turn off sound
-				engines_on = 0;
-
-				// turn off the sound
-				sound[engines_id].stop();
-			}
-
-
-
-			// toggle huds
-			if (keyboard[DIK_H] && !huds_debounce)
-			{
-				huds_debounce = 1;
-				huds_on = (huds_on) ? 0 : 1;
-
-				sound[beep1_id].play();
-
-			}
-
-			if (!keyboard[DIK_H])
-				huds_debounce = 0;
-
-			// toggle scanner
-			if (keyboard[DIK_S] && !scanner_debounce)
-			{
-				scanner_debounce = 1;
-				scanner_on = (scanner_on) ? 0 : 1;
-
-				sound[beep1_id].play();
-
-			}
-
-			if (!keyboard[DIK_S])
-				scanner_debounce = 0;
-
-
-
-			// add velocity change to player's velocity
-			player_xv += xv;
-			player_yv += yv;
-
-			// test for maximum velocity
-			vel = DistanceFast(player_xv, player_yv);
-
-			if (vel >= MAX_PLAYER_SPEED)
-			{
-				// re-compute velocity vector by normalizing then re-scaling
-				player_xv = (MAX_PLAYER_SPEED - 1) * player_xv / vel;
-				player_yv = (MAX_PLAYER_SPEED - 1) * player_yv / vel;
-			}
-
-			// add in frictional coefficient
-
-			// move player, note that these are in world coords
-			player_x += player_xv;
-			player_y += player_yv;
-
-			// wrap player to universe
-			if (player_x > UNIVERSE_MAX_X)
-			{
-				// reset pos
-				player_x = UNIVERSE_MIN_X;
-
-				// set warp flag
-			}
-			else if (player_x < UNIVERSE_MIN_X)
-			{
-				// reset pos
-				player_x = UNIVERSE_MAX_X;
-
-				// set warp flag
-			}
-
-			// y coords
-			if (player_y > UNIVERSE_MAX_Y)
-			{
-				// reset pos
-				player_y = UNIVERSE_MIN_Y;
-
-				// set warp flag
-			}
-			else if (player_y < UNIVERSE_MIN_Y)
-			{
-				// reset pos
-				player_y = UNIVERSE_MAX_Y;
-
-				// set warp flag
-			}
-
-
-			// test if player is firing
-			if (keyboard[DIK_LCONTROL] || keyboard[DIK_SPACE])
-			{
-				// compute plasma velocity vector
-				float plasma_xv = cos_look16[wraith.varsI[WRAITH_INDEX_DIR]] * PLASMA_SPEED;
-				float plasma_yv = sin_look16[wraith.varsI[WRAITH_INDEX_DIR]] * PLASMA_SPEED;
-
-				// fire the plasma taking into consideration ships's velocity
-				Fire_Plasma(player_x, player_y,
-					player_xv + plasma_xv,
-					player_yv + plasma_yv, PLASMA_ANIM_PLAYER);
-
-			}
-
-			// do bounds check
-
-
-			// regenerate player
-			if (++player_regen_counter >= PLAYER_REGEN_COUNT)
-			{
-				// regenerate the player a bit
-				if (player_damage > 0)
-					player_damage--;
-
-				// reset counter
-				player_regen_counter = 0;
-
-			}
-
-
-			// test for dying state transition
-			if (player_damage >= 100 && player_state == PLAYER_STATE_ALIVE)
-			{
-				// set damage to 100
-				player_damage = 100;
-
-				// kill player
-				player_state = PLAYER_STATE_DYING;
-				player_ships--;
-
-				// set counter to 0
-				player_counter = 0;
-
-				// turn engines off
-				engines_on = 0;
-
-				// start scream
-				sound[scream_id].play();
-
-			}
-
-
-		}
-		else if (player_state == PLAYER_STATE_DYING)
-		{
-			// player is dying
-
-			// start random bursts
-			int bwidth = 16 + rand() % 64;
-
-			if ((rand() % 4) == 1)
-				Start_Burst(player_x + rand() % 40, player_y + rand() % 8,
-					bwidth, (bwidth >> 2) + (bwidth >> 1),
-					-4 + rand() % 8, 2 + rand() % 4);
-
-			// get jiggie with it
-			wraith.varsI[WRAITH_INDEX_DIR] += (RAND_RANGE(-1, 1));
-
-			if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
-				wraith.varsI[WRAITH_INDEX_DIR] = 0;
-			else
-				if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-					wraith.varsI[WRAITH_INDEX_DIR] = 15;
-
-			// update state counter
-			if (++player_counter > 150)
-			{
-				// set state to invincible  
-				player_state = PLAYER_STATE_INVINCIBLE;
-
-				// reset counter
-				player_counter = 0;
-
-				// reset damage
-				player_damage = 0;
-			}
-
-
-		}
-		else if (player_state == PLAYER_STATE_INVINCIBLE)
-		{
-			// player is invincible
-
-			// flicker shields and play energizing sound
-
-			// update state counter
-			if (++player_counter > 70)
-			{
-				// set state to invincible  
-				player_state = PLAYER_STATE_ALIVE;
-
-				// reset counter
-				player_counter = 0;
-
-				// reset player position
-				player_x = 0;
-				player_y = 0;
-				player_dx = 0;
-				player_dy = 0;
-				player_xv = 0;
-				player_yv = 0;
-				wraith.varsI[WRAITH_INDEX_DIR] = 0;
-
-				// decrease player ships
-				if (player_ships == 0)
-				{
-					// change state to dead, reset all vars
-					player_state = PLAYER_STATE_DEAD;
-					player_counter = 0;
-					ready_state = 1;
-					ready_counter = 0;
-
-					// turn engines
-					sound[engines_id].stop();
-
-					// play game over sound
-					sound[game_over_id].play();
-
-				}
-
-			}
-
-			// start ready again
-			if ((player_counter == 20) && (player_ships > 0))
-			{
-				// reset to ready
-				ready_counter = 0,
-					ready_state = 0;
-			}
-		}
-
-		// end player sub states
-
-		// move the stations
-		Move_Stations();
-
-		// move the mines
-		Move_Mines();
-
-		// move the asteroids
-		Move_Rocks();
-
-		// move the stars
-		Move_Stars();
-
-		// move the particles
-		Move_Particles();
-
-		// move the explosions
-		Move_Bursts();
-
-		// draw the stars
-		Draw_Stars();
-
-		// draw the stations
-		Draw_Stations();
-
-		// draw the tocks
-		Draw_Rocks();
-
-		// draw the mines
-		Draw_Mines();
-
-		// draw the particles
-		Draw_Particles();
-
-		// draw the plasma
-		Draw_Plasma();
-
-		// move the plasma
-		Move_Plasma();
-
-		// draw the player if alive
-		if (player_state == PLAYER_STATE_ALIVE || player_state == PLAYER_STATE_DYING)
-		{
-			// set the current frame
-			if (engines_on)
-				wraith.setAniWord(wraith.varsI[WRAITH_INDEX_DIR] + 16 * (rand() % 2));
-			else
-				wraith.setAniWord(wraith.varsI[WRAITH_INDEX_DIR]);
-
-			// draw the bob
-			wraith.drawOn();
-
-			// draw the shields
-			if (player_shield_count > 0)
-			{
-				player_shield_count--;
-
-				// select shield frame
-				wraith.setAniWord(34 - player_shield_count);
-
-				// draw the bob
-				wraith.drawOn();
-
-			}
-
-		}
-
-		// draw explosions last
-		Draw_Bursts();
-
-		// draw the score and ships left
-		if (huds_on)
-			Draw_Info();
-
-		if (scanner_on)
-			Draw_Scanner();
-
-		// last state here so it will overlay
-		if (player_state == PLAYER_STATE_DEAD)
-		{
-			// player is dead
-			ready_state = 1;
-			ready_counter = 0;
-
-			// player is done!
-			gPrintf((SCREEN_WIDTH / 2) - 8 * (lstrlen(TEXT("G A M E   O V E R")) >> 1), SCREEN_HEIGHT / 2, RGB(0, 255, 0), TEXT("G A M E   O V E R"));
-
-		}
-
-		// draw get ready?
-		if (ready_state == 0)
-		{
-			// test if counter is 10 for voice
-			if (ready_counter == 10)
-				sound[ready_id].play();
-
-			// draw text
-			gPrintf(320 - 8 * lstrlen(TEXT("E N T E R I N G   S E C T O R!")) / 2, 200, RGB(0, rand() % 255, 0), TEXT("E N T E R I N G   S E C T O R - ALPHA 11"));
-
-			// increment counter
-			if (++ready_counter > 60)
-			{
-				// set state to ready
-				ready_state = 1;
-				ready_counter = 0;
-
-			}
-
-		}
-
-		// test for me!
-		if (keyboard[DIK_LALT] && keyboard[DIK_RALT] && keyboard[DIK_A])
-		{
-
-			andre.drawOn(0, 0);
-
-			andre_up = 1;
-		} // end if
+		} // end if in menu state
 		else
-		{
-			andre_up = 0;
-			curPalette.set(game_palette);
-		} // end else
-
-		if (andre_up == 1)
-		{
-			curPalette.set(andre_palette);
-			andre_up = 2;
-		}
-
-
-		// flip the surfaces
-		fpsSet.adjust();
-		Flush();
-
-		// check of user is trying to exit
-		if (++player_counter > 10)
-			if (keyboard[DIK_ESCAPE])
+			if (game_state == GAME_STATE_RESTART)
 			{
-				// send game back to menu state
-				game_state = GAME_STATE_EXIT;
+				// start the main music
+				DSound_Play(main_music_id, DSBPLAY_LOOPING);
 
-				// stop all sounds
-				sound[engines_id].stop();
+				// restart the game
+				Game_Reset();
 
-			}
-
-
-	}
-	else if (game_state == GAME_STATE_PAUSED)
-	{
-		// pause game
-		if (keyboard[DIK_P] && !pause_debounce)
-		{
-			pause_debounce = 1;
-			game_paused = (game_paused) ? 0 : 1;
-
-			sound[beep1_id].play();
-
-		}
-
-		if (!keyboard[DIK_P])
-			game_paused = 0;
-
-		if (game_paused)
-		{
-			// draw text
-			gPrintf(320 - 8 * lstrlen(TEXT("G A M E  P A U S E D  -- P R E S S  <P>")) / 2, 200, RGB(255, 0, 0), TEXT("G A M E  P A U S E D  -- P R E S S  <P>"));
-		}
-		else
-			game_state = GAME_STATE_RUNNING;
+				// set to run state
+				game_state = GAME_STATE_RUNNING;
 
 
-	}
-	else if (game_state == GAME_STATE_EXIT)
-	{
-		// this is the exit state, called just once
-		gameBox.exitFromGameBody();
-		game_state = GAME_STATE_WAITING_FOR_EXIT;
+			} // end if restart
+			else
+				if (game_state == GAME_STATE_RUNNING)
+				{
 
-	}
-	else if (game_state == GAME_STATE_WAITING_FOR_EXIT)
-	{
-		// wait here in safe state
-	}
+					// start the timing clock
+					Start_Clock();
 
-}
+					// clear the drawing surface
+					DDraw_Fill_Surface(lpddsback, 0);
 
-int main(int argc, char* argv[])
-{
-	//gameBox.setWndMode(false, true);
+					// read all input devices
+					DInput_Read_Keyboard();
 
-	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("键盘控制移动"));
-	gameBox.setGameStart(StartUp);
-	gameBox.setGameBody(GameBody);
-	gameBox.startCommuication();
-	return argc;
-}
+					// only process player if alive
+					if (player_state == PLAYER_STATE_ALIVE)
+					{
+
+						// test for tracking rate change
+						if (keyboard_state[DIK_EQUALS])
+						{
+							if ((mine_tracking_rate += 0.1) > 4.0)
+								mine_tracking_rate = 4.0;
+						} // end if
+						else
+							if (keyboard_state[DIK_MINUS])
+							{
+								if ((mine_tracking_rate -= 0.1) < 0)
+									mine_tracking_rate = 0;
+							} // end if
+
+
+						// test if player is moving
+						if (keyboard_state[DIK_RIGHT])
+						{
+							// rotate player to right
+							if (++wraith.varsI[WRAITH_INDEX_DIR] > 15)
+								wraith.varsI[WRAITH_INDEX_DIR] = 0;
+
+						} // end if
+						else
+							if (keyboard_state[DIK_LEFT])
+							{
+								// rotate player to left
+								if (--wraith.varsI[WRAITH_INDEX_DIR] < 0)
+									wraith.varsI[WRAITH_INDEX_DIR] = 15;
+
+							} // end if
+
+						// vertical/speed motion
+						if (keyboard_state[DIK_UP])
+						{
+							// move player forward
+							xv = cos_look16[wraith.varsI[WRAITH_INDEX_DIR]];
+							yv = sin_look16[wraith.varsI[WRAITH_INDEX_DIR]];
+
+							// test to turn on engines
+							if (!engines_on)
+								DSound_Play(engines_id, DSBPLAY_LOOPING);
+
+							// set engines to on
+							engines_on = 1;
+
+							Start_Particle(PARTICLE_TYPE_FADE, PARTICLE_COLOR_GREEN, 3,
+								player_x + RAND_RANGE(-2, 2), player_y + RAND_RANGE(-2, 2), (-int(player_xv) * .125), (-int(player_yv) * .125));
+
+						} // end if
+						else
+							if (engines_on)
+							{
+								// reset the engine on flag and turn off sound
+								engines_on = 0;
+
+								// turn off the sound
+
+								DSound_Stop_Sound(engines_id);
+							} // end if
+
+
+
+						 // toggle huds
+						if (keyboard_state[DIK_H] && !huds_debounce)
+						{
+							huds_debounce = 1;
+							huds_on = (huds_on) ? 0 : 1;
+
+							DSound_Play(beep1_id);
+
+						} // end if
+
+						if (!keyboard_state[DIK_H])
+							huds_debounce = 0;
+
+						// toggle scanner
+						if (keyboard_state[DIK_S] && !scanner_debounce)
+						{
+							scanner_debounce = 1;
+							scanner_on = (scanner_on) ? 0 : 1;
+
+							DSound_Play(beep1_id);
+
+						} // end if
+
+						if (!keyboard_state[DIK_S])
+							scanner_debounce = 0;
+
+
+
+						// add velocity change to player's velocity
+						player_xv += xv;
+						player_yv += yv;
+
+						// test for maximum velocity
+						vel = Fast_Distance_2D(player_xv, player_yv);
+
+						if (vel >= MAX_PLAYER_SPEED)
+						{
+							// re-compute velocity vector by normalizing then re-scaling
+							player_xv = (MAX_PLAYER_SPEED - 1) * player_xv / vel;
+							player_yv = (MAX_PLAYER_SPEED - 1) * player_yv / vel;
+						} // end if
+
+					 // add in frictional coefficient
+
+					 // move player, note that these are in world coords
+						player_x += player_xv;
+						player_y += player_yv;
+
+						// wrap player to universe
+						if (player_x > UNIVERSE_MAX_X)
+						{
+							// reset pos
+							player_x = UNIVERSE_MIN_X;
+
+							// set warp flag
+						} // end if
+						else
+							if (player_x < UNIVERSE_MIN_X)
+							{
+								// reset pos
+								player_x = UNIVERSE_MAX_X;
+
+								// set warp flag
+							} // end if
+
+						 // y coords
+						if (player_y > UNIVERSE_MAX_Y)
+						{
+							// reset pos
+							player_y = UNIVERSE_MIN_Y;
+
+							// set warp flag
+						} // end if
+						else
+							if (player_y < UNIVERSE_MIN_Y)
+							{
+								// reset pos
+								player_y = UNIVERSE_MAX_Y;
+
+								// set warp flag
+							} // end if
+
+
+						 // test if player is firing
+						if (keyboard_state[DIK_LCONTROL] || keyboard_state[DIK_SPACE])
+						{
+							// compute plasma velocity vector
+							float plasma_xv = cos_look16[wraith.varsI[WRAITH_INDEX_DIR]] * PLASMA_SPEED;
+							float plasma_yv = sin_look16[wraith.varsI[WRAITH_INDEX_DIR]] * PLASMA_SPEED;
+
+							// fire the plasma taking into consideration ships's velocity
+							Fire_Plasma(player_x, player_y,
+								player_xv + plasma_xv,
+								player_yv + plasma_yv, PLASMA_ANIM_PLAYER);
+
+						} // end if
+
+					// do bounds check
+
+
+					// regenerate player
+						if (++player_regen_counter >= PLAYER_REGEN_COUNT)
+						{
+							// regenerate the player a bit
+							if (player_damage > 0)
+								player_damage--;
+
+							// reset counter
+							player_regen_counter = 0;
+
+						} // end if
+
+
+					// test for dying state transition
+						if (player_damage >= 100 && player_state == PLAYER_STATE_ALIVE)
+						{
+							// set damage to 100
+							player_damage = 100;
+
+							// kill player
+							player_state = PLAYER_STATE_DYING;
+							player_ships--;
+
+							// set counter to 0
+							player_counter = 0;
+
+							// turn engines off
+							engines_on = 0;
+
+							// start scream
+							DSound_Play(scream_id);
+
+						} // end if
+
+
+					} // end if player alive
+					else
+						if (player_state == PLAYER_STATE_DYING)
+						{
+							// player is dying
+
+							// start random bursts
+							int bwidth = 16 + rand() % 64;
+
+							if ((rand() % 4) == 1)
+								Start_Burst(player_x + rand() % 40, player_y + rand() % 8,
+									bwidth, (bwidth >> 2) + (bwidth >> 1),
+									-4 + rand() % 8, 2 + rand() % 4);
+
+							// get jiggie with it
+							wraith.varsI[WRAITH_INDEX_DIR] += (RAND_RANGE(-1, 1));
+
+							if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
+								wraith.varsI[WRAITH_INDEX_DIR] = 0;
+							else
+								if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
+									wraith.varsI[WRAITH_INDEX_DIR] = 15;
+
+							// update state counter
+							if (++player_counter > 150)
+							{
+								// set state to invincible  
+								player_state = PLAYER_STATE_INVINCIBLE;
+
+								// reset counter
+								player_counter = 0;
+
+								// reset damage
+								player_damage = 0;
+							} // end if
+
+
+						} // end if
+						else
+							if (player_state == PLAYER_STATE_INVINCIBLE)
+							{
+								// player is invincible
+
+								// flicker shields and play energizing sound
+
+								// update state counter
+								if (++player_counter > 70)
+								{
+									// set state to invincible  
+									player_state = PLAYER_STATE_ALIVE;
+
+									// reset counter
+									player_counter = 0;
+
+									// reset player position
+									player_x = 0;
+									player_y = 0;
+									player_dx = 0;
+									player_dy = 0;
+									player_xv = 0;
+									player_yv = 0;
+									wraith.varsI[WRAITH_INDEX_DIR] = 0;
+
+									// decrease player ships
+									if (player_ships == 0)
+									{
+										// change state to dead, reset all vars
+										player_state = PLAYER_STATE_DEAD;
+										player_counter = 0;
+										ready_state = 1;
+										ready_counter = 0;
+
+										// turn engines
+										DSound_Stop_Sound(engines_id);
+
+										// play game over sound
+										DSound_Play(game_over_id);
+
+									} // end if       
+
+								} // end if
+
+							  // start ready again
+								if ((player_counter == 20) && (player_ships > 0))
+								{
+									// reset to ready
+									ready_counter = 0,
+										ready_state = 0;
+								} // end if
+
+							} // end if
+
+						 // end player sub states
+
+						 // move the stations
+					Move_Stations();
+
+					// move the mines
+					Move_Mines();
+
+					// move the asteroids
+					Move_Rocks();
+
+					// move the stars
+					Move_Stars();
+
+					// move the particles
+					Move_Particles();
+
+					// move the explosions
+					Move_Bursts();
+
+					// draw the stars
+					Draw_Stars();
+
+					// draw the stations
+					Draw_Stations();
+
+					// draw the tocks
+					Draw_Rocks();
+
+					// draw the mines
+					Draw_Mines();
+
+					// draw the particles
+					Draw_Particles();
+
+					// draw the plasma
+					Draw_Plasma();
+
+					// move the plasma
+					Move_Plasma();
+
+					// draw the player if alive
+					if (player_state == PLAYER_STATE_ALIVE || player_state == PLAYER_STATE_DYING)
+					{
+						// set the current frame
+						if (engines_on)
+							wraith.curr_frame = wraith.varsI[WRAITH_INDEX_DIR] + 16 * (rand() % 2);
+						else
+							wraith.curr_frame = wraith.varsI[WRAITH_INDEX_DIR];
+
+						// draw the bob
+						Draw_BOB(&wraith, lpddsback);
+
+						// draw the shields
+						if (player_shield_count > 0)
+						{
+							player_shield_count--;
+
+							// select shield frame
+							wraith.curr_frame = 34 - player_shield_count;
+
+							// draw the bob
+							Draw_BOB(&wraith, lpddsback);
+
+						} // end if
+
+					} // end if
+
+				// draw explosions last
+					Draw_Bursts();
+
+					// draw the score and ships left
+					if (huds_on)
+						Draw_Info();
+
+					if (scanner_on)
+						Draw_Scanner();
+
+					// last state here so it will overlay
+					if (player_state == PLAYER_STATE_DEAD)
+					{
+						// player is dead
+						ready_state = 1;
+						ready_counter = 0;
+
+						// player is done!
+						Draw_Text_GDI("G A M E   O V E R", (SCREEN_WIDTH / 2) - 8 * (strlen("G A M E   O V E R") >> 1), SCREEN_HEIGHT / 2, RGB(0, 255, 0), lpddsback);
+
+					} // end if
+
+				 // draw get ready?
+					if (ready_state == 0)
+					{
+						// test if counter is 10 for voice
+						if (ready_counter == 10)
+							DSound_Play(ready_id);
+
+						// draw text
+						Draw_Text_GDI("E N T E R I N G   S E C T O R - ALPHA 11", 320 - 8 * strlen("E N T E R I N G   S E C T O R!") / 2, 200, RGB(0, rand() % 255, 0), lpddsback);
+
+						// increment counter
+						if (++ready_counter > 60)
+						{
+							// set state to ready
+							ready_state = 1;
+							ready_counter = 0;
+
+						} // end if
+
+					} // end if
+
+				 // test for me!
+					if (keyboard_state[DIK_LALT] && keyboard_state[DIK_RALT] && keyboard_state[DIK_A])
+					{
+						// lock primary
+						DDraw_Lock_Back_Surface();
+						Draw_Bitmap(&andre, back_buffer, back_lpitch, 0);
+						// release the primary buffer
+						DDraw_Unlock_Back_Surface();
+						andre_up = 1;
+					} // end if
+					else
+					{
+						andre_up = 0;
+						Set_Palette(game_palette);
+					} // end else
+
+					if (andre_up == 1)
+					{
+						Set_Palette(andre_palette);
+						andre_up = 2;
+					} // end if
+
+
+				 // flip the surfaces
+					DDraw_Flip();
+
+					// sync to 30ish fps
+					Wait_Clock(30);
+
+					// check of user is trying to exit
+					if (++player_counter > 10)
+						if (keyboard_state[DIK_ESCAPE])
+						{
+							// send game back to menu state
+							game_state = GAME_STATE_EXIT;
+
+							// stop all sounds
+							DSound_Stop_Sound(engines_id);
+
+						} // end if
+
+
+				} // end if game running
+				else
+					if (game_state == GAME_STATE_PAUSED)
+					{
+						// pause game
+						if (keyboard_state[DIK_P] && !pause_debounce)
+						{
+							pause_debounce = 1;
+							game_paused = (game_paused) ? 0 : 1;
+
+							DSound_Play(beep1_id);
+
+						} // end if
+
+						if (!keyboard_state[DIK_P])
+							game_paused = 0;
+
+						if (game_paused)
+						{
+							// draw text
+							Draw_Text_GDI("G A M E  P A U S E D  -- P R E S S  <P>", 320 - 8 * strlen("G A M E  P A U S E D  -- P R E S S  <P>") / 2, 200, RGB(255, 0, 0), lpddsback);
+						} // end if
+						else
+							game_state = GAME_STATE_RUNNING;
+
+
+					} // end if
+					else
+						if (game_state == GAME_STATE_EXIT)
+						{
+							// this is the exit state, called just once
+							PostMessage(main_window_handle, WM_DESTROY, 0, 0);
+							game_state = GAME_STATE_WAITING_FOR_EXIT;
+
+						} // end if
+						else
+							if (game_state == GAME_STATE_WAITING_FOR_EXIT)
+							{
+								// wait here in safe state
+
+							} // end wait
+
+						 // return success
+	return(1);
+
+} // end Game_Main
+

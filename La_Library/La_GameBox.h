@@ -61,4 +61,11 @@ public:
 	void setGameBody(EXTEND_FUNCTION exFunction) { gameBody = exFunction; }
 	void setGameEnd(EXTEND_FUNCTION exFunction) { exShutDown = exFunction; }
 	void exitFromGameBody() { bExit = true; }
+	POINT getOriginXY()const
+	{
+		POINT point = { 0, 0 };
+		//获得客户区所在的位置
+		ClientToScreen(hwnd, &point);
+		return point;
+	}
 };

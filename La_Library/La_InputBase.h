@@ -162,4 +162,6 @@ namespace INPUT_
 			clear();
 		}
 	};
+
+	void CloseInput();
 }

@@ -224,48 +224,45 @@ namespace GRAPHIC
 		}
 	}
 
-	//全局变量代理者
-	class GRAPHICMaster
+	void CloseGraphic()
 	{
-	public:
-		~GRAPHICMaster()
+		if (bInitialize_Graphics)
 		{
-			if (bInitialize_Graphics)
+			//释放所有的COM组件
+			if (lpddclipper)
 			{
-				//释放所有的COM组件
-				if (lpddclipper)
-				{
-					lpddclipper->Release();
-					lpddclipper = nullptr;
-				}
+				lpddclipper->Release();
+				lpddclipper = nullptr;
+			}
 
-				if (lpddclipperwin)
-				{
-					lpddclipperwin->Release();
-					lpddclipperwin = nullptr;
-				}
+			if (lpddclipperwin)
+			{
+				lpddclipperwin->Release();
+				lpddclipperwin = nullptr;
+			}
 
-				/*if (lpddsback)
-				{
-					lpddsback->Release();
-					lpddsback = nullptr;
-				}*/
-				graphicOut.clear(); //还是要注意顺序嘛，要在这个时机释放
+			/*if (lpddsback)
+			{
+				lpddsback->Release();
+				lpddsback = nullptr;
+			}*/
+			graphicOut.clear(); //还是要注意顺序嘛，要在这个时机释放
 
-				if (lpddsprimary)
-				{
-					lpddsprimary->Release();
-					lpddsprimary = nullptr;
-				}
+			if (lpddsprimary)
+			{
+				lpddsprimary->Release();
+				lpddsprimary = nullptr;
+			}
 
-				if (lpdd7)
-				{
-					lpdd7->Release();
-					lpdd7 = nullptr;
-				}
+			if (lpdd7)
+			{
+				lpdd7->Release();
+				lpdd7 = nullptr;
 			}
 		}
-	}graphicMaster;
+	}
+
+	
 
 
 	void Flush()

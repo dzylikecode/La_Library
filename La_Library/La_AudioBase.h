@@ -164,4 +164,5 @@ namespace AUDIO
 
 
 	void InitializeAudio(HWND hwnd);
+	void CloseAudio();
 }

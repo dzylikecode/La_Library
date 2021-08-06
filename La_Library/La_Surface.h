@@ -348,6 +348,8 @@ namespace GRAPHIC
 
 	void SwitchSurface(bool bFront);
 
+	void CloseGraphic();
+
 	extern int min_clip_x, max_clip_x, min_clip_y, max_clip_y;
 }
 

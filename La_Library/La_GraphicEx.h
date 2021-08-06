@@ -29,5 +29,5 @@ namespace GRAPHIC
 		}
 	};
 
-	void ScreenTransitions(int effect, int gap = 12);
+	void ScreenTransitions(int effect, int gap = 30);
 }
