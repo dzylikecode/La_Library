@@ -17,6 +17,7 @@ using namespace std;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+bool bwindowDX = true;
 
 FRAMECounter fpsSet;
 GAMEBox gameBox;
@@ -414,9 +415,9 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 			// set index
 			pindex = index;
 			break;
-		}    
+		}
 
- // did we find one
+	// did we find one
 	if (pindex == -1)
 		return;
 
@@ -459,15 +460,15 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 
 	break;
 
-	} 
+	}
 
-// what type of particle is being requested
+	// what type of particle is being requested
 	if (type == PARTICLE_TYPE_FLICKER)
 	{
 		// set current color
 		particles[pindex].curr_color = RAND_RANGE(particles[pindex].start_color, particles[pindex].end_color);
 
-	} 
+	}
 	else
 	{
 		// particle is fade type
@@ -712,12 +713,12 @@ void Move_Stars(void)
 		if (star_x >= SCREEN_WIDTH)
 			star_x = star_x - SCREEN_WIDTH;
 		else if (star_x < 0)
-				star_x = SCREEN_WIDTH + star_x;
+			star_x = SCREEN_WIDTH + star_x;
 
 		if (star_y >= SCREEN_HEIGHT)
 			star_y = star_y - SCREEN_HEIGHT;
 		else if (star_y < 0)
-				star_y = SCREEN_HEIGHT + star_y;
+			star_y = SCREEN_HEIGHT + star_y;
 
 		// reset stars position in structure
 		stars[index].x = star_x;
@@ -2714,8 +2715,15 @@ void Do_Intro(void)
 
 	SURFACE introduct;
 	introduct.createFromBitmap(bitmap);
-	POINT point = gameBox.getOriginXY();
-	introduct.drawOn(point.x, point.y, false);
+	if (bwindowDX)
+	{
+		POINT point = gameBox.getOriginXY();
+		introduct.drawOn(point.x, point.y, false);
+	}
+	else
+	{
+		introduct.drawOn(0, 0, false);
+	}
 
 
 	Sleep(5000);
@@ -3021,6 +3029,7 @@ void StartUp(void)
 
 	keyboard.create();
 
+	fpsSet.set(60);
 }
 
 
@@ -3055,7 +3064,7 @@ void GameBody(void)
 
 		game_state = GAME_STATE_RESTART;
 
-	} // end if in menu state
+	}
 	else if (game_state == GAME_STATE_RESTART)
 	{
 		// start the main music
@@ -3089,13 +3098,12 @@ void GameBody(void)
 			{
 				if ((mine_tracking_rate += 0.1) > 4.0)
 					mine_tracking_rate = 4.0;
-			} // end if
-			else
-				if (keyboard[DIK_MINUS])
-				{
-					if ((mine_tracking_rate -= 0.1) < 0)
-						mine_tracking_rate = 0;
-				}
+			}
+			else if (keyboard[DIK_MINUS])
+			{
+				if ((mine_tracking_rate -= 0.1) < 0)
+					mine_tracking_rate = 0;
+			}
 
 
 			// test if player is moving
@@ -3296,7 +3304,7 @@ void GameBody(void)
 			if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
 				wraith.varsI[WRAITH_INDEX_DIR] = 0;
 			else if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-					wraith.varsI[WRAITH_INDEX_DIR] = 15;
+				wraith.varsI[WRAITH_INDEX_DIR] = 15;
 
 			// update state counter
 			if (++player_counter > 150)
@@ -3499,6 +3507,7 @@ void GameBody(void)
 
 		// flip the surfaces
 		fpsSet.adjust();
+		gPrintf(0, 0, GREEN_GDI, TEXT("FPS:%d"), fpsSet.get());
 		Flush();
 
 		// check of user is trying to exit
@@ -3556,8 +3565,8 @@ void GameBody(void)
 
 int main(int argc, char* argv[])
 {
-	//gameBox.setWndMode(false, true);
-
+	gameBox.setWndMode(false, true);
+	bwindowDX = false;
 	gameBox.create(SCREEN_WIDTH, SCREEN_HEIGHT, TEXT("¼üÅÌ¿ØÖÆÒÆ¶¯"));
 	gameBox.setGameStart(StartUp);
 	gameBox.setGameBody(GameBody);
