@@ -83,7 +83,7 @@ void StartUp(void)
 	batSound.create(path + TEXT("BAT.WAV"));
 	batSound.play(true);
 
-	
+
 	skeleton.resize(4 * 8);
 	skeleton.content.resize(8);
 	for (int i = 0; i < 8; i++)
@@ -98,7 +98,7 @@ void StartUp(void)
 	}
 
 	skeleton.x = 0; skeleton.y = 128;
-	
+
 	skeleton.setAniSpeed(4);
 
 
@@ -383,11 +383,11 @@ void Skeleton_AI()
 				case WEST_BIT:
 				{
 					// set motion
-					 
+
 					skeleton.vx = -3; skeleton.vy = 0;
 					// set animation 
 					skeleton.setAniString(OPC_W);
-					 
+
 
 					// set counter to instruction operand
 					skelaton_counter = operand;
@@ -396,10 +396,10 @@ void Skeleton_AI()
 
 				case EAST_BIT:
 				{
-					 
+
 					skeleton.vx = 3; skeleton.vy = 0;
 					skeleton.setAniString(OPC_E);
-					 
+
 
 					skelaton_counter = operand;
 
@@ -407,10 +407,10 @@ void Skeleton_AI()
 
 				case NORTH_BIT:
 				{
-					 
+
 					skeleton.vx = 0; skeleton.vy = -3;
 					skeleton.setAniString(OPC_N);
-					 
+
 
 					skelaton_counter = operand;
 
@@ -418,50 +418,50 @@ void Skeleton_AI()
 
 				case SOUTH_BIT:
 				{
-					 
+
 					skeleton.vx = 0; skeleton.vy = 3;
 					skeleton.setAniString(OPC_S);
-					 
+
 
 					skelaton_counter = operand;
 				} break;
 
 				case (NORTH_BIT | WEST_BIT):
 				{
-					 
+
 					skeleton.vx = -3; skeleton.vy = -3;
 					skeleton.setAniString(OPC_NW);
-					 
+
 
 					skelaton_counter = operand;
 				} break;
 
 				case (NORTH_BIT | EAST_BIT):
 				{
-					 
+
 					skeleton.vx = 3; skeleton.vy = -3;
 					skeleton.setAniString(OPC_NE);
-					 
+
 
 					skelaton_counter = operand;
 				} break;
 
 				case (SOUTH_BIT | WEST_BIT):
 				{
-					 
+
 					skeleton.vx = -3; skeleton.vy = 3;
 					skeleton.setAniString(OPC_SW);
-					 
+
 
 					skelaton_counter = operand;
 				} break;
 
 				case (SOUTH_BIT | EAST_BIT):
 				{
-					 
+
 					skeleton.vx = 3; skeleton.vy = 3;
 					skeleton.setAniString(OPC_SE);
-					 
+
 
 					skelaton_counter = operand;
 				} break;
@@ -509,7 +509,7 @@ void Skeleton_AI()
 	gPrintf(10, 448, RGB_DX(0, 255, 0), TEXT("Counter=%d "), skelaton_counter);
 }
 
- 
+
 void GameBody(void)
 {
 	if (KEY_DOWN(VK_ESCAPE))
