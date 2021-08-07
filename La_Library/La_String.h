@@ -60,8 +60,8 @@ public:
 	}
 	friend STRING<T, endFlag> operator+(const T* source, const STRING<T, endFlag>& sourceString)
 	{
-		STRING<T, endFlag> temp = sourceString;
-		return temp += source;
+		STRING<T, endFlag> temp = source;
+		return temp += sourceString;
 	}
 	STRING<T, endFlag>  operator+ (const T* source) { STRING<T, endFlag> temp = *this; return temp += source; }
 	STRING<T, endFlag>& operator<<(const T* source)
@@ -74,7 +74,15 @@ public:
 			(*this)[i] = endFlag;
 	}
 	void clear(void) { this->ARRAY<T>::clear(); length = 0; }
-
+	void update(const T* source, int num)
+	{
+		this->resize(num + 1);
+		for (int i = 0; i < num; i++)
+		{
+			(*this)[i] = source[i];
+		}
+		(*this)[num] = endFlag;
+	}
 	//如果比原来的小，那么最后一个字节会变成空字符
 	bool resize(int size)
 	{

@@ -51,6 +51,7 @@ namespace GRAPHIC
 		aniPARAPHRASE& operator()(int i) { return (*aniDict)[i]; }
 		const aniPARAPHRASE& operator()(int i)const { return (*aniDict)[i]; }
 		const aniPARAPHRASE& operator()(int i, int j)const { return (*aniDict)[(*this)[i][j]]; }
+		//Õë¶ÔË³Ðò²¥·Å
 		void autoOrder()
 		{
 			int num = aniDict->getSize();
