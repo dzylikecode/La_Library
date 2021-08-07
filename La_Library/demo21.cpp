@@ -34,14 +34,6 @@ SOUND skeletonSound;
 individeSPRITE bat;
 SOUND batSound;
 
-int skelaton_anims[8][4] = { {0,1,0,2},
-							 {0 + 4,1 + 4,0 + 4,2 + 4},
-							 {0 + 8,1 + 8,0 + 8,2 + 8},
-							 {0 + 12,1 + 12,0 + 12,2 + 12},
-							 {0 + 16,1 + 16,0 + 16,2 + 16},
-							 {0 + 20,1 + 20,0 + 20,2 + 20},
-							 {0 + 24,1 + 24,0 + 24,2 + 24},
-							 {0 + 28,1 + 28,0 + 28,2 + 28}, };
 
 // directional instructions
 #define OPC_E    0  // move west
@@ -234,7 +226,7 @@ void Skeleton_AI()
 		// reset counter
 		skelaton_counter = 0;
 
-	} // end if
+	}
 
  // process next instruction if it's time
 	if (--skelaton_counter <= 0)

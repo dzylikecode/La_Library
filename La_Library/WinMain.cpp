@@ -24,87 +24,196 @@ using namespace GDI;
 using namespace GRAPHIC;
 using namespace INPUT_;
 
-KEYBOARD keyboard;
+// this is the food
+typedef struct MNM_TYP
+{
+	int x, y;     // position of mnm
+	float energy;  // when this is 0, the mnm is dead
+
+} MNM, * MNM_PTR;
+
+
+typedef struct ANT_MEMORY_TYP
+{
+
+	float cell[16][16];     // the actual memory
+	int   ilayer[16][16];   // used as an input layer to help display engine show
+							// areas during communication and forgetfulness
+
+} ANT_MEMORY, * ANT_MEMORY_PTR;
+
+
+
 
 SURFACE background;
 
-individeSPRITE skeleton;
-SOUND skeletonSound;
 
-individeSPRITE bat;
-SOUND batSound;
+// defines for ants
+#define NUM_ANTS         16 // just change this to whatever, but only 8 ants will be displayed
+							// on HUD
+#define ANT_ANIM_UP      0
+#define ANT_ANIM_RIGHT   1
+#define ANT_ANIM_DOWN    2
+#define ANT_ANIM_LEFT    3
+#define ANT_ANIM_DEAD    4
 
-int skelaton_anims[8][4] = { {0,1,0,2},
-							 {0 + 4,1 + 4,0 + 4,2 + 4},
-							 {0 + 8,1 + 8,0 + 8,2 + 8},
-							 {0 + 12,1 + 12,0 + 12,2 + 12},
-							 {0 + 16,1 + 16,0 + 16,2 + 16},
-							 {0 + 20,1 + 20,0 + 20,2 + 20},
-							 {0 + 24,1 + 24,0 + 24,2 + 24},
-							 {0 + 28,1 + 28,0 + 28,2 + 28}, };
+// states of ant
+#define ANT_WANDERING             0   // moving around randomly
+#define ANT_EATING                1   // at a mnm eating it
+#define ANT_RESTING               2   // sleeping :)
+#define ANT_SEARCH_FOOD           3   // hungry and searching for food
 
-// directional instructions
-#define OPC_E    0  // move west
-#define OPC_NE   1  // move northeast
-#define OPC_N    2  // move north
-#define OPC_NW   3  // move northwest
-#define OPC_W    4  // move west
-#define OPC_SW   5  // move southwest
-#define OPC_S    6  // move south
-#define OPC_SE   7  // move southeast
+// these are the substates that occur during a search for food
+#define ANT_SEARCH_FOOD_S1_SCAN         31  // substate 1
+#define ANT_SEARCH_FOOD_S2_WANDER       32  // substate 2
+#define ANT_SEARCH_FOOD_S3_VECTOR_2CELL 33  // substate 3
+#define ANT_SEARCH_FOOD_S4_VECTOR_2FOOD 34  // substate 4
+#define ANT_SEARCH_FOOD_S5              35  // substate 5
+#define ANT_SEARCH_FOOD_S6              36  // substate 6
+#define ANT_SEARCH_FOOD_S7              37  // substate 7
 
-// special instructions
-#define OPC_STOP        8  // stop for a moment
-#define OPC_RAND        9  // select a random direction
-#define OPC_TEST_DIST   10 // test distance 
-#define OPC_END        -1  // end pattern
+#define ANT_COMMUNICATING         4   // talking to another ant  
+#define ANT_DEAD                  5   // this guy is dead, got too hungry
 
-int opcode,                   // general opcode
-operand;                  // general operand
+#define ANT_INDEX_HUNGER_LEVEL       0  // the current hunger level of ant
+#define ANT_INDEX_HUNGER_TOLERANCE   1  // the death tolerance of hunger
+#define ANT_INDEX_AI_STATE           2  // the artificial intelligence state
+#define ANT_INDEX_AI_SUBSTATE        3  // generic substate
+#define ANT_INDEX_DIRECTION          4  // direction of motion
+#define ANT_INDEX_LAST_TALKED_WITH   5  // last ant talked to
+#define ANT_INDEX_MNM_BEING_DEVOURED 6  // the index of mnm being eaten
+#define ANT_INDEX_FOOD_TARGET_X      7  // x,y target position of cell or off actual food
+#define ANT_INDEX_FOOD_TARGET_Y      8    
+#define ANT_INDEX_FOOD_TARGET_ID     9  // the id of the actual piece of food
+
+#define ANT_MEMORY_RESIDUAL_RATE     0.2 // inversely proportional to plasticity of ant memory
+
+#define BITE_SIZE                    5 // bite size of one mouthful in energy units
+
+// defines for food
+#define NUM_MNMS         32
+
+class ANT :public SPRITE
+{
+public:
+	int hungerLevel;
+	int hungerTolerance;
+	int AI_State;
+	int lastTalkWith;
+	int direction;
+	int timeWander;
+	int timeDirection;
+};
+
+ANT  ants[NUM_ANTS],   // the ants
+mnm;              // the little food mnm image
+aniDICT antsDict;
+
+MNM food[NUM_MNMS];            // the array of mnms
+
+ANT_MEMORY ants_mem[NUM_ANTS]; // each ant has a 256 cell memory, 16x16 structure
+
+SOUND nicedaySound;     // the ambient wind
+
+void Init_Ants()
+{
+	for (int i = 0; i < NUM_ANTS; i++)
+	{
+		ants[i].x = rand() % 472;
+		ants[i].y = rand() % SCREEN_HEIGHT;
+		ants[i].hungerLevel = 0;
+		ants[i].hungerTolerance = 2000 + rand() % 2000;
+		ants[i].AI_State = ANT_WANDERING;
+		ants[i].lastTalkWith = i;
+		ants[i].timeWander = RAND_RANGE(150, 300);
+		ants[i].direction = RAND_RANGE(ANT_ANIM_UP, ANT_ANIM_LEFT);
+		ants[i].timeDirection = RAND_RANGE(10, 100);
+		ants[i].setAniString(ants[i].direction);
+
+		memset(&ants_mem[i], 0, sizeof(ANT_MEMORY));
+	}
+}
 
 void StartUp(void)
 {
-	TSTRING path = TEXT(".\\Resource\\demo21\\");
-	background.createFromBitmap(path + TEXT("DUNGEON.BMP"));
+	TSTRING path = TEXT(".\\Resource\\demo22\\");
+	background.createFromBitmap(path + TEXT("SIDEWALK28.BMP"));
 
 	SURFACE temp;
-	temp.createFromBitmap(path + TEXT("BATS8_2.BMP"));
-	bat.resize(5);
-	for (int i = 0; i < 5; i++)
+	temp.createFromBitmap(path + TEXT("ANTIMG8.BMP"));
+	
+	
+	antsDict.resize(9);
+	for (int i = 0; i < 9; i++)
 	{
-		bat[i].createFromSurface(16, 16, temp, i * (16 + 1) + 1, 0 * (16 + 1) + 1);
+		antsDict[i].createFromSurface(24, 24, temp, i * (24 + 1) + 1, 0 * (24 + 1) + 1);
+	}
+	ants[0].content.setDict(&antsDict);
+
+	ants[0].x = 320; ants[0].y = 200;
+ 
+	ants[0].content.resize(5);
+	ants[0].content[ANT_ANIM_UP] = ANIM(0, 1);
+	ants[0].content[ANT_ANIM_RIGHT] = ANIM(2, 3);
+	ants[0].content[ANT_ANIM_DOWN] = ANIM(4, 5);
+	ants[0].content[ANT_ANIM_LEFT] = ANIM(6, 7);
+	ants[0].content[ANT_ANIM_DEAD] = ANIM(8);
+
+	ants[0].setAniSpeed(3);
+	ants[0].setAniString(ANT_ANIM_UP);
+
+	for (int i = 1; i < NUM_ANTS; i++)
+	{
+		ants[i].clone(ants[0]);
 	}
 
-	bat.x = 320;
-	bat.y = 200;
-	bat.setAniSpeed(2);
-	bat.content.autoOrder();
+	Init_Ants();
 
-	batSound.create(path + TEXT("BAT.WAV"));
-	batSound.play(true);
+	mnm.x = mnm.y = 0;
+	static aniDICT mnmDict;
+	mnmDict.resize(1);
+	mnmDict[0].createFromSurface(8, 8, temp, 1, 141);
+	mnm.content.setDict(&mnmDict);
+	mnm.content.autoOrder();
 
-	
-	skeleton.resize(4 * 8);
-	skeleton.content.resize(8);
-	for (int i = 0; i < 8; i++)
+
+	// position all the mnms
+	int num_piles = 3 + rand() % 3;
+	int curr_mnm = 0;
+
+	for (int piles = 0; piles < num_piles; num_piles++)
 	{
-		temp.createFromBitmap(path + TEXT("SKELSP%d.BMP"), i);
-		skeleton[4 * i + 0].createFromSurface(56, 72, temp, (0) * (56 + 1) + 1, (0) * (72 + 1) + 1);
-		skeleton[4 * i + 1].createFromSurface(56, 72, temp, (1) * (56 + 1) + 1, (0) * (72 + 1) + 1);
-		skeleton[4 * i + 2].createFromSurface(56, 72, temp, (2) * (56 + 1) + 1, (0) * (72 + 1) + 1);
-		skeleton[4 * i + 3].createFromSurface(56, 72, temp, (1) * (56 + 1) + 1, (1) * (72 + 1) + 1);
+		// plop down some mnms at the pile position
+		int pile_x = 32 + rand() % 400;
+		int pile_y = rand() % 480;
 
-		skeleton.content[i] = ANIM(0 + 4 * i, 1 + 4 * i, 0 + 4 * i, 2 + 4 * i);
-	}
+		// compute number of mnms for pile
+		int num_mnms_pile = 5 + rand() % 15;
 
-	skeleton.x = 0; skeleton.y = 128;
+		// now find a position for each
+		for (int index = 0; index < num_mnms_pile; index++)
+		{
+			// select random position and energy level for mnm
+			food[curr_mnm].x = pile_x + rand() % 20;
+			food[curr_mnm].y = pile_y + rand() % 20;
+			food[curr_mnm].energy = 600 + rand() % 1000;
+
+			// increment total number of mnms thus far
+			if (++curr_mnm >= NUM_MNMS)
+				break;
+
+		} 
+
+		if (++curr_mnm >= NUM_MNMS)
+			break;
+
+	} 
+
+	nicedaySound.create(path + TEXT("NICEDAY.WAV"));
+	nicedaySound.play(true);
+
 	
-	skeleton.setAniSpeed(4);
-
-
-	skeletonSound.create(path + TEXT("LAUGH.WAV"));
-
-	keyboard.create();
+	ShowCursor(FALSE);
 
 	fpsSet.set(60);
 }
