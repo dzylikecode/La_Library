@@ -97,11 +97,11 @@ int Find_Nearest_Waypoint(float x, float y)
 			// set as nearest waypoint
 			near_id = index;
 			near_dist = test_dist;
-		}  
+		}
 
-	}  
+	}
 
-// test if user want to see all those lines
+	// test if user want to see all those lines
 	if (vector_display_on == 1)
 	{
 		// draw it
@@ -110,11 +110,11 @@ int Find_Nearest_Waypoint(float x, float y)
 
 		GRAPHIC::DrawLine(path[near_id].x - 8, path[near_id].y, path[near_id].x + 8, path[near_id].y, curPalette[250]);
 		EndDrawOn();
-	} 
- // return it
+	}
+	// return it
 	return(near_id);
 
-}  
+}
 
 void Draw_Waypoints(int mode = 1)
 {
@@ -135,11 +135,11 @@ void Draw_Waypoints(int mode = 1)
 		GRAPHIC::SetPixel(path[index].x + 1, path[index].y, curPalette[250]);
 		GRAPHIC::SetPixel(path[index].x, path[index].y + 1, curPalette[250]);
 		GRAPHIC::SetPixel(path[index].x + 1, path[index].y + 1, curPalette[250]);
-	} 
+	}
 
- 
+
 	EndDrawOn();
-}  
+}
 
 class CAR :public SPRITE
 {
@@ -179,7 +179,7 @@ void StartUp(void)
 	wind_sound_id = 0;
 	car_sound_id = 1;
 
-	
+
 	sound[wind_sound_id].create(path + TEXT("WIND.WAV"));
 	sound[wind_sound_id].play(true);
 

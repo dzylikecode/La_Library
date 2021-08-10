@@ -231,6 +231,7 @@ namespace GRAPHIC
 		void reset(int attrSprite) { RESET_BIT(attr, attrSprite); }
 		int  getCurString()const { return cur_string; }
 		int  getCurWord()const { return cur_word; }
+		int& getCurWord() { return cur_word; }
 		void clone(const SPRITE& sprite)
 		{
 			attr = sprite.attr;
