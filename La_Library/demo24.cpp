@@ -15,6 +15,7 @@
 using namespace std;
 
 // this holds a single fuzzy linguistic variable
+//模糊变量以及一些计算
 class CFLV
 {
 private:
@@ -39,6 +40,7 @@ public:
 	char* GetName() { return(name); }
 
 	// method to compute degree of membership
+	//也就是三角形的形式，分开来计算对应的y值
 	float DegreeOfMembership(float xi)
 	{
 		// this method computes the degree of membership for the give input
@@ -69,17 +71,17 @@ public:
 				// dy/dx = 1.0/(center - right)
 				slope = 1.0 / (center_point - max_range);
 				degree_of_membership = (xi - max_range) * slope;
-			} 
+			}
 
-		} 
+		}
 		else // not in range
 			degree_of_membership = 0.0;
 
 		// return value
 		return(degree_of_membership);
 
-	} 
-}; 
+	}
+};
 
 // create a pointer type of class
 typedef CFLV* CFLV_PTR;
@@ -118,10 +120,10 @@ public:
 	{
 		// create a new flv
 		flvs[num_flvs++] = new CFLV(name, min, max);
-	} 
+	}
 
-// this tests the membership of the input against all flvs
-// and prints out the results
+	// this tests the membership of the input against all flvs
+	// and prints out the results
 	void PrintMemberships(float xi)
 	{
 		cout << "\nMemberships are:";
@@ -136,7 +138,7 @@ public:
 
 			// add dom to sum
 			sum += flvs[index]->DegreeOfMembership(xi);
-		} 
+		}
 
 		cout << "\nand the normalized memberships are:";
 		for (int index = 0; index < num_flvs; index++)
@@ -146,9 +148,9 @@ public:
 		}
 
 		cout << "\n";
-	}  
+	}
 
-}; 
+};
 
 typedef CFuzzyManifold* CFuzzyManifold_PTR;
 
@@ -210,7 +212,7 @@ void main()
 		// create the flv in the manifold
 		manifold.EnterFLV(name, min, max);
 
-	} 
+	}
 
 	cout << "\nFuzzy Manifold is ready to take input values \nand compute the degree of membership(s)!\n";
 
@@ -221,6 +223,6 @@ void main()
 		cin >> xi;
 		// test membership in each flv
 		manifold.PrintMemberships(xi);
-	} 
+	}
 
-} 
+}
