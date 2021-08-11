@@ -45,7 +45,7 @@ namespace GRAPHIC
 		}
 		void addVertex(VERTEX2D* ver, int num) { clear(); list = ver; numVertx = num; }
 		~POLYGON2D() { clear(); }
-
+		VERTEX2D& operator[](int i) { return list[i]; }
 	public:
 		void draw(SURFACE* surface = nullptr)
 		{

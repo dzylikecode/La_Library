@@ -77,7 +77,7 @@ void StartUp(void)
 	puck.content.setDict(&puckDict);
 	puck.content.autoOrder();
 	puck.x = PUCK_START_X; puck.y = PUCK_START_Y;
-	
+
 	// set state of puck
 	puck.anim_state = PUCK_STATE_RESTING;
 
@@ -104,8 +104,8 @@ void GameBody(void)
 	if (keyboard[DIK_RIGHT])
 		friction += 0.005;
 	else if (keyboard[DIK_LEFT])
-			if ((friction -= 0.005) < 0)
-				friction = 0.0;
+		if ((friction -= 0.005) < 0)
+			friction = 0.0;
 
 	// check if player is hiting puck
 	if (keyboard[DIK_SPACE] && puck.anim_state == PUCK_STATE_RESTING)
@@ -121,9 +121,9 @@ void GameBody(void)
 		puck.tempVx = 12 + rand() % 8;
 		puck.tempVy = -8 + rand() % 17;
 
-	} 
+	}
 
-// move puck
+	// move puck
 	puck.tempX += puck.tempVx;
 	puck.tempY += puck.tempVy;
 
@@ -152,9 +152,9 @@ void GameBody(void)
 
 		// puck is stuck, let player fire again
 		puck.anim_state = PUCK_STATE_RESTING;
-	} 
+	}
 
- // now apply friction to forward velocity
+	// now apply friction to forward velocity
 	puck.tempVx += fx;
 	puck.tempVy += fy;
 
@@ -182,9 +182,9 @@ void GameBody(void)
 
 		sound.play();
 
-	} 
+	}
 
- // copy floating point position to bob x,y
+	// copy floating point position to bob x,y
 	puck.x = puck.tempX + 0.5;
 	puck.y = puck.tempY + 0.5;
 
@@ -194,9 +194,9 @@ void GameBody(void)
 		BeginDrawOn(&background);
 		GRAPHIC::SetPixel(puck.x + puck.getWidth() / 2 - 2 + rand() % 4, puck.y + puck.getHeight() / 2 - 2 + rand() % 4, curPalette[16 + rand() % 8], &background);
 		EndDrawOn(&background);
-	} 
+	}
 
- // draw the puck
+	// draw the puck
 	puck.drawOn();
 
 	gPrintf(10, 10, RGB(0, 255, 0), TEXT("SIMPLE FRICTION DEMO - Hit Space to Shoot Puck, Arrows to Change Friction."));

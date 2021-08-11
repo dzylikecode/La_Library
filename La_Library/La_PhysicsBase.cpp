@@ -2,6 +2,7 @@
 #include "La_Math.h"
 namespace LADZY
 {
+	const REAL gravityConst = 6.67e-11;
 	bool Collision_Test(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
 	{
 		int width1 = (w1 >> 1) - (w1 >> 3);
@@ -25,5 +26,12 @@ namespace LADZY
 		}
 
 		return false;
+	}
+
+	void CollisionVelocity(REAL m1, REAL v1, REAL m2, REAL v2, REAL& v1Res, REAL& v2Res)
+	{
+		REAL delta = m1 - m2; REAL sigma = m1 + m2;
+		v1Res = (2 * m2 * v2 + delta * v1) / sigma;
+		v2Res = (2 * m1 * v1 + delta * v2) / sigma;
 	}
 }

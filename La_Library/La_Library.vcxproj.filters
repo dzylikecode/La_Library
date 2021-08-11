@@ -121,6 +121,9 @@
     <Filter Include="源文件\Physics">
       <UniqueIdentifier>{e84f5ebd-fa0b-425e-8262-7597a16b2219}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test\Physics">
+      <UniqueIdentifier>{7c47432d-80a7-4e05-a167-eb73b801c7d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -376,6 +379,21 @@
     </ClCompile>
     <ClCompile Include="demo24.cpp">
       <Filter>源文件\test\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="demo25.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo26.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo27.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo28.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo29.cpp">
+      <Filter>源文件\test\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
