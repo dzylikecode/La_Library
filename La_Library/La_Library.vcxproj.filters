@@ -395,6 +395,18 @@
     <ClCompile Include="demo29.cpp">
       <Filter>源文件\test\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="demo30.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo31.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo32.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo33.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">

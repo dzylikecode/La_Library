@@ -6,9 +6,9 @@ namespace GRAPHIC
 	class POLYGON2D
 	{
 	public:
-		int xC, yC;  // 形心坐标
+		REAL xC, yC;  // 形心坐标
 		COLOR color;
-		int vx, vy;
+		REAL vx, vy;
 	private:
 		VERTEX2D* list;
 		int numVertx;
@@ -47,6 +47,8 @@ namespace GRAPHIC
 		~POLYGON2D() { clear(); }
 		VERTEX2D& operator[](int i) { return list[i]; }
 	public:
+		int getNumVertex()const { return numVertx; }
+	public:
 		void draw(SURFACE* surface = nullptr)
 		{
 			int i;
@@ -64,7 +66,16 @@ namespace GRAPHIC
 				color,
 				surface);
 		}
-		void translate(int dx, int dy) { xC += dx; yC += dy; }
+		//移动的是形心
+		void translate(REAL dx, REAL dy) { xC += dx; yC += dy; }
+		void translateEveryPoint(REAL dx, REAL dy)
+		{
+			for (int curr_vert = 0; curr_vert < numVertx; curr_vert++)
+			{
+				list[curr_vert].x += dx;
+				list[curr_vert].y += dy;
+			}
+		}
 		void translate(){ xC += vx; yC += vy; }
 		void rotate(int theta)
 		{
