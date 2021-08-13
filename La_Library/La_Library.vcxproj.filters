@@ -296,9 +296,6 @@
     <ClCompile Include="demo3.cpp">
       <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="demo4.cpp">
-      <Filter>源文件\test\Graphic</Filter>
-    </ClCompile>
     <ClCompile Include="demo5.cpp">
       <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
@@ -406,6 +403,9 @@
     </ClCompile>
     <ClCompile Include="demo33.cpp">
       <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="demo4_绘制飞机.cpp">
+      <Filter>源文件\test\Graphic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

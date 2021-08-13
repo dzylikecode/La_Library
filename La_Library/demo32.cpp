@@ -177,6 +177,7 @@ void Collision_Response(void)
 				continue;
 
 			// compute the normal vector from a->b
+			// 如果碰撞，则是对心碰撞，则以此为 n 方向进行分解
 			float nabx = (balls[ball_b].tempX - balls[ball_a].tempX);
 			float naby = (balls[ball_b].tempY - balls[ball_a].tempY);
 			float length = sqrt(nabx * nabx + naby * naby);
@@ -221,7 +222,7 @@ void Collision_Response(void)
 
 				// step 2: compute all the initial velocities
 				// notation ball: (a,b) initial: i, final: f, n: normal direction, t: tangential direction
-
+				// 由于正交化了 n-t ，所以由 x-y 系转化到 n-t 系可以使用投影的办法
 				float vait = DOT_PRODUCT(balls[ball_a].tempVx,
 					balls[ball_a].tempVy,
 					tabx, taby);

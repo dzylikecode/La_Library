@@ -203,8 +203,8 @@ public:
 
 	void insertFront(NODE<T>* n)
 	{
-		n->next = front;
-		front = n;
+		n->next = front->next;
+		front->next = n;
 		size++;
 		position++;
 	}

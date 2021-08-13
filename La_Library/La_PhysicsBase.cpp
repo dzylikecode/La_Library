@@ -33,5 +33,9 @@ namespace LADZY
 		REAL delta = m1 - m2; REAL sigma = m1 + m2;
 		v1Res = (2 * m2 * v2 + delta * v1) / sigma;
 		v2Res = (2 * m1 * v1 + delta * v2) / sigma;
+
+		//e = ( Vbf - Vaf )/( Vbi - Vai )
+		//Vaf = ( (e+1)*mb*Vbi + (ma -e*mb)*Vai ) / ( ma + mb )
+		//Vbf = ( (e+1)*ma*Vai - (ma -e*mb)*Vbi ) / ( ma + mb )
 	}
 }

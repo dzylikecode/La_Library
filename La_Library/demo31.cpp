@@ -162,6 +162,7 @@ void Compute_Collisions(void)
 	for (int index = 0; index < NUM_BALLS; index++)
 	{
 		// first move ball
+		// 下一步可能抵达的位置，然后再来测试是否符合物理规则
 		balls[index].tempX += balls[index].tempVx;
 		balls[index].tempY += balls[index].tempVy;
 
@@ -209,6 +210,7 @@ void Compute_Collisions(void)
 			p1y = p0y + s1y;
 #endif
 			// compute s and t, the parameters
+			//判断是否有交点
 			s = (-s1y * (p0x - p2x) + s1x * (p0y - p2y)) / (-s2x * s1y + s1x * s2y);
 			t = (s2x * (p0y - p2y) - s2y * (p0x - p2x)) / (-s2x * s1y + s1x * s2y);
 

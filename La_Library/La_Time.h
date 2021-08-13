@@ -97,6 +97,7 @@ private:
 	UINT defaultFrame;	// 0代表不进行控制
 	UINT defaultDt;		// 每帧的时间差
 	CLOCK clock;
+	double secondPerFrame;
 	void Calculate()
 	{
 		defaultDt = defaultFrame ? UINT((1000.0 / defaultFrame) + 0.5) : 0;
@@ -112,10 +113,12 @@ public:
 		defaultFrame = fps;
 		Calculate();
 	}
-	UINT get(){ return theFrame; }
+	UINT get()const { return theFrame; }
+	double getTime()const { return secondPerFrame; }
 	void adjust()
 	{
-		UINT curFrame = (UINT)clock.recordFrequency();
+		double tempCal = clock.recordFrequency();
+		UINT curFrame = (UINT)tempCal;
 		//帧率是愈大愈快
 		//如果大于 default ，则可以降下来
 		//要不然，只能使用当前的帧率
@@ -123,11 +126,13 @@ public:
 		if (defaultFrame == 0 || curFrame <= defaultFrame)
 		{
 			theFrame = curFrame;
+			secondPerFrame = 1.0 / tempCal;
 			return;
 		}
 		else
 		{
 			theFrame = defaultFrame;
+			secondPerFrame = 1.0 / theFrame;
 		}
 
 		UINT ms = defaultDt - 1000 / curFrame;

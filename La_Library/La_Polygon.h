@@ -101,10 +101,10 @@ namespace GRAPHIC
 			}
 		}
 		/// <summary>
-/// 针对凸多边形
-/// 函数没有裁剪，裁剪后仍是凸多边形
-/// 所以可以凸多边形预处理
-/// </summary>
+		/// 针对凸多边形
+		/// 函数没有裁剪，裁剪后仍是凸多边形
+		/// 所以可以凸多边形预处理
+		/// </summary>
 		void drawFill(SURFACE* surface = nullptr)
 		{
 			surface = INCLUDE_NULL_SURFACE(surface);

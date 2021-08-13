@@ -21,3 +21,9 @@ public:
 		}
 	}
 }mathBase;
+
+// U = p0 + t*S1
+// V = p1 + s*S2
+// U = V
+//s = (-s1y * (p0x - p2x) + s1x * (p0y - p2y)) / (-s2x * s1y + s1x * s2y);
+//t = (s2x * (p0y - p2y) - s2y * (p0x - p2x)) / (-s2x * s1y + s1x * s2y);
