@@ -126,7 +126,7 @@ public:
 		if (defaultFrame == 0 || curFrame <= defaultFrame)
 		{
 			theFrame = curFrame;
-			secondPerFrame = 1.0 / tempCal;
+			secondPerFrame = 0.001 / tempCal;
 			return;
 		}
 		else

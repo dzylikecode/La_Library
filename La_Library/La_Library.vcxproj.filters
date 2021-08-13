@@ -413,6 +413,9 @@
     <ClCompile Include="demo34.cpp">
       <Filter>源文件\test\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="demo35.cpp">
+      <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">

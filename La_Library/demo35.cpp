@@ -102,7 +102,7 @@ void GameBody(void)
 	if (keyboard[DIK_RIGHT])
 		delay += 5;
 	else if (delay > 5 && keyboard[DIK_LEFT])
-			delay -= 5;
+		delay -= 5;
 
 
 	// draw the ship
@@ -125,7 +125,7 @@ void GameBody(void)
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), 1000 / delay);
 	Flush();
 
-	
+
 	REAL dt = clockTime.record();
 	ship.tempX += ship.tempVx * dt;
 
