@@ -80,7 +80,6 @@ public:
 class PARTICLE
 {
 public:
-	int state;
 	int type;            // type of particle effect
 	float x, y;           // world position of particle
 	float vx, vy;         // velocity of particle
@@ -90,7 +89,6 @@ public:
 	int counter;         // general state transition timer
 	int max_count;       // max value for counter
 	PARTICLE() :
-		state(PARTICLE_STATE_DEAD),
 		type(PARTICLE_TYPE_FADE),
 		x(0),
 		y(0),
@@ -105,7 +103,6 @@ public:
 	void create(int type, int color, int count)
 	{
 		// set general state info
-		state = PARTICLE_STATE_ALIVE;
 		type = type;
 		counter = 0;
 		max_count = count;
@@ -163,8 +160,120 @@ float wind_force = -0.01; // wind resistance
 float particle_wind = 0;    // assume it operates in the X direction
 float particle_gravity = .02; // assume it operates in the Y direction
 
-PARTICLE particles[MAX_PARTICLES]; // the particles for the particle engine
+class groupPARTICLE
+{
+private:
+	LINKEDList<PARTICLE> particles;
+public:
+	void add(REAL outX, REAL outY, REAL outVx, REAL outVy, int type, int color, int count)
+	{
+		NODE<PARTICLE>* newPartcle = new NODE<PARTICLE>;
+		newPartcle->data.x = outX; newPartcle->data.y = outY;
+		newPartcle->data.vx = outVx; newPartcle->data.vy = outVy;
+		newPartcle->data.create(type, color, count);
+		particles.insertFront(newPartcle);
+	}
+	void createExplosion(REAL outX, REAL outY, REAL outVx, REAL outVy, int type, int color, int count, int num)
+	{
+		while (--num >= 0)
+		{
+			// compute random trajectory angle
+			int ang = rand() % 360;
 
+			// compute random trajectory velocity
+			float vel = 2 + rand() % 4;
+
+			add(type, color, count,
+				outX + RAND_RANGE(-4, 4), outY + RAND_RANGE(-4, 4),
+				outVx + cos_look[ang] * vel, outVy + sin_look[ang] * vel);
+		}
+	}
+	void createRingShape(REAL outX, REAL outY, REAL outVx, REAL outVy, int type, int color, int count, int num)
+	{
+		while (--num >= 0)
+		{
+			// compute random trajectory angle
+			int ang = rand() % 360;
+
+			// compute random trajectory velocity
+			float vel = 2 + rand() % 4;
+
+			add(type, color, count,
+				outX, outY,
+				outVx + cos_look[ang] * vel, outVy + sin_look[ang] * vel);
+		}
+	}
+
+public:
+	void draw()
+	{
+		if (particles.isEmpty())
+			return;
+		particles.reset();
+		BeginDrawOn();
+		while (!particles.endOfList())
+		{
+			PARTICLE& curParticle = particles.data();
+			if (curParticle.x < SCREEN_WIDTH && curParticle.x > 0
+				&& curParticle.y < SCREEN_HEIGHT && curParticle.y > 0)
+			{
+				GRAPHIC::SetPixel(curParticle.x, curParticle.y, curPalette[curParticle.curr_color]);
+			}
+			particles.next();
+		}
+		EndDrawOn();
+	}
+	void animate()
+	{
+		if (particles.isEmpty())
+			return;
+		particles.reset();
+		while (!particles.endOfList())
+		{
+			PARTICLE& curParticle = particles.data();
+			// translate particle
+			curParticle.x += curParticle.vx;
+			curParticle.y += curParticle.vy;
+
+			// update velocity based on gravity and wind
+			curParticle.vx += particle_wind;
+			curParticle.vy += particle_gravity;
+
+			// now based on type of particle perform proper animation
+			if (curParticle.type == PARTICLE_TYPE_FLICKER)
+			{
+				// simply choose a color in the color range and assign it to the current color
+				curParticle.curr_color = RAND_RANGE(curParticle.start_color, curParticle.end_color);
+
+				// now update counter
+				if (++curParticle.counter >= curParticle.max_count)
+				{
+					// kill the particle
+					particles.deleteCurrent();//会自动后移
+					continue;				  //所以用continue
+				}
+			}
+			else
+			{
+				// must be a fade, be careful!
+				// test if it's time to update color
+				if (++curParticle.counter >= curParticle.max_count)
+				{
+					// reset counter
+					curParticle.counter = 0;
+					// update color
+					if (++curParticle.curr_color > curParticle.end_color)
+					{
+						// transition is complete, terminate particle
+						particles.deleteCurrent();
+						continue;
+					}
+				}
+			}
+			particles.next();
+		}
+	}
+}particles;
 
 SOUND cannonSound[8]; // sound ids for cannon
 SOUND explosionSound[8]; // explosion ids
@@ -173,156 +282,6 @@ POLYGON2D cannon; // the ship
 
 PROJECTILE missiles[NUM_PROJECTILES]; // array of missiles
 
-void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv)
-{
-	// this function starts a single particle
-
-	int pindex = -1; // index of particle
-
-	// first find open particle
-	for (int index = 0; index < MAX_PARTICLES; index++)
-		if (particles[index].state == PARTICLE_STATE_DEAD)
-		{
-			pindex = index;
-			break;
-		}    
- // did we find one
-	if (pindex == -1)
-		return;
-
-	// set general state info
-	particles[pindex].x = x;
-	particles[pindex].y = y;
-	particles[pindex].vx = xv;
-	particles[pindex].vy = yv;
-
-	particles[pindex].create(type, color, count);
-
-} 
-
-void Start_Particle_Explosion(int type, int color, int count,
-	int x, int y, int xv, int yv, int num_particles)
-{
-	// this function starts a particle explosion at the given position and velocity
-
-	while (--num_particles >= 0)
-	{
-		// compute random trajectory angle
-		int ang = rand() % 360;
-
-		// compute random trajectory velocity
-		float vel = 2 + rand() % 4;
-
-		Start_Particle(type, color, count,
-			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
-			xv + cos_look[ang] * vel, yv + sin_look[ang] * vel);
-	} 
-} 
-
-void Start_Particle_Ring(int type, int color, int count,
-	int x, int y, int xv, int yv, int num_particles)
-{
-	// this function starts a particle explosion at the given position and velocity
-	// note the use of look up tables for sin,cos
-
-	// compute random velocity on outside of loop
-	float vel = 2 + rand() % 4;
-
-	while (--num_particles >= 0)
-	{
-		// compute random trajectory angle
-		int ang = rand() % 360;
-
-		// start the particle
-		Start_Particle(type, color, count,
-			x, y,
-			xv + cos_look[ang] * vel,
-			yv + sin_look[ang] * vel);
-
-	} 
-
-} 
-
-void Draw_Particles(void)
-{
-	// this function draws all the particles
-
-	// lock back surface
-	BeginDrawOn();
-
-	for (int index = 0; index < MAX_PARTICLES; index++)
-	{
-		// test if particle is alive
-		if (particles[index].state == PARTICLE_STATE_ALIVE)
-		{
-			// render the particle, perform world to screen transform
-			int x = particles[index].x;
-			int y = particles[index].y;
-
-			// test for clip
-			if (x >= SCREEN_WIDTH || x < 0 || y >= SCREEN_HEIGHT || y < 0)
-				continue;
-
-			// draw the pixel
-			GRAPHIC::SetPixel(x, y, curPalette[particles[index].curr_color]);
-		}
-	} 
-	EndDrawOn();
-
-} 
-
-void Process_Particles(void)
-{
-	// this function moves and animates all particles
-
-	for (int index = 0; index < MAX_PARTICLES; index++)
-	{
-		// test if this particle is alive
-		if (particles[index].state == PARTICLE_STATE_ALIVE)
-		{
-			// translate particle
-			particles[index].x += particles[index].vx;
-			particles[index].y += particles[index].vy;
-
-			// update velocity based on gravity and wind
-			particles[index].vx += particle_wind;
-			particles[index].vy += particle_gravity;
-
-			// now based on type of particle perform proper animation
-			if (particles[index].type == PARTICLE_TYPE_FLICKER)
-			{
-				// simply choose a color in the color range and assign it to the current color
-				particles[index].curr_color = RAND_RANGE(particles[index].start_color, particles[index].end_color);
-
-				// now update counter
-				if (++particles[index].counter >= particles[index].max_count)
-				{
-					// kill the particle
-					particles[index].state = PARTICLE_STATE_DEAD;
-
-				} 
-			} 
-			else
-			{
-				// must be a fade, be careful!
-				// test if it's time to update color
-				if (++particles[index].counter >= particles[index].max_count)
-				{
-					// reset counter
-					particles[index].counter = 0;
-
-					// update color
-					if (++particles[index].curr_color > particles[index].end_color)
-					{
-						// transition is complete, terminate particle
-						particles[index].state = PARTICLE_STATE_DEAD;
-
-					} 
-				} 
-			} 
-		} 
-	}
-}
 
 
 void StartUp(void)
@@ -417,13 +376,13 @@ void Move_Projectiles(void)
 				if (RAND_RANGE(0, 3) == 0)
 				{
 					// start a particle explosion
-					Start_Particle_Ring(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
+					particles.createRingShape(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
 						missiles[index].x, missiles[index].y,
 						0, 0, RAND_RANGE(75, 100));
 				}
 				else
 				{
-					Start_Particle_Explosion(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
+					particles.createExplosion(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
 						missiles[index].x, missiles[index].y,
 						0, 0, RAND_RANGE(20, 50));
 				}
@@ -563,13 +522,13 @@ void GameBody(void)
 	Move_Projectiles();
 
 	// move particles
-	Process_Particles();
+	particles.animate();
 
 	// draw the projectiles
 	Draw_Projectiles();
 
 	// draw the particles
-	Draw_Particles();
+	particles.draw();
 
 	gPrintf(10, 10, RGB(0, 255, 0), TEXT("Particle System DEMO, Press <ESC> to Exit."));
 

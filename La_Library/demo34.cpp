@@ -185,8 +185,8 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 		{
 			pindex = index;
 			break;
-		}    
- // did we find one
+		}
+	// did we find one
 	if (pindex == -1)
 		return;
 
@@ -198,7 +198,7 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 
 	particles[pindex].create(type, color, count);
 
-} 
+}
 
 void Start_Particle_Explosion(int type, int color, int count,
 	int x, int y, int xv, int yv, int num_particles)
@@ -216,8 +216,8 @@ void Start_Particle_Explosion(int type, int color, int count,
 		Start_Particle(type, color, count,
 			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
 			xv + cos_look[ang] * vel, yv + sin_look[ang] * vel);
-	} 
-} 
+	}
+}
 
 void Start_Particle_Ring(int type, int color, int count,
 	int x, int y, int xv, int yv, int num_particles)
@@ -239,9 +239,9 @@ void Start_Particle_Ring(int type, int color, int count,
 			xv + cos_look[ang] * vel,
 			yv + sin_look[ang] * vel);
 
-	} 
+	}
 
-} 
+}
 
 void Draw_Particles(void)
 {
@@ -266,10 +266,10 @@ void Draw_Particles(void)
 			// draw the pixel
 			GRAPHIC::SetPixel(x, y, curPalette[particles[index].curr_color]);
 		}
-	} 
+	}
 	EndDrawOn();
 
-} 
+}
 
 void Process_Particles(void)
 {
@@ -300,8 +300,8 @@ void Process_Particles(void)
 					// kill the particle
 					particles[index].state = PARTICLE_STATE_DEAD;
 
-				} 
-			} 
+				}
+			}
 			else
 			{
 				// must be a fade, be careful!
@@ -317,10 +317,10 @@ void Process_Particles(void)
 						// transition is complete, terminate particle
 						particles[index].state = PARTICLE_STATE_DEAD;
 
-					} 
-				} 
-			} 
-		} 
+					}
+				}
+			}
+		}
 	}
 }
 
