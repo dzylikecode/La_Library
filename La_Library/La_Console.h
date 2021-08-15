@@ -232,3 +232,5 @@ public:
 	~CONSOLE() { close(); }
 };
 
+
+extern CONSOLE consoleOut;

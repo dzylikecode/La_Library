@@ -165,4 +165,49 @@ namespace AUDIO
 
 	void InitializeAudio(HWND hwnd);
 	void CloseAudio();
+
+	class WAVE
+	{
+	private:
+		TSTRING fileName;
+		DWORD fdwSound;
+	public:
+		void load(int Macro)
+		{
+			fileName = MAKEINTRESOURCE(Macro);
+			fdwSound = SND_RESOURCE;
+		}
+		void load(LPCTSTR outFileName)
+		{
+			fileName = outFileName;
+			fdwSound = SND_FILENAME;
+		}
+		void play(bool bLoop = false, bool bAsync = true)
+		{
+			DWORD flag = fdwSound;
+			if (bAsync)
+			{
+				flag |= SND_ASYNC;
+			}
+			else
+			{
+				flag |= SND_SYNC;
+			}
+
+			if (bLoop)
+			{
+				flag |= SND_LOOP;
+			}
+
+			PlaySound(fileName, NULL, flag);
+		}
+		void stop()
+		{
+			PlaySound(fileName, NULL, SND_PURGE);
+		}
+		void stopAll()
+		{
+			PlaySound(nullptr, NULL, SND_PURGE);
+		}
+	};
 }

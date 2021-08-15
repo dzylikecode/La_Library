@@ -124,6 +124,9 @@
     <Filter Include="源文件\test\Physics">
       <UniqueIdentifier>{7c47432d-80a7-4e05-a167-eb73b801c7d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test\FinalGame">
+      <UniqueIdentifier>{d1e22c05-05e4-4572-9de0-ff87b79adf44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -415,6 +418,12 @@
     </ClCompile>
     <ClCompile Include="demo35.cpp">
       <Filter>源文件\test\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Console.cpp">
+      <Filter>源文件\Windows\Extend</Filter>
+    </ClCompile>
+    <ClCompile Include="demo36cpp.cpp">
+      <Filter>源文件\test\FinalGame</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

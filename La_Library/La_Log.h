@@ -115,11 +115,10 @@ public:
 	~errINFOMaster();
 };
 
-extern CONSOLE errConsoleMaster;
 
-#define WriteInConsole		errConsoleMaster.write
-#define GetConsoleColor		errConsoleMaster.getColor
-#define SetConsoleColor		errConsoleMaster.setColor
+#define WriteInConsole		consoleOut.write
+#define GetConsoleColor		consoleOut.getColor
+#define SetConsoleColor		consoleOut.setColor
 
 
 #define CONSOLE_LOG()						{WORD oldColor = GetConsoleColor(); WriteInConsole(ERR,"file: %s\nline %d:error code:%d\n\n",TEXT(__FILE__),__LINE__,GetLastError()); SetConsoleColor(oldColor);}

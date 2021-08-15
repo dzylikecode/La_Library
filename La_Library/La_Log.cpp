@@ -2,7 +2,6 @@
 
 #if LADZY_DEBUG
 errLOGMaster errLogMaster;
-CONSOLE errConsoleMaster;
 errINFOMaster errInfoMaster;
 
 errINFOMaster::errINFOMaster()
@@ -22,7 +21,7 @@ errINFOMaster::errINFOMaster()
 #elif LADZY_DEBUG_MODE == LADZY_DEBUG_FILE
 	errLogMaster.create();
 #elif LADZY_DEBUG_MODE == LADZY_DEBUG_BOTH
-	errConsoleMaster.create();
+	consoleOut.create();
 	WriteInConsole(TIME, TEXT("-----------------------%s---------------------------\n"), TEXT(__DATE__));
 	WriteInConsole(TIME, TEXT("\n-----------------------%s---------------------------\n"), TEXT(__TIME__));
 	WriteInConsole(NOTICE, TEXT("*****************Debug Start in file and console***********\n"));

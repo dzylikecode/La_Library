@@ -2666,8 +2666,7 @@ void Draw_Info(void)
 
 
 	// build up final string
-	_stprintf(buffer, TEXT("SCORE %08d"), player_score);
-	gPrintf(10, 10, RGB(0, 255, 0), buffer);
+	gPrintf(10, 10, RGB(0, 255, 0), TEXT("SCORE %08d"), player_score);
 	// draw damage----为什么要这么多呢，因为有三层套娃用了 printf  2^3 = 8
 	_stprintf(buffer, TEXT("DAMAGE %d%%%%%%%%"), player_damage);
 
