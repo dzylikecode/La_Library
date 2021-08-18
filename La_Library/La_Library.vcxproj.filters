@@ -127,6 +127,15 @@
     <Filter Include="源文件\test\FinalGame">
       <UniqueIdentifier>{d1e22c05-05e4-4572-9de0-ff87b79adf44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\temp">
+      <UniqueIdentifier>{ee2cffac-5c22-43cf-9aaa-476ee12bd829}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Graphic\Base\Image">
+      <UniqueIdentifier>{c98e28ec-6fdf-4b80-8165-f59ce58a0da9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Graphic\Base\Image">
+      <UniqueIdentifier>{5b3298d1-54e4-4aad-a668-57cee609d605}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -178,9 +187,6 @@
       <Filter>头文件\GameBox</Filter>
     </ClInclude>
     <ClInclude Include="La_GraphicBase.h">
-      <Filter>头文件\Graphic\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="La_Bitmap.h">
       <Filter>头文件\Graphic\Base</Filter>
     </ClInclude>
     <ClInclude Include="La_Surface.h">
@@ -243,6 +249,15 @@
     <ClInclude Include="La_Master.h">
       <Filter>头文件\GameBox</Filter>
     </ClInclude>
+    <ClInclude Include="La_Bitmap.h">
+      <Filter>头文件\Graphic\Base\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Gif.h">
+      <Filter>头文件\Graphic\Base\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="La_GifClass.h">
+      <Filter>头文件\Graphic\Extend</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -271,9 +286,6 @@
     </ClCompile>
     <ClCompile Include="La_WinGDI.cpp">
       <Filter>源文件\WinGDI</Filter>
-    </ClCompile>
-    <ClCompile Include="La_Bitmap.cpp">
-      <Filter>源文件\Graphic\Base</Filter>
     </ClCompile>
     <ClCompile Include="La_GraphicBase.cpp">
       <Filter>源文件\Graphic\Base</Filter>
@@ -424,6 +436,21 @@
     </ClCompile>
     <ClCompile Include="demo36cpp.cpp">
       <Filter>源文件\test\FinalGame</Filter>
+    </ClCompile>
+    <ClCompile Include="ToConvert.cpp">
+      <Filter>源文件\temp</Filter>
+    </ClCompile>
+    <ClCompile Include="ToEmit.cpp">
+      <Filter>源文件\temp</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Bitmap.cpp">
+      <Filter>源文件\Graphic\Base\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Gif.cpp">
+      <Filter>源文件\Graphic\Base\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="La_GifClass.cpp">
+      <Filter>源文件\Graphic\Extend</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

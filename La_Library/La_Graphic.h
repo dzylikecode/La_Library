@@ -6,3 +6,4 @@
 #include "La_Sprite.h"
 #include "La_Palette.h"
 #include "La_Blink.h"
+#include "La_GifClass.h"

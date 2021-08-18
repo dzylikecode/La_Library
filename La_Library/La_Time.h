@@ -18,6 +18,7 @@
 
 #pragma once
 #include "La_WindowsBase.h"
+#include <time.h>
 #define TEST_FUNCTION(result,num,function)		{LARGE_INTEGER begin_time, freq, end_time; \
 												QueryPerformanceFrequency(&freq); \
 												QueryPerformanceCounter(&begin_time); \
@@ -140,3 +141,62 @@ public:
 		//TIMEMaster::sleep(ms / 2);
 	}
 };
+
+
+inline bool IsLeapYear(int year)
+{
+	return year % 400 == 0 || year % 4 == 0 && year % 100 != 0;
+}
+
+namespace LADZY
+{
+	class TIMERecord
+	{
+	private:
+		time_t nowTime;
+		struct tm* tp;
+	public:
+		void inquire() 
+		{ 
+			nowTime = time(nullptr); 
+			tp = localtime(&nowTime);//默认
+		}
+		//距离1970年1月1日0时的秒数
+		time_t getAbs()const { return nowTime; }
+		void switchLocal()
+		{
+			tp = localtime(&nowTime);
+		}
+		void switchUTC()
+		{
+			tp = gmtime(&nowTime);
+		}
+		int  getYear()const { return tp->tm_year + 1900; }
+		int  getMonth()const { return tp->tm_mon + 1; }
+		int  getDay()const { return tp->tm_mday; }
+		int  getHour()const { return tp->tm_hour; }
+		int  getMin()const { return tp->tm_min; }
+		int  getSec()const { return tp->tm_sec; }
+		char* getString()const { return asctime(tp); }
+	};
+
+
+	class DATE
+	{
+	private:
+		int year, month, day;
+	private:
+		int distance();
+		void calFromFirstDay(int i);
+	public:
+		void next();
+		void next(UINT i)
+		{
+			i += distance();
+			calFromFirstDay(i);
+		}
+		void back();
+		void back(int i);
+		void set(int outYear, int outMonth, int outDay) { year = outYear; month = outMonth; day = outDay; }
+	};
+}

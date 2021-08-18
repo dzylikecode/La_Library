@@ -39,6 +39,8 @@
 #include "dmusici.h"
 #include "La_Windows.h"
 
+#pragma comment(lib, "winmm.lib")
+
 //DSBCAPS_CTRLPAN      //平衡控制
 //DSBCAPS_CTRLVOLUME   //音量控制
 //DSBCAPS_CTRLFREQUENCY //频率控制

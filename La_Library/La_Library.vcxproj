@@ -27,7 +27,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -152,6 +152,8 @@
     <ClInclude Include="La_GameBox.h" />
     <ClInclude Include="La_Geometry.h" />
     <ClInclude Include="La_GeometryBase.h" />
+    <ClInclude Include="La_Gif.h" />
+    <ClInclude Include="La_GifClass.h" />
     <ClInclude Include="La_Graphic.h" />
     <ClInclude Include="La_GraphicBase.h" />
     <ClInclude Include="La_GraphicEx.h" />
@@ -287,12 +289,20 @@
     <ClCompile Include="La_AudioBase.cpp" />
     <ClCompile Include="La_Blink.cpp" />
     <ClCompile Include="La_Console.cpp" />
+    <ClCompile Include="La_Gif.cpp" />
+    <ClCompile Include="La_GifClass.cpp" />
     <ClCompile Include="La_InputBase.cpp" />
     <ClCompile Include="La_Palette.cpp" />
     <ClCompile Include="La_PhysicsBase.cpp" />
     <ClCompile Include="La_Vector.cpp" />
+    <ClCompile Include="ToConvert.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ToEmit.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="WinMain.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_Bitmap.cpp" />
     <ClCompile Include="La_File.cpp" />

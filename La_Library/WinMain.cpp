@@ -3951,31 +3951,31 @@ void GameBody(void)
 			{
 				if ((mine_tracking_rate += 0.1) > 4.0)
 					mine_tracking_rate = 4.0;
-			} // end if
+			}
 			else if (keyboard[DIK_MINUS])
 			{
 				if ((mine_tracking_rate -= 0.1) < 0)
 					mine_tracking_rate = 0;
-			} // end if
+			}
 
 
-		// test if player is moving
+			// test if player is moving
 			if (keyboard[DIK_RIGHT])
 			{
 				// rotate player to right
 				if (++wraith.varsI[WRAITH_INDEX_DIR] > 15)
 					wraith.varsI[WRAITH_INDEX_DIR] = 0;
 
-			} // end if
+			}
 			else if (keyboard[DIK_LEFT])
 			{
 				// rotate player to left
 				if (--wraith.varsI[WRAITH_INDEX_DIR] < 0)
 					wraith.varsI[WRAITH_INDEX_DIR] = 15;
 
-			} // end if
+			}
 
-		// vertical/speed motion
+			// vertical/speed motion
 			if (keyboard[DIK_UP])
 			{
 				// move player forward
@@ -4012,7 +4012,7 @@ void GameBody(void)
 
 				sound[beep1_id].play();
 
-			} // end if
+			}
 
 			if (!keyboard[DIK_H])
 				huds_debounce = 0;
@@ -4059,16 +4059,15 @@ void GameBody(void)
 
 				// set warp flag
 			} // end if
-			else
-				if (player_x < UNIVERSE_MIN_X)
-				{
-					// reset pos
-					player_x = UNIVERSE_MAX_X;
+			else if (player_x < UNIVERSE_MIN_X)
+			{
+				// reset pos
+				player_x = UNIVERSE_MAX_X;
 
-					// set warp flag
-				} // end if
+				// set warp flag
+			} // end if
 
-			 // y coords
+		 // y coords
 			if (player_y > UNIVERSE_MAX_Y)
 			{
 				// reset pos
@@ -4125,10 +4124,10 @@ void GameBody(void)
 				// reset counter
 				player_regen_counter = 0;
 
-			} // end if
+			}
 
 
-		// test for dying state transition
+			// test for dying state transition
 			if (player_damage >= 100 && player_state == PLAYER_STATE_ALIVE)
 			{
 				// set damage to 100
@@ -4168,9 +4167,8 @@ void GameBody(void)
 
 			if (wraith.varsI[WRAITH_INDEX_DIR] > 15)
 				wraith.varsI[WRAITH_INDEX_DIR] = 0;
-			else
-				if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
-					wraith.varsI[WRAITH_INDEX_DIR] = 15;
+			else if (wraith.varsI[WRAITH_INDEX_DIR] < 0)
+				wraith.varsI[WRAITH_INDEX_DIR] = 15;
 
 			// update state counter
 			if (++player_counter > 150)
@@ -4236,13 +4234,12 @@ void GameBody(void)
 				// reset to ready
 				ready_counter = 0,
 					ready_state = 0;
-			} // end if
+			}
 
-		} // end if
+		}
 
-	 // end player sub states
 
-	 // move the powerups 
+		// move the powerups 
 		Move_Powerups();
 
 		// move the stations
@@ -4316,11 +4313,9 @@ void GameBody(void)
 				// draw the bob
 				wraith.drawOn();
 
-			} // end if
-
-		} // end if
-
-	// draw explosions last
+			}
+		}
+		// draw explosions last
 		Draw_Bursts();
 
 		// draw the score and ships left
@@ -4382,8 +4377,15 @@ void GameBody(void)
 			andre_up = 2;
 		} // end if
 
+		if (keyboard[DIK_P])
+		{
+			pause_debounce = 1;
+			game_paused = (game_paused) ? 0 : 1;
+			sound[beep1_id].play();
+			game_state = GAME_STATE_PAUSED;
+		}
 
-	 // flip the surfaces
+		// flip the surfaces
 		fpsSet.adjust();
 		gPrintf(0, 0, GREEN_GDI, TEXT("FPS:%d"), fpsSet.get());
 		Flush();
@@ -4396,13 +4398,11 @@ void GameBody(void)
 			{
 				// send game back to menu state
 				game_state = GAME_STATE_EXIT;
-
-				// stop all sounds
 				sound[engines_id].stop();
-			} // end if
+			}
 
 
-	} // end if game running
+	}
 	else if (game_state == GAME_STATE_PAUSED)
 	{
 		// pause game
@@ -4412,8 +4412,7 @@ void GameBody(void)
 			game_paused = (game_paused) ? 0 : 1;
 
 			sound[beep1_id].play();
-
-		} // end if
+		}
 
 		if (!keyboard[DIK_P])
 			game_paused = 0;
@@ -4437,7 +4436,6 @@ void GameBody(void)
 	else if (game_state == GAME_STATE_WAITING_FOR_EXIT)
 	{
 		// wait here in safe state
-
 	}
 }
 

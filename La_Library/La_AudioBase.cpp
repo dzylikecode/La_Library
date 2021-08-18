@@ -2,7 +2,6 @@
 #include "La_Log.h"
 
 #pragma comment(lib, "dsound.lib")
-#pragma comment(lib, "winmm.lib")
 
 #define INIT_STRUCT(st) {memset(&st, 0, sizeof(st)); st.dwSize = sizeof(st);}
 

@@ -131,7 +131,6 @@ public:
 		freopen_s(&stream, "conin$", "r+t", stdin);//重定向输入流
 		freopen_s(&stream, "conout$", "w+t", stdout);//重定向输入流
 		hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-
 		return true;
 	}
 	bool setColor(WORD color) { return SetConsoleTextAttribute(hOutput, color); }
@@ -145,30 +144,55 @@ public:
 		return _tprintf(szBuffer);		//如果控制台删除了，printf 就会报错
 	}
 	//有效范围 0 - 100
-	void hide()
+	void hideCursor()
 	{
 		CONSOLE_CURSOR_INFO cur = { 1, false };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	void show(DWORD size = 1)
+	void showCursor(DWORD size = 1)
 	{
 		CONSOLE_CURSOR_INFO cur = { size, true };
 		SetConsoleCursorInfo(hOutput, &cur);
+	}
+	//	SB_BOTH
+	//	显示或隐藏窗口的标准水平和垂直滚动条。
+	//	SB_CTL
+	//	显示或隐藏滚动条控件。铰链参数必须是滚动条控制的手柄。
+	//	SB_HORZ
+	//	显示或隐藏窗口的标准水平滚动条。
+	//	SB_VERT
+	//	显示或隐藏窗口的标准垂直滚动栏。
+	void hideScroll(int scrollFlag)
+	{
+		ShowScrollBar(/*GetConsoleWindow()*/hConsole, scrollFlag, false);
+	}
+	void showScroll(int scrollFlag)
+	{
+		ShowScrollBar(hConsole, scrollFlag, true);
+	}
+	void enableScroll(int scrollFlag, UINT action)
+	{
+		EnableScrollBar(hConsole, scrollFlag, action);
 	}
 	bool gotoXY(SHORT x, SHORT y)
 	{
 		COORD pos = { x, y };
 		return SetConsoleCursorPosition(hOutput, pos);
 	}
-	bool resize(SHORT width, SHORT height)
+	bool resizeBuffer(SHORT width, SHORT height)
 	{
 		COORD size = { width, height };
 		return SetConsoleScreenBufferSize(hOutput, size);
 	}
 	bool resize(SHORT x, SHORT y, SHORT width, SHORT height)
 	{
-		SMALL_RECT rc = { x, y, width, height };
-		SetConsoleWindowInfo(hOutput, true, &rc);
+		SMALL_RECT rc = { x, y, x + width, y + height };
+		return SetConsoleWindowInfo(hOutput, true, &rc);
+	}
+	bool resize(SHORT width, SHORT height)
+	{
+		SMALL_RECT rc = { 0, 0, width, height };
+		return SetConsoleWindowInfo(hOutput, true, &rc);
 	}
 	bool move(int x, int y)
 	{

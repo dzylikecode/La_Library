@@ -40,13 +40,10 @@ namespace GRAPHIC
 		int lpitch;
 		DWORD colorKey;
 		DWORD memoryFlag;
-		int x, y;
 		HDC xdc;
 	public:
-		bool transparent;
-	public:
-		SURFACE(void) :lpddS(nullptr), memory(nullptr), width(0), height(0), lpitch(0), colorKey(0), memoryFlag(0), x(0), y(0), transparent(true) {};
-		SURFACE(int iWidth, int iHeight, DWORD dwColorKey, DWORD flag = 0) :memory(nullptr), lpitch(0), memoryFlag(flag), x(0), y(0), transparent(true)
+		SURFACE(void) :lpddS(nullptr), memory(nullptr), width(0), height(0), lpitch(0), colorKey(0), memoryFlag(0){};
+		SURFACE(int iWidth, int iHeight, DWORD dwColorKey, DWORD flag = 0) :memory(nullptr), lpitch(0), memoryFlag(flag)
 		{
 			create(iWidth, iHeight, dwColorKey, memoryFlag);
 			fillColor(dwColorKey);
@@ -63,8 +60,6 @@ namespace GRAPHIC
 		UINT getLpitch(void)const { return lpitch; }
 		UINT getWidth(void)const { return width; }
 		UINT getHeight(void)const { return height; }
-		int  getX(void)const { return x; }
-		int  getY(void)const { return y; }
 		DWORD getColorKey(void)const { return colorKey; }
 		HDC  getDC(void)const { return xdc; }
 	public:
@@ -72,17 +67,48 @@ namespace GRAPHIC
 		void endGDI(void)const{ lpddS->ReleaseDC(xdc); }
 	public:
 		//可以重新设置,但会清空
-		bool create(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag = 0, bool bTransparent = true)
+		bool create(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag = 0)
 		{
 			clear();
-			transparent = bTransparent;
 			width = iWidth; height = iHeight; colorKey = dwColorKey; memoryFlag = dwMemoryFlag;
 			lpddS = CreateSurface(width, height, colorKey, memoryFlag);
 			return lpddS;
 		}
-		bool createFromBitmap(const BITMAP& bitmap, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0, bool bTransparent = true)
+		void copyFromBuffer(COLOR* ImageBuffer, int ImageWidth, int ImageHeight)
 		{
-			if (create(bitmap.getWidth(), bitmap.getHeight(), dwColorKey, dwMemoryFlag, bTransparent) && bitmap.isLoad())
+			BeginDrawOn(this);
+
+			if (lpitch == ImageWidth)
+			{
+				memcpy(memory, ImageBuffer, ImageWidth * ImageHeight * sizeof(COLOR));
+			}
+			else
+			{
+				COLOR* pdest = memory;
+				COLOR* psource = ImageBuffer;
+				int bytesPerLine = lpitch * sizeof(COLOR);
+				for (int i = 0; i < height; i++)
+				{
+					memcpy(pdest, psource, bytesPerLine);
+
+					pdest += lpitch;
+					psource += ImageWidth;
+				}
+			}
+			EndDrawOn(this);
+		}
+		bool createFromBuffer(COLOR* ImageBuffer, int ImageWidth, int ImageHeight, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0)
+		{
+			if (create(ImageWidth, ImageHeight, dwColorKey, dwMemoryFlag) && ImageBuffer)
+			{
+				copyFromBuffer(ImageBuffer, ImageWidth, ImageHeight);
+				return true;
+			}
+			return false;
+		}
+		bool createFromBitmap(const BITMAP& bitmap, DWORD dwColorKey = 0, DWORD dwMemoryFlag = 0)
+		{
+			if (create(bitmap.getWidth(), bitmap.getHeight(), dwColorKey, dwMemoryFlag) && bitmap.isLoad())
 			{
 				BeginDrawOn(this);
 
@@ -138,15 +164,14 @@ namespace GRAPHIC
 		bool createFromSurface(int iWidth, int iHeight, const SURFACE& source, int x, int y, DWORD dwColorKey = 0)
 		{
 			RECT source_rect = { x, y, x + iWidth - 1, y + iHeight - 1 };
-			bool bRe = create(iWidth, iHeight, dwColorKey, memoryFlag, transparent);
+			bool bRe = create(iWidth, iHeight, dwColorKey, memoryFlag);
 			lpddS->Blt(nullptr, source.lpddS, &source_rect, DDBLT_WAIT, nullptr);
 			return bRe;
 		}
 		void fillColor(DWORD color, RECT* rect = nullptr) { FillSurfaceColor(lpddS, color, rect); }
 		void fillColor(RECT* rect = nullptr) { fillColor(colorKey, rect); }
-		void reset(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag, bool bTransparent = false)
+		void reset(int iWidth, int iHeight, DWORD dwColorKey, DWORD dwMemoryFlag)
 		{
-			transparent = bTransparent;
 			width = iWidth; height = iHeight; colorKey = dwColorKey; memoryFlag = dwMemoryFlag;
 			LPDIRECTDRAWSURFACE7 temp = CreateSurface(width, height, colorKey, memoryFlag);
 			temp->Blt(nullptr, lpddS, nullptr, DDBLT_WAIT, nullptr);
@@ -160,9 +185,8 @@ namespace GRAPHIC
 	private:
 		void copy(const SURFACE& sur)
 		{
-			transparent = sur.transparent;
 			width = sur.width; height = sur.height; colorKey = sur.colorKey; memoryFlag = sur.memoryFlag;
-			memory = nullptr; lpitch = 0; x = 0; y = 0;
+			memory = nullptr; lpitch = 0; 
 			lpddS = CreateSurface(width, height, colorKey, memoryFlag);
 			lpddS->Blt(nullptr, sur.lpddS, nullptr, DDBLT_WAIT, nullptr);
 		}
@@ -218,14 +242,6 @@ namespace GRAPHIC
 			return temp;
 		}
 		COLOR operator()(UINT uiX, UINT uiY, COLOR color) { assert( uiX < width && uiY < height); return memory[uiY * lpitch + uiX] = color; }
-		SURFACE& operator()(UINT uiX, UINT uiY) { assert(uiX < width && uiY < height); x = uiX; y = uiY; return*this; }
-		SURFACE& operator<<(const SURFACE& sur)
-		{
-			RECT rect = { x, y, x + min(sur.width, width) - 1, y + min(sur.height, height) - 1 };
-			lpddS->Blt(&rect, sur.lpddS, nullptr, sur.transparent ? (DDBLT_WAIT | DDBLT_KEYSRC) : DDBLT_WAIT, nullptr);
-			return *this;
-		}
-		SURFACE& operator<<(const COLOR color) { (*this)(x, y, color); return *this; }
 	public:
 		void drawOn(SURFACE& dest, int x, int y, int scaleWidth, int scaleHeight, bool bTransparent = true)
 		{
