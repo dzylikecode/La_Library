@@ -48,7 +48,7 @@ inline char* getTimeString()
 
 
 
-#define LADZY_DEBUG			_DEBUG
+//#define LADZY_DEBUG			_DEBUG
 
 #if		LADZY_DEBUG
 #define LADZY_DEBUG_FILE	1

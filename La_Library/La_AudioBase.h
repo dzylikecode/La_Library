@@ -38,7 +38,7 @@
 #include <dmksctrl.h>
 #include "dmusici.h"
 #include "La_Windows.h"
-
+#include "La_Log.h"
 #pragma comment(lib, "winmm.lib")
 
 //DSBCAPS_CTRLPAN      //Æ½ºâ¿ØÖÆ

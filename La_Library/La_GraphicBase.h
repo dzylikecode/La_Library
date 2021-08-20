@@ -5,6 +5,7 @@
 #define INITGUID  //使用一些预定义好的 guid
 #endif
 #include "La_Windows.h"
+#include "La_Log.h"
 #include <ddraw.h>
 
 #define PALETTE_NUM			 256

@@ -94,5 +94,6 @@ namespace GRAPHIC
 		_close(handle);
 		GIF_Load(data, (long)size, GifToTga, 0, (void*)&frame, 0L);
 		data = realloc(data, 0L);//ÊÍ·ÅÄÚ´æ
+		return true;
 	}
 }

@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="dmusici.h" />
+    <ClInclude Include="La_3DVector.h" />
     <ClInclude Include="La_Audio.h" />
     <ClInclude Include="La_AudioBase.h" />
     <ClInclude Include="La_Bitmap.h" />
