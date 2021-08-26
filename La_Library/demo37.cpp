@@ -176,7 +176,7 @@ void Init_Tie(int index)
 
 	// turn the tie fighter on
 	ties[index].state = 1;
-} 
+}
 
 void StartUp(void)
 {
@@ -207,11 +207,11 @@ void StartUp(void)
 
 		// set color of stars
 		stars[index].color = rgb_white;
-	} 
+	}
 
-// create the tie fighter model 飞船模型
+	// create the tie fighter model 飞船模型
 
-// the vertex list for the tie fighter
+	// the vertex list for the tie fighter
 	POINT3D temp_tie_vlist[NUM_TIE_VERTS] =
 		// color, x,y,z
 	{ {rgb_white,-40,40,0},    // p0
@@ -252,7 +252,7 @@ void StartUp(void)
 		// initialize this tie fighter
 		Init_Tie(index);
 
-	} 
+	}
 
 	keyboard.create();
 
@@ -299,13 +299,13 @@ void Start_Explosion(int tie)
 
 			}
 
-		// done, so return
+			// done, so return
 			return;
-		} 
+		}
 
-	} 
+	}
 
-} 
+}
 
 void Process_Explosions(void)
 {
@@ -322,7 +322,7 @@ void Process_Explosions(void)
 		for (int edge = 0; edge < NUM_TIE_EDGES; edge++)
 		{
 			// must be exploding, update edges (shrapel)
-			
+
 			explosions[index].p1[edge].x += explosions[index].vel[edge].x;
 			explosions[index].p1[edge].y += explosions[index].vel[edge].y;
 			explosions[index].p1[edge].z += explosions[index].vel[edge].z;
@@ -332,12 +332,12 @@ void Process_Explosions(void)
 			explosions[index].p2[edge].z += explosions[index].vel[edge].z;
 		}
 
-	// test for terminatation of explosion?
-		//结束爆炸
+		// test for terminatation of explosion?
+			//结束爆炸
 		if (++explosions[index].counter > 100)
 			explosions[index].state = explosions[index].counter = 0;
-	} 
-} 
+	}
+}
 
 void Draw_Explosions(void)
 {
@@ -381,9 +381,9 @@ void Draw_Explosions(void)
 			GRAPHIC::DrawLine(p1_screen_x, p1_screen_y, p2_screen_x, p2_screen_y,
 				explosions[index].color);
 
-		} 
-	} 
-} 
+		}
+	}
+}
 
 void Move_Starfield(void)
 {
@@ -400,8 +400,8 @@ void Move_Starfield(void)
 		// test for past near clipping plane
 		if (stars[index].z <= NEAR_Z)
 			stars[index].z = FAR_Z;
-	} 
-} 
+	}
+}
 
 
 void Draw_Starfield(void)
@@ -426,14 +426,14 @@ void Draw_Starfield(void)
 		{
 			// continue to next star
 			continue;
-		} 
+		}
 		else
 		{
 			// else render to buffer
 			(back_buffer)[x_screen + y_screen * back_lpitch] = stars[index].color;
 		}
 	}
-} 
+}
 
 void Process_Ties(void)
 {
@@ -461,9 +461,9 @@ void Process_Ties(void)
 			// another got away
 			misses++;
 
-		} 
-	} 
-}  
+		}
+	}
+}
 
 void Draw_Ties(void)
 {
@@ -540,7 +540,7 @@ void Draw_Ties(void)
 			bmax_x = max(bmax_x, max_x);
 			bmax_y = max(bmax_y, max_y);
 
-		} 
+		}
 		// test if this guy has been hit by lasers???
 		if (cannon_state == 1)
 		{
@@ -564,9 +564,9 @@ void Draw_Ties(void)
 				// finally reset this tie fighter
 				Init_Tie(index);
 
-			} 
-		} 
-	} 
+			}
+		}
+	}
 }
 
 
@@ -591,7 +591,7 @@ void GameBody(void)
 			if (cross_x > WINDOW_WIDTH / 2)
 				cross_x = -WINDOW_WIDTH / 2;
 
-		} 
+		}
 		if (keyboard[DIK_LEFT])
 		{
 			// move cross hair to left
@@ -609,7 +609,7 @@ void GameBody(void)
 			// test for wraparound
 			if (cross_y < -WINDOW_HEIGHT / 2)
 				cross_y = WINDOW_HEIGHT / 2;
-		} 
+		}
 		if (keyboard[DIK_UP])
 		{
 			// move cross hair up
@@ -618,13 +618,13 @@ void GameBody(void)
 			// test for wraparound
 			if (cross_y > WINDOW_HEIGHT / 2)
 				cross_y = -WINDOW_HEIGHT / 2;
-		} 
+		}
 
-	 // speed of ship controls  控制飞船速度，也就是控制背景速度
+		// speed of ship controls  控制飞船速度，也就是控制背景速度
 		if (keyboard[DIK_A])
 			player_z_vel++;
 		else if (keyboard[DIK_S])
-				player_z_vel--;
+			player_z_vel--;
 
 		// test if player is firing laser cannon
 		if (keyboard[DIK_SPACE] && cannon_state == 0)
@@ -642,7 +642,7 @@ void GameBody(void)
 			laserSound.play();
 
 		}
-	} 
+	}
 	// process cannon, simple FSM ready->firing->cool  FSM 有限状态机 在准备 开火 冷却中切换
 
 	// firing phase
@@ -708,22 +708,22 @@ void GameBody(void)
 			// right beam
 			GRAPHIC::DrawLine(WINDOW_WIDTH - 1, WINDOW_HEIGHT - 1,
 				-4 + rand() % 8 + target_x_screen, -4 + rand() % 8 + target_y_screen,
-				RGB_DX(0, 128, 128+rand() % 128));
-		}   
+				RGB_DX(0, 128, 128 + rand() % 128));
+		}
 		else
 		{
 			// left beam
 			GRAPHIC::DrawLine(0, WINDOW_HEIGHT - 1,
 				-4 + rand() % 8 + target_x_screen, -4 + rand() % 8 + target_y_screen,
-				RGB_DX(0, 128, 128+rand() % 128));
-		} 
-	} 
- // done rendering, unlock back buffer surface
+				RGB_DX(0, 128, 128 + rand() % 128));
+		}
+	}
+	// done rendering, unlock back buffer surface
 	EndDrawOn();
 
 	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Score %d     Kills %d      Escaped %d"), score, hits, misses);
 	if (game_state == GAME_OVER)
-		gPrintf( WINDOW_WIDTH / 2 - 8 * 10, WINDOW_HEIGHT / 2, RGB(255, 255, 255), TEXT("G A M E  O V E R"));
+		gPrintf(WINDOW_WIDTH / 2 - 8 * 10, WINDOW_HEIGHT / 2, RGB(255, 255, 255), TEXT("G A M E  O V E R"));
 
 	//循环播放
 	// check if the music has finished, if so restart

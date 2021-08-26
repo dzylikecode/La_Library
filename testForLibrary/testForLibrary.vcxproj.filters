@@ -27,7 +27,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gif.cpp">
+    <ClCompile Include="test.cpp">
       <Filter>源文件\Image</Filter>
     </ClCompile>
   </ItemGroup>

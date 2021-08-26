@@ -709,13 +709,13 @@ namespace GRAPHIC
 
 		//计算移动的斜率
 		int height = y3 - y1;
-		FIXPOINT dx_left = (INT_TO_FIXP(x2 - x1)) / height;
-		FIXPOINT dx_right = (INT_TO_FIXP(x3 - x1)) / height;
+		FIXP16 dx_left = (INT_TO_FIXP(x2 - x1)) / height;
+		FIXP16 dx_right = (INT_TO_FIXP(x3 - x1)) / height;
 
 		//起点
 		//都是从最低点开始
-		FIXPOINT xs = INT_TO_FIXP(x1);
-		FIXPOINT xe = INT_TO_FIXP(x1);// + (REAL)+0.5;//包含一下端点
+		FIXP16 xs = INT_TO_FIXP(x1);
+		FIXP16 xe = INT_TO_FIXP(x1);// + (REAL)+0.5;//包含一下端点
 
 		//分解为一条一条的水平直线
 		//裁剪
@@ -814,12 +814,12 @@ namespace GRAPHIC
 
 		//计算移动的斜率
 		int height = y3 - y1;
-		FIXPOINT dx_left = (INT_TO_FIXP(x3 - x1)) / height;
-		FIXPOINT dx_right = (INT_TO_FIXP(x3 - x2)) / height;
+		FIXP16 dx_left = (INT_TO_FIXP(x3 - x1)) / height;
+		FIXP16 dx_right = (INT_TO_FIXP(x3 - x2)) / height;
 
 		//起点
-		FIXPOINT xs = INT_TO_FIXP(x1);
-		FIXPOINT xe = INT_TO_FIXP(x2);// + (REAL)+0.5;//包含一下端点
+		FIXP16 xs = INT_TO_FIXP(x1);
+		FIXP16 xe = INT_TO_FIXP(x2);// + (REAL)+0.5;//包含一下端点
 
 		//分解为一条一条的水平直线
 		//裁剪

@@ -145,6 +145,12 @@
     <Filter Include="源文件\NetWork">
       <UniqueIdentifier>{90a1522f-035d-4739-9942-550c34b1ef85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\test\3D">
+      <UniqueIdentifier>{71ea9605-1217-4c95-bf56-26e55075049b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Math\3D">
+      <UniqueIdentifier>{7a0acf94-5f11-4828-b632-18b4b992a9f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -269,6 +275,9 @@
     </ClInclude>
     <ClInclude Include="La_NetWork.h">
       <Filter>头文件\NetWork</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Math_Andre.h">
+      <Filter>头文件\Math\3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -463,6 +472,12 @@
     </ClCompile>
     <ClCompile Include="La_NetWork.cpp">
       <Filter>源文件\NetWork</Filter>
+    </ClCompile>
+    <ClCompile Include="demo37.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Math_Andre.cpp">
+      <Filter>源文件\Math\3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

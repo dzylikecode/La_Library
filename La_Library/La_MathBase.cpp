@@ -1,8 +1,8 @@
 #include "La_MathBase.h"
 
 // storage for our lookup tables
-REAL cos_look[360];
-REAL sin_look[360];
+REAL cos_look[361];
+REAL sin_look[361];
 
 
 class MATHbase
@@ -12,7 +12,7 @@ public:
 	{
 		REAL theta;
 		// generate the tables 0 - 360 inclusive
-		for (int ang = 0; ang < 360; ang++)
+		for (int ang = 0; ang < 361; ang++)
 		{
 			theta = DEG_TO_RAD(ang);
 
