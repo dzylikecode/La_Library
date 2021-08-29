@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="dmusici.h" />
+    <ClInclude Include="La_3DData.h" />
     <ClInclude Include="La_3DVector.h" />
     <ClInclude Include="La_Audio.h" />
     <ClInclude Include="La_AudioBase.h" />
@@ -291,6 +292,7 @@
     <ClCompile Include="demo9.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="La_3DData.cpp" />
     <ClCompile Include="La_AudioBase.cpp" />
     <ClCompile Include="La_Blink.cpp" />
     <ClCompile Include="La_Console.cpp" />

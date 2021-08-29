@@ -279,6 +279,9 @@
     <ClInclude Include="La_Math_Andre.h">
       <Filter>头文件\Math\3D</Filter>
     </ClInclude>
+    <ClInclude Include="La_3DData.h">
+      <Filter>头文件\Math\3D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -477,6 +480,9 @@
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
     <ClCompile Include="La_Math_Andre.cpp">
+      <Filter>源文件\Math\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DData.cpp">
       <Filter>源文件\Math\3D</Filter>
     </ClCompile>
   </ItemGroup>
