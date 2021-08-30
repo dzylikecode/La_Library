@@ -164,6 +164,7 @@
     <ClInclude Include="La_Log.h" />
     <ClInclude Include="La_Master.h" />
     <ClInclude Include="La_Math.h" />
+    <ClInclude Include="La_Math3D.h" />
     <ClInclude Include="La_MathBase.h" />
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
