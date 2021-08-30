@@ -1,3 +1,26 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/08/29 17:49:22
+*  最后修改: 
+*
+*  简    介: 
+* PLG 格式 :
+*			#开始是一行注释    一行是一个完整的信息
+*			第一个信息    物体描述   ：     名字     顶点数    面数
+*			紧随其后是顶点列表  一行一个顶点
+*			接着面的列表 ：一行一个面    开头是面的描述符   然后是点数   再就是点的索引
+*
+***************************************************************************************
+*/
+
 #pragma once
 #include "La_Math_Andre.h"
 // DEFINES ////////////////////////////////////////////////////
@@ -222,7 +245,107 @@ struct CAM4DV1
 	MATRIX4X4 mcam;   // storage for the world to camera transform matrix
 	MATRIX4X4 mper;   // storage for the camera to perspective transform matrix
 	MATRIX4X4 mscr;   // storage for the perspective to screen transform matrix
+	void set(
+		int cam_attr,          // attributes
+		VECTOR4D& cam_pos,   // initial camera position
+		VECTOR4D& cam_dir,  // initial camera angles
+		VECTOR4D* cam_target, // UVN target
+		float near_clip_z,     // near and far clipping planes
+		float far_clip_z,
+		float fov,             // field of view in degrees
+		float viewport_width,  // size of final screen viewport
+		float viewport_height)
+	{
+		this->attr = cam_attr;             
+		this->pos = cam_pos; 
+		this->dir = cam_dir; // direction vector or angles for euler camera
+		// for UVN camera
+		this->u.set(1, 0, 0);  // set to +x
+		this->v.set(0, 1, 0);  // set to +y
+		this->n.set(0, 0, 1);  // set to +z        
 
+		if (cam_target != NULL)this->target = *cam_target; // UVN target
+		else Zero(this->target);
+
+		this->near_clip_z = near_clip_z;     // near z=constant clipping plane
+		this->far_clip_z = far_clip_z;      // far z=constant clipping plane
+
+		this->viewport_width = viewport_width;   // dimensions of viewport
+		this->viewport_height = viewport_height;
+
+		this->viewport_center_x = (viewport_width - 1) / 2; // center of viewport
+		this->viewport_center_y = (viewport_height - 1) / 2;
+
+		this->aspect_ratio = (float)viewport_width / (float)viewport_height;
+
+		// set all camera matrices to identity matrix
+		Identity(this->mcam);
+		Identity(this->mper);
+		Identity(this->mscr);
+
+		// set independent vars
+		this->fov = fov;
+
+		// set the viewplane dimensions up, they will be 2 x (2/ar)
+		this->viewplane_width = 2.0;
+		this->viewplane_height = 2.0 / this->aspect_ratio;
+
+		// now we know fov and we know the viewplane dimensions plug into formula and
+		// solve for view distance parameters
+		float tan_fov_div2 = tan(DEG_TO_RAD(fov / 2));
+
+		this->view_dist = (0.5) * (this->viewplane_width) * tan_fov_div2;
+
+		// test for 90 fov first since it's easy :)
+		if (fov == 90.0)
+		{
+			// set up the clipping planes -- easy for 90 degrees!
+			VECTOR3D pt_origin(0, 0, 0); // point on the plane
+
+			VECTOR3D vn; // normal to plane   法线
+
+			// right clipping plane 
+			vn.set(1, 0, -1); // x=z plane
+			this->rt_clip_plane.set(pt_origin, vn, true);
+
+			// left clipping plane
+			vn.set(-1, 0, -1); // -x=z plane
+			this->lt_clip_plane.set(pt_origin, vn, true);
+
+			// top clipping plane
+			vn.set(0, 1, -1); // y=z plane
+			this->tp_clip_plane.set(pt_origin, vn, true);
+
+			// bottom clipping plane
+			vn.set(0, -1, -1); // -y=z plane
+			this->bt_clip_plane.set(pt_origin, vn, true);
+		}
+		else
+		{
+			// now compute clipping planes yuck!
+			VECTOR3D pt_origin(0, 0, 0); // point on the plane
+
+			VECTOR3D vn; // normal to plane
+
+			// right clipping plane, check the math on graph paper 
+			vn.set(this->view_dist, 0, -this->viewplane_width / 2.0);
+			this->rt_clip_plane.set(pt_origin, vn, true);
+
+			// left clipping plane, we can simply reflect the right normal about
+			// the z axis since the planes are symetric about the z axis
+			// thus invert x only
+			vn.set(-this->view_dist, 0, -this->viewplane_width / 2.0);
+			this->lt_clip_plane.set(pt_origin, vn, true);
+
+			// top clipping plane, same construction
+			vn.set(0, this->view_dist, -this->viewplane_width / 2.0);
+			this->tp_clip_plane.set(pt_origin, vn, true);
+
+			// bottom clipping plane, same inversion
+			vn.set(0, -this->view_dist, -this->viewplane_width / 2.0);
+			this->bt_clip_plane.set(pt_origin, vn, true);
+		}
+	}
 };
 
 // object to hold the render list, this way we can have more
@@ -246,3 +369,7 @@ struct RENDERLIST4DV1
 
 
 
+
+
+float ComputeRadius(OBJECT4DV1& obj);
+bool LoadPLG(OBJECT4DV1& obj, const char* filename, const VECTOR4D& pos = VECTOR4D(0, 0, 0), const VECTOR4D& scale = VECTOR4D(1, 1, 1), const VECTOR4D& rot = VECTOR4D(0, 0, 0));

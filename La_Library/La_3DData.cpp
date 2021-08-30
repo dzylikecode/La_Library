@@ -3,38 +3,35 @@
 #include "La_3DData.h"
 #include "La_Log.h"
 
-#define RGB16Bit(r,g,b) ((b & 31) + ((g & 63) << 5) + ((r & 31) << 11))
-
-char* Get_Line_PLG(char* buffer, int maxlength, FILE* fp)
+namespace
 {
-	// this little helper function simply read past comments 
-	// and blank lines in a PLG file and always returns full 
-	// lines with something on them on NULL if the file is empty
-
-	int index = 0;  // general index
-	int length = 0; // general length
-
-	// enter into parsing loop
-	while (1)
+	//获取PLG的一行的数据，空白行和注释会清除掉
+	char* GetLinePLG(char* buffer, int maxlength, FILE* fp)
 	{
-		// read the next line
-		if (!fgets(buffer, maxlength, fp))
-			return(NULL);
+		int index = 0;  // general index
+		int length = 0; // general length
 
-		// kill the whitespace
-		for (length = strlen(buffer), index = 0; isspace(buffer[index]); index++);
+		// enter into parsing loop
+		while (1)
+		{
+			// read the next line
+			if (!fgets(buffer, maxlength, fp)) return(nullptr);
 
-		// test if this was a blank line or a comment
-		if (index >= length || buffer[index] == '#')
-			continue;
+			// kill the whitespace  找到第一个不是空格的开头
+			for (length = strlen(buffer), index = 0; isspace(buffer[index]); index++);
 
-		// at this point we have a good line
-		return(&buffer[index]);
+			// test if this was a blank line or a comment
+			if (index >= length || buffer[index] == '#') continue;
+
+			// at this point we have a good line
+			return(&buffer[index]);
+		}
 	}
+
 }
 
 
-float Compute_OBJECT4DV1_Radius(OBJECT4DV1& obj)
+float ComputeRadius(OBJECT4DV1& obj)
 {
 	// this function computes the average and maximum radius for 
 	// sent object and opdates the object data
@@ -69,44 +66,12 @@ float Compute_OBJECT4DV1_Radius(OBJECT4DV1& obj)
 }
 
 
-int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
-	char* filename,     // filename of plg file
-	VECTOR4D& scale,     // initial scaling factors
-	VECTOR4D& pos,       // initial position
-	VECTOR4D& rot)       // initial rotations
+bool LoadPLG(OBJECT4DV1& obj, const char* filename, const VECTOR4D& pos, const VECTOR4D& scale, const VECTOR4D& rot)
 {
-	// this function loads a plg object in off disk, additionally
-	// it allows the caller to scale, position, and rotate the object
-	// to save extra calls later for non-dynamic objects
-
-	FILE* fp;          // file pointer
-	char buffer[256];  // working buffer
+	FILE* fp;  
+	char buffer[256];  
 
 	char* token_string;  // pointer to actual token text, ready for parsing
-
-	// file format review, note types at end of each description
-	// # this is a comment
-
-	// # object descriptor
-	// object_name_string num_verts_int num_polys_int
-
-	// # vertex list
-	// x0_float y0_float z0_float
-	// x1_float y1_float z1_float
-	// x2_float y2_float z2_float
-	// .
-	// .
-	// xn_float yn_float zn_float
-	//
-	// # polygon list
-	// surface_description_ushort num_verts_int v0_index_int v1_index_int ..  vn_index_int
-	// .
-	// .
-	// surface_description_ushort num_verts_int v0_index_int v1_index_int ..  vn_index_int
-
-	// lets keep it simple and assume one element per line
-	// hence we have to find the object descriptor, read it in, then the
-	// vertex list and read it in, and finally the polygon list -- simple :)
 
 	// Step 1: clear out the object and initialize it a bit
 	memset(&obj, 0, sizeof(OBJECT4DV1));
@@ -123,18 +88,18 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 	// Step 2: open the file for reading
 	if (!(fp = fopen(filename, "r")))
 	{
-		ERROR_MSG("Couldn't open PLG file %s.", filename);
-		return(0);
+		ERROR_MSG(TEXT("Couldn't open PLG file %s."), filename);
+		return(false);
 	}
 
- // Step 3: get the first token string which should be the object descriptor
-	if (!(token_string = Get_Line_PLG(buffer, 255, fp)))
+	// Step 3: get the first token string which should be the object descriptor
+	if (!(token_string = GetLinePLG(buffer, 255, fp)))
 	{
-		ERROR_MSG("PLG file error with file %s (object descriptor invalid).", filename);
-		return(0);
-	} // end if
+		ERROR_MSG(TEXT("PLG file error with file %s (object descriptor invalid)."), filename);
+		return(false);
+	}
 
-	ERROR_MSG("Object Descriptor: %s", token_string);
+	ERROR_MSG(TEXT("Object Descriptor: %s"), token_string);
 
 	// parse out the info object
 	sscanf(token_string, "%s %d %d", obj.name, &obj.num_vertices, &obj.num_polys);
@@ -143,13 +108,13 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 	for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 	{
 		// get the next vertex
-		if (!(token_string = Get_Line_PLG(buffer, 255, fp)))
+		if (!(token_string = GetLinePLG(buffer, 255, fp)))
 		{
-			ERROR_MSG("PLG file error with file %s (vertex list invalid).", filename);
+			ERROR_MSG(TEXT("PLG file error with file %s (vertex list invalid)."), filename);
 			return(0);
-		} // end if
+		}
 
-  // parse out vertex
+	// parse out vertex
 		sscanf(token_string, "%f %f %f", &obj.vlist_local[vertex].x,
 			&obj.vlist_local[vertex].y,
 			&obj.vlist_local[vertex].z);
@@ -160,22 +125,21 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 		obj.vlist_local[vertex].y *= scale.y;
 		obj.vlist_local[vertex].z *= scale.z;
 
-		ERROR_MSG("\nVertex %d = %f, %f, %f, %f", vertex,
+		ERROR_MSG(TEXT("\nVertex %d = %f, %f, %f, %f"), vertex,
 			obj.vlist_local[vertex].x,
 			obj.vlist_local[vertex].y,
 			obj.vlist_local[vertex].z,
 			obj.vlist_local[vertex].w);
-
 	}
 
 // compute average and max radius
-	Compute_OBJECT4DV1_Radius(obj);
+	ComputeRadius(obj);
 
-	ERROR_MSG("\nObject average radius = %f, max radius = %f",
+	ERROR_MSG(TEXT("\nObject average radius = %f, max radius = %f"),
 		obj.avg_radius, obj.max_radius);
 
 	int poly_surface_desc = 0; // PLG/PLX surface descriptor
-	int poly_num_verts = 0; // number of vertices for current poly (always 3)
+	int poly_num_verts = 0; // number of vertices for current poly (always 3)  一般都是三角形
 	char tmp_string[8];        // temp string to hold surface descriptor in and
 							   // test if it need to be converted from hex
 
@@ -183,62 +147,47 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 	for (int poly = 0; poly < obj.num_polys; poly++)
 	{
 		// get the next polygon descriptor
-		if (!(token_string = Get_Line_PLG(buffer, 255, fp)))
+		if (!(token_string = GetLinePLG(buffer, 255, fp)))
 		{
-			ERROR_MSG("PLG file error with file %s (polygon descriptor invalid).", filename);
+			ERROR_MSG(TEXT("PLG file error with file %s (polygon descriptor invalid)."), filename);
 			return(0);
 		} 
 
-		ERROR_MSG("\nPolygon %d:", poly);
+		ERROR_MSG(TEXT("\nPolygon %d:"), poly);
 
-		// each vertex list MUST have 3 vertices since we made this a rule that all models
-		// must be constructed of triangles
-		// read in surface descriptor, number of vertices, and vertex list
 		sscanf(token_string, "%s %d %d %d %d", tmp_string,
 			&poly_num_verts, // should always be 3 
 			&obj.plist[poly].vert[0],
 			&obj.plist[poly].vert[1],
 			&obj.plist[poly].vert[2]);
 
-
-		// since we are allowing the surface descriptor to be in hex format
-		// with a leading "0x" we need to test for it
+		//处理16进制或者十进制
 		if (tmp_string[0] == '0' && toupper(tmp_string[1]) == 'X')
 			sscanf(tmp_string, "%x", &poly_surface_desc);
-		else
-			poly_surface_desc = atoi(tmp_string);
+		else poly_surface_desc = atoi(tmp_string);
 
-		// point polygon vertex list to object's vertex list
-		// note that this is redundant since the polylist is contained
-		// within the object in this case and its up to the user to select
-		// whether the local or transformed vertex list is used when building up
-		// polygon geometry, might be a better idea to set to NULL in the context
-		// of polygons that are part of an object
+		//这挺多余的，因为在同一个类当中，可以用 nullptr 来表示是 vlist_local
 		obj.plist[poly].vlist = obj.vlist_local;
 
-		ERROR_MSG("\nSurface Desc = 0x%.4x, num_verts = %d, vert_indices [%d, %d, %d]",
+		ERROR_MSG(TEXT("\nSurface Desc = 0x%.4x, num_verts = %d, vert_indices [%d, %d, %d]"),
 			poly_surface_desc,
 			poly_num_verts,
 			obj.plist[poly].vert[0],
 			obj.plist[poly].vert[1],
 			obj.plist[poly].vert[2]);
 
-		// now we that we have the vertex list and we have entered the polygon
-		// vertex index data into the polygon itself, now let's analyze the surface
-		// descriptor and set the fields for the polygon based on the description
-
 		// extract out each field of data from the surface descriptor
-		// first let's get the single/double sided stuff out of the way
+				// first let's get the single/double sided stuff out of the way
 		if ((poly_surface_desc & PLX_2SIDED_FLAG))
 		{
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_2SIDED);
-			ERROR_MSG("\n2 sided.");
-		} // end if
+			ERROR_MSG(TEXT("\n2 sided."));
+		} 
 		else
 		{
 			// one sided
-			ERROR_MSG("\n1 sided.");
-		} // end else
+			ERROR_MSG(TEXT("\n1 sided."));
+		} 
 
 	 // now let's set the color type and color
 		if ((poly_surface_desc & PLX_COLOR_MODE_RGB_FLAG))
@@ -247,18 +196,13 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_RGB16);
 
 			// now extract color and copy into polygon color
-			// field in proper 16-bit format 
 			// 0x0RGB is the format, 4 bits per pixel 
 			int red = ((poly_surface_desc & 0x0f00) >> 8);
 			int green = ((poly_surface_desc & 0x00f0) >> 4);
 			int blue = (poly_surface_desc & 0x000f);
 
-			// although the data is always in 4.4.4 format, the graphics card
-			// is either 5.5.5 or 5.6.5, but our virtual color system translates
-			// 8.8.8 into 5.5.5 or 5.6.5 for us, but we have to first scale all
-			// these 4.4.4 values into 8.8.8
-			obj.plist[poly].color = RGB16Bit(red * 16, green * 16, blue * 16);
-			ERROR_MSG("\nRGB color = [%d, %d, %d]", red, green, blue);
+			obj.plist[poly].color = RGB_DX(red * 16, green * 16, blue * 16);
+			ERROR_MSG(TEXT("\nRGB color = [%d, %d, %d]"), red, green, blue);
 		}
 		else
 		{
@@ -268,9 +212,8 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 			// and simple extract the last 8 bits and that's the color index
 			obj.plist[poly].color = (poly_surface_desc & 0x00ff);
 
-			ERROR_MSG("\n8-bit color index = %d", obj.plist[poly].color);
-
-		} // end else
+			ERROR_MSG(TEXT("\n8-bit color index = %d"), obj.plist[poly].color);
+		} 
 
 	// handle shading mode
 		int shade_mode = (poly_surface_desc & PLX_SHADE_MODE_MASK);
@@ -278,46 +221,42 @@ int Load_OBJECT4DV1_PLG(OBJECT4DV1& obj, // pointer to object
 		// set polygon shading mode
 		switch (shade_mode)
 		{
-		case PLX_SHADE_MODE_PURE_FLAG: {
+		case PLX_SHADE_MODE_PURE_FLAG: 
+		{
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PURE);
-			ERROR_MSG("\nShade mode = pure");
+			ERROR_MSG(TEXT("\nShade mode = pure"));
 		} break;
 
-		case PLX_SHADE_MODE_FLAT_FLAG: {
+		case PLX_SHADE_MODE_FLAT_FLAG: 
+		{
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_FLAT);
-			ERROR_MSG("\nShade mode = flat");
+			ERROR_MSG(TEXT("\nShade mode = flat"));
 
 		} break;
 
-		case PLX_SHADE_MODE_GOURAUD_FLAG: {
+		case PLX_SHADE_MODE_GOURAUD_FLAG: 
+		{
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
-			ERROR_MSG("\nShade mode = gouraud");
+			ERROR_MSG(TEXT("\nShade mode = gouraud"));
 		} break;
 
-		case PLX_SHADE_MODE_PHONG_FLAG: {
+		case PLX_SHADE_MODE_PHONG_FLAG: 
+		{
 			SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PHONG);
-			ERROR_MSG("\nShade mode = phong");
+			ERROR_MSG(TEXT("\nShade mode = phong"));
 		} break;
 
 		default: break;
-		} // end switch
-
+		} 
    // finally set the polygon to active
 		obj.plist[poly].state = POLY4DV1_STATE_ACTIVE;
-
-	} // end for poly
-
-// close the file
+	} 
 	fclose(fp);
 
-	// return success
-	return(1);
+	return(true);
+} 
 
-} // end Load_OBJECT4DV1_PLG
-
-//////////////////////////////////////////////////////////////
-
-void Translate_OBJECT4DV1(OBJECT4DV1& obj, VECTOR4D& vt)
+void Translate(OBJECT4DV1& obj, const VECTOR4D& vt)
 {
 	// NOTE: Not matrix based
 	// this function translates an object without matrices,
@@ -325,9 +264,8 @@ void Translate_OBJECT4DV1(OBJECT4DV1& obj, VECTOR4D& vt)
 	Add(obj.world_pos, vt, obj.world_pos);
 } 
 
-/////////////////////////////////////////////////////////////
 
-void Scale_OBJECT4DV1(OBJECT4DV1& obj, VECTOR4D& vs)
+void Scale(OBJECT4DV1& obj, const VECTOR4D& vs)
 {
 	// NOTE: Not matrix based
 	// this function scales and object without matrices 
@@ -342,8 +280,7 @@ void Scale_OBJECT4DV1(OBJECT4DV1& obj, VECTOR4D& vs)
 		obj.vlist_local[vertex].y *= vs.y;
 		obj.vlist_local[vertex].z *= vs.z;
 		// leave w unchanged, always equal to 1
-
-	} // end for vertex
+	} 
 
 // now since the object is scaled we have to do something with 
 // the radii calculation, but we don't know how the scaling
@@ -354,17 +291,15 @@ void Scale_OBJECT4DV1(OBJECT4DV1& obj, VECTOR4D& vs)
 // radii with since it's the worst case scenario of the new max and
 // average radii
 
-// find max scaling factor
-	float scale = max(vs.x, vs.y);
-	scale = max(scale, vs.z);
+	// find max scaling factor
+	float scale = max(vs.x, vs.y); scale = max(scale, vs.z);
 
 	// now scale
 	obj.max_radius *= scale;
 	obj.avg_radius *= scale;
 
-} // end Scale_OBJECT4DV1
+} 
 
-/////////////////////////////////////////////////////////////
 
 void Build_XYZ_Rotation_MATRIX4X4(float theta_x, // euler angles
 	float theta_y,
@@ -589,22 +524,15 @@ void Build_XYZ_Rotation_MATRIX4X4(float theta_x, // euler angles
 	} 
 }                                   
 
-///////////////////////////////////////////////////////////
 
-void Build_Model_To_World_MATRIX4X4(VECTOR4D& vpos, MATRIX4X4& m)
+void BuildModelToWorld(const VECTOR4D& vpos, MATRIX4X4& m)
 {
-	// this function builds up a general local to world 
-	// transformation matrix that is really nothing more than a translation
-	// of the origin by the amount specified in vpos
-
 	m.set(1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		vpos.x, vpos.y, vpos.z, 1);
+}
 
-} 
-
-//////////////////////////////////////////////////////////
 
 void Build_Camera_To_Perspective_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 {
@@ -625,7 +553,6 @@ void Build_Camera_To_Perspective_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 
 } 
 
-///////////////////////////////////////////////////////////
 
 void Build_Perspective_To_Screen_4D_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 {
@@ -650,7 +577,7 @@ void Build_Perspective_To_Screen_4D_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 		0, 0, 0, 1);
 } 
 
-//////////////////////////////////////////////////////////
+
 
 void Build_Perspective_To_Screen_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 {
@@ -702,86 +629,60 @@ void Build_Camera_To_Screen_MATRIX4X4(CAM4DV1& cam, MATRIX4X4& m)
 
 }
 
-///////////////////////////////////////////////////////////
-
-void Transform_OBJECT4DV1(OBJECT4DV1& obj, // object to transform
-	MATRIX4X4& mt,   // transformation matrix
-	int coord_select,   // selects coords to transform
-	int transform_basis) // flags if vector orientation
-						 // should be transformed too
+/// <summary>
+/// 
+/// </summary>
+/// <param name="transform_basis">
+/// 是否对朝向的向量变换
+/// </param>
+void Transform(OBJECT4DV1& obj,const MATRIX4X4& mt,   int coord_select,   bool transform_basis) 
 {
-	// this function simply transforms all of the vertices in the local or trans
-	// array by the sent matrix
-
-	// what coordinates should be transformed?
 	switch (coord_select)
 	{
 	case TRANSFORM_LOCAL_ONLY:
 	{
-		// transform each local/model vertex of the object mesh in place
 		for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 		{
-			VECTOR4D presult; // hold result of each transformation
-
-			// transform point
+			VECTOR4D presult;
 			Mul(obj.vlist_local[vertex], mt, presult);
-
-			// store result back
 			obj.vlist_local[vertex] = presult;
 		} 
 	} break;
 
 	case TRANSFORM_TRANS_ONLY:
 	{
-		// transform each "transformed" vertex of the object mesh in place
-		// remember, the idea of the vlist_trans[] array is to accumulate
-		// transformations
 		for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 		{
-			VECTOR4D presult; // hold result of each transformation
-
-			// transform point
+			VECTOR4D presult; 
 			Mul(obj.vlist_trans[vertex], mt, presult);
-
-			// store result back
 			obj.vlist_trans[vertex] = presult;
 		} 
 	} break;
 
 	case TRANSFORM_LOCAL_TO_TRANS:
 	{
-		// transform each local/model vertex of the object mesh and store result
-		// in "transformed" vertex list
 		for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 		{
-			VECTOR4D presult; // hold result of each transformation
-
-			// transform point
+			VECTOR4D presult;
 			Mul(obj.vlist_local[vertex], mt, obj.vlist_trans[vertex]);
-
 		} 
 	} break;
 
 	default: break;
 
-	} // end switch
-
-	// finally, test if transform should be applied to orientation basis
-	// hopefully this is a rotation, otherwise the basis will get corrupted
+	}
+	
+	//如果不变换，则朝向向量将不再有效
 	if (transform_basis)
 	{
-		// now rotate orientation basis for object
-		VECTOR4D vresult; // use to rotate each orientation vector axis
+		VECTOR4D vresult;
 
-		// rotate ux of basis
 		Mul(obj.ux, mt, vresult);
 		obj.ux = vresult;
 
-		// rotate uy of basis
 		Mul(obj.uy, mt, vresult);
 		obj.uy=vresult;
 
-		// rotate uz of basis
 		Mul(obj.uz, mt, vresult);
 		obj.uz=vresult;
 	} 
@@ -842,19 +743,9 @@ void Rotate_XYZ_OBJECT4DV1(OBJECT4DV1& obj, // object to rotate
 
 } 
 
-////////////////////////////////////////////////////////////
-
-void Model_To_World_OBJECT4DV1(OBJECT4DV1& obj, int coord_select)
+//储存在 tran 中
+void ModelToWorld(OBJECT4DV1& obj, int coord_select)
 {
-	// NOTE: Not matrix based
-	// this function converts the local model coordinates of the
-	// sent object into world coordinates, the results are stored
-	// in the transformed vertex list (vlist_trans) within the object
-
-	// interate thru vertex list and transform all the model/local 
-	// coords to world coords by translating the vertex list by
-	// the amount world_pos and storing the results in vlist_trans[]
-
 	if (coord_select == TRANSFORM_LOCAL_TO_TRANS)
 	{
 		for (int vertex = 0; vertex < obj.num_vertices; vertex++)
@@ -873,21 +764,14 @@ void Model_To_World_OBJECT4DV1(OBJECT4DV1& obj, int coord_select)
 	} 
 } 
 
-
-int Cull_OBJECT4DV1(OBJECT4DV1& obj,  // object to cull
-	CAM4DV1& cam,     // camera to cull relative to
-	int cull_flags)     // clipping planes to consider
+/// <summary>
+/// 物体剔除
+/// </summary>
+/// <param name="cull_flags">
+/// 可以 or 运算
+/// </param>
+bool Cull(OBJECT4DV1& obj, const CAM4DV1& cam,    int cull_flags)   
 {
-	// NOTE: is matrix based
-	// this function culls an entire object from the viewing
-	// frustrum by using the sent camera information and object
-	// the cull_flags determine what axes culling should take place
-	// x, y, z or all which is controlled by ORing the flags
-	// together
-	// if the object is culled its state is modified thats all
-	// this function assumes that both the camera and the object
-	// are valid!
-
 	// step 1: transform the center of the object's bounding
 	// sphere into camera space
 
@@ -906,18 +790,12 @@ int Cull_OBJECT4DV1(OBJECT4DV1& obj,  // object to cull
 			((sphere_pos.z + obj.max_radius) < cam.near_clip_z))
 		{
 			SET_BIT(obj.state, OBJECT4DV1_STATE_CULLED);
-			return(1);
+			return(true);
 		} 
 	} 
 
 	if (cull_flags & CULL_OBJECT_X_PLANE)
 	{
-		// cull only based on x clipping planes
-		// we could use plane equations, but simple similar triangles
-		// is easier since this is really a 2D problem
-		// if the view volume is 90 degrees the the problem is trivial
-		// buts lets assume its not
-
 		// test the the right and left clipping planes against the leftmost and rightmost
 		// points of the bounding sphere
 		float z_test = (0.5) * cam.viewplane_width * sphere_pos.z / cam.view_dist;
@@ -926,18 +804,12 @@ int Cull_OBJECT4DV1(OBJECT4DV1& obj,  // object to cull
 			((sphere_pos.x + obj.max_radius) < -z_test))  // left side, note sign change
 		{
 			SET_BIT(obj.state, OBJECT4DV1_STATE_CULLED);
-			return(1);
+			return(true);
 		} 
 	} 
 
 	if (cull_flags & CULL_OBJECT_Y_PLANE)
 	{
-		// cull only based on y clipping planes
-		// we could use plane equations, but simple similar triangles
-		// is easier since this is really a 2D problem
-		// if the view volume is 90 degrees the the problem is trivial
-		// buts lets assume its not
-
 		// test the the top and bottom clipping planes against the bottommost and topmost
 		// points of the bounding sphere
 		float z_test = (0.5) * cam.viewplane_height * sphere_pos.z / cam.view_dist;
@@ -946,24 +818,20 @@ int Cull_OBJECT4DV1(OBJECT4DV1& obj,  // object to cull
 			((sphere_pos.y + obj.max_radius) < -z_test))  // bottom side, note sign change
 		{
 			SET_BIT(obj.state, OBJECT4DV1_STATE_CULLED);
-			return(1);
+			return(true);
 		} 
 	}
 	// return failure to cull
-	return(0);
+	return(false);
 
 } 
 
-////////////////////////////////////////////////////////////
-
-void Remove_Backfaces_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
+/// <summary>
+/// 只对单面多边形有效，通过标记状态达到目的
+/// </summary>
+/// <param name="cam"></param>
+void RemoveBackfaces(OBJECT4DV1& obj, const CAM4DV1& cam)
 {
-	// NOTE: this is not a matrix based function
-	// this function removes the backfaces from an object's
-	// polygon mesh, the function does this based on the vertex
-	// data in vlist_trans along with the camera position (only)
-	// note that only the backface state is set in each polygon
-
 	// test if the object is culled
 	if (obj.state & OBJECT4DV1_STATE_CULLED)
 		return;
@@ -973,17 +841,11 @@ void Remove_Backfaces_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 	{
 		// acquire polygon
 		POLY4DV1& curr_poly = obj.plist[poly];
-
-		// is this polygon valid?
-		// test this polygon if and only if it's not clipped, not culled,
-		// active, and visible and not 2 sided. Note we test for backface in the event that
-		// a previous call might have already determined this, so why work
-		// harder!
 		if (!(curr_poly.state & POLY4DV1_STATE_ACTIVE) ||
 			(curr_poly.state & POLY4DV1_STATE_CLIPPED) ||
 			(curr_poly.attr & POLY4DV1_ATTR_2SIDED) ||
 			(curr_poly.state & POLY4DV1_STATE_BACKFACE))
-			continue; // move onto next poly
+			continue; 
 
 		 // extract vertex indices into master list, rember the polygons are 
 		 // NOT self contained, but based on the vertex list stored in the object
@@ -1010,34 +872,20 @@ void Remove_Backfaces_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 		VECTOR4D view;
 		view.set(obj.vlist_trans[vindex_0], cam.pos);
 
-		// and finally, compute the dot product
+		// 角度相差 90度之上就是背面了，看不见了
 		float dp = Dot(n, view);
 
 		// if the sign is > 0 then visible, 0 = scathing, < 0 invisible
-		if (dp <= 0.0)
-			SET_BIT(curr_poly.state, POLY4DV1_STATE_BACKFACE);
+		if (dp <= 0.0) SET_BIT(curr_poly.state, POLY4DV1_STATE_BACKFACE);
 	} 
 }
 
 
-void Remove_Backfaces_RENDERLIST4DV1(RENDERLIST4DV1& rend_list, CAM4DV1& cam)
+void RemoveBackfaces(RENDERLIST4DV1& rend_list, CAM4DV1& cam)
 {
-	// NOTE: this is not a matrix based function
-	// this function removes the backfaces from polygon list
-	// the function does this based on the polygon list data
-	// tvlist along with the camera position (only)
-	// note that only the backface state is set in each polygon
-
 	for (int poly = 0; poly < rend_list.num_polys; poly++)
 	{
-		// acquire current polygon
 		POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
-
-		// is this polygon valid?
-		// test this polygon if and only if it's not clipped, not culled,
-		// active, and visible and not 2 sided. Note we test for backface in the event that
-		// a previous call might have already determined this, so why work
-		// harder!
 		if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 			(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 			(curr_poly->attr & POLY4DV1_ATTR_2SIDED) ||
@@ -1063,51 +911,23 @@ void Remove_Backfaces_RENDERLIST4DV1(RENDERLIST4DV1& rend_list, CAM4DV1& cam)
 		float dp = Dot(n, view);
 
 		// if the sign is > 0 then visible, 0 = scathing, < 0 invisible
-		if (dp <= 0.0)
-			SET_BIT(curr_poly->state, POLY4DV1_STATE_BACKFACE);
-
+		if (dp <= 0.0) SET_BIT(curr_poly->state, POLY4DV1_STATE_BACKFACE);
 	} 
 } 
 
-////////////////////////////////////////////////////////////
-
-void World_To_Camera_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
+void WorldToCamera(OBJECT4DV1& obj, CAM4DV1& cam)
 {
-	// NOTE: this is a matrix based function
-	// this function transforms the world coordinates of an object
-	// into camera coordinates, based on the sent camera matrix
-	// but it totally disregards the polygons themselves,
-	// it only works on the vertices in the vlist_trans[] list
-	// this is one way to do it, you might instead transform
-	// the global list of polygons in the render list since you 
-	// are guaranteed that those polys represent geometry that 
-	// has passed thru backfaces culling (if any)
-
-	// transform each vertex in the object to camera coordinates
-	// assumes the object has already been transformed to world
-	// coordinates and the result is in vlist_trans[]
 	for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 	{
-		// transform the vertex by the mcam matrix within the camera
-		// it better be valid!
-		VECTOR4D presult; // hold result of each transformation
-
-		// transform point
+		VECTOR4D presult; 
 		Mul(obj.vlist_trans[vertex], cam.mcam, presult);
-
-		// store result back
 		obj.vlist_trans[vertex]=presult;
 	} 
 } 
 
 
-void Camera_To_Perspective_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
+void CameraToPerspective(OBJECT4DV1& obj, const CAM4DV1& cam)
 {
-	// NOTE: this is not a matrix based function
-	// this function transforms the camera coordinates of an object
-	// into perspective coordinates, based on the 
-	// sent camera object, but it totally disregards the polygons themselves,
-	// it only works on the vertices in the vlist_trans[] list
 	// this is one way to do it, you might instead transform
 	// the global list of polygons in the render list since you 
 	// are guaranteed that those polys represent geometry that 
@@ -1117,9 +937,6 @@ void Camera_To_Perspective_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 	// the pipeline, since it's probably that there's only a single polygon
 	// that is visible! But this function has to transform the whole mesh!
 
-	// transform each vertex in the object to perspective coordinates
-	// assumes the object has already been transformed to camera
-	// coordinates and the result is in vlist_trans[]
 	for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 	{
 		float z = obj.vlist_trans[vertex].z;
@@ -1132,11 +949,9 @@ void Camera_To_Perspective_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 		// not that we are NOT dividing by the homogenous w coordinate since
 		// we are not using a matrix operation for this version of the function 
 
-	} // end for vertex
+	} 
+} 
 
-} // end Camera_To_Perspective_OBJECT4DV1
-
-//////////////////////////////////////////////////////////////
 
 void Camera_To_Perspective_Screen_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 {
@@ -1184,10 +999,8 @@ void Camera_To_Perspective_Screen_OBJECT4DV1(OBJECT4DV1& obj, CAM4DV1& cam)
 		// transform:
 		obj.vlist_trans[vertex].x = obj.vlist_trans[vertex].x + alpha;
 		obj.vlist_trans[vertex].y = -obj.vlist_trans[vertex].y + beta;
-
-	} // end for vertex
-
-} // end Camera_To_Perspective_Screen_OBJECT4DV1
+	} 
+} 
 
 //////////////////////////////////////////////////////////////
 
@@ -1246,152 +1059,97 @@ void Convert_From_Homogeneous4D_OBJECT4DV1(OBJECT4DV1& obj)
 
 } 
 
-/////////////////////////////////////////////////////////////
-
-void Transform_RENDERLIST4DV1(RENDERLIST4DV1& rend_list, // render list to transform
-	MATRIX4X4& mt,   // transformation matrix
-	int coord_select)   // selects coords to transform
+/// <summary>
+/// 
+/// </summary>
+/// <param name="coord_select">
+/// 指定变换的坐标
+/// </param>
+void Transform(RENDERLIST4DV1& rend_list, const MATRIX4X4& mt, int coord_select)   
 {
 	// this function simply transforms all of the polygons vertices in the local or trans
 	// array of the render list by the sent matrix
 
-	// what coordinates should be transformed?
 	switch (coord_select)
 	{
-	case TRANSFORM_LOCAL_ONLY:
+	case TRANSFORM_LOCAL_ONLY://vlist 变换并放入其中
 	{
 		for (int poly = 0; poly < rend_list.num_polys; poly++)
 		{
 			// acquire current polygon
 			POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
 
-			// is this polygon valid?
-			// transform this polygon if and only if it's not clipped, not culled,
-			// active, and visible, note however the concept of "backface" is 
-			// irrelevant in a wire frame engine though
-			if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
+			if ((curr_poly == nullptr) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 				(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 				(curr_poly->state & POLY4DV1_STATE_BACKFACE))
 				continue; // move onto next poly
 
-			 // all good, let's transform 
+			//vert * mt = vert
 			for (int vertex = 0; vertex < 3; vertex++)
 			{
-				// transform the vertex by mt
-				VECTOR4D presult; // hold result of each transformation
-
-				// transform point
+				VECTOR4D presult; 
 				Mul(curr_poly->vlist[vertex], mt, presult);
-
-				// store result back
 				curr_poly->vlist[vertex]=presult;
 			} 
 		} 
 
 	} break;
 
-	case TRANSFORM_TRANS_ONLY:
+	case TRANSFORM_TRANS_ONLY:   //tlist 变换并放入其中
 	{
-		// transform each "transformed" vertex of the render list
-		// remember, the idea of the tvlist[] array is to accumulate
-		// transformations
 		for (int poly = 0; poly < rend_list.num_polys; poly++)
 		{
-			// acquire current polygon
 			POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
 
-			// is this polygon valid?
-			// transform this polygon if and only if it's not clipped, not culled,
-			// active, and visible, note however the concept of "backface" is 
-			// irrelevant in a wire frame engine though
 			if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 				(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 				(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-				continue; // move onto next poly
+				continue; 
 
-			 // all good, let's transform 
 			for (int vertex = 0; vertex < 3; vertex++)
 			{
-				// transform the vertex by mt
-				VECTOR4D presult; // hold result of each transformation
-
-				// transform point
+				VECTOR4D presult; 
 				Mul(curr_poly->tvlist[vertex], mt, presult);
-
-				// store result back
 				curr_poly->tvlist[vertex]=presult;
 			} 
 		} 
 	} break;
 
-	case TRANSFORM_LOCAL_TO_TRANS:
+	case TRANSFORM_LOCAL_TO_TRANS: // vlist 变换 放入 tlist 中
 	{
-		// transform each local/model vertex of the render list and store result
-		// in "transformed" vertex list
 		for (int poly = 0; poly < rend_list.num_polys; poly++)
 		{
-			// acquire current polygon
 			POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
-
-			// is this polygon valid?
-			// transform this polygon if and only if it's not clipped, not culled,
-			// active, and visible, note however the concept of "backface" is 
-			// irrelevant in a wire frame engine though
 			if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 				(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 				(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-				continue; // move onto next poly
-
-			 // all good, let's transform 
+				continue; 
 			for (int vertex = 0; vertex < 3; vertex++)
 			{
-				// transform the vertex by mt
 				Mul(curr_poly->vlist[vertex], mt, curr_poly->tvlist[vertex]);
 			} 
 		}
 	} break;
 
 	default: break;
-
 	} 
 }
 
 
-/////////////////////////////////////////////////////////////////////////
-
-void Model_To_World_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
-	VECTOR4D& world_pos,
-	int coord_select)
+void ModelToWorld(RENDERLIST4DV1& rend_list,VECTOR4D& world_pos,int coord_select = TRANSFORM_LOCAL_TO_TRANS)
 {
-	// NOTE: Not matrix based
-	// this function converts the local model coordinates of the
-	// sent render list into world coordinates, the results are stored
-	// in the transformed vertex list (tvlist) within the renderlist
-
-	// interate thru vertex list and transform all the model/local 
-	// coords to world coords by translating the vertex list by
-	// the amount world_pos and storing the results in tvlist[]
-	// is this polygon valid?
-
 	if (coord_select == TRANSFORM_LOCAL_TO_TRANS)
 	{
 		for (int poly = 0; poly < rend_list.num_polys; poly++)
 		{
-			// acquire current polygon
 			POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
 
-			// transform this polygon if and only if it's not clipped, not culled,
-			// active, and visible, note however the concept of "backface" is 
-			// irrelevant in a wire frame engine though
 			if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 				(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 				(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-				continue; // move onto next poly
-
-		 // all good, let's transform 
+				continue; 
 			for (int vertex = 0; vertex < 3; vertex++)
 			{
-				// translate vertex
 				Add(curr_poly->vlist[vertex], world_pos, curr_poly->tvlist[vertex]);
 			} 
 		} 
@@ -1400,20 +1158,14 @@ void Model_To_World_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 	{
 		for (int poly = 0; poly < rend_list.num_polys; poly++)
 		{
-			// acquire current polygon
 			POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
-
-			// transform this polygon if and only if it's not clipped, not culled,
-			// active, and visible, note however the concept of "backface" is 
-			// irrelevant in a wire frame engine though
 			if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 				(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 				(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-				continue; // move onto next poly
+				continue; 
 
 			for (int vertex = 0; vertex < 3; vertex++)
 			{
-				// translate vertex
 				Add(curr_poly->tvlist[vertex], world_pos, curr_poly->tvlist[vertex]);
 			} 
 		} 
@@ -1423,25 +1175,18 @@ void Model_To_World_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 
 void Convert_From_Homogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1& rend_list)
 {
-	// this function convertes all valid polygons vertices in the transformed
+	// this function converts all valid polygons vertices in the transformed
 	// vertex list from 4D homogeneous coordinates to normal 3D coordinates
 	// by dividing each x,y,z component by w
 
 	for (int poly = 0; poly < rend_list.num_polys; poly++)
 	{
-		// acquire current polygon
 		POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
-
-		// is this polygon valid?
-		// transform this polygon if and only if it's not clipped, not culled,
-		// active, and visible, note however the concept of "backface" is 
-		// irrelevant in a wire frame engine though
 		if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 			(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 			(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-			continue; // move onto next poly
+			continue; 
 
-	 // all good, let's transform 
 		for (int vertex = 0; vertex < 3; vertex++)
 		{
 			// convert to non-homogenous coords
@@ -1451,8 +1196,7 @@ void Convert_From_Homogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1& rend_list)
 }
 
 
-void World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
-	CAM4DV1& cam)
+void WorldToCamera(RENDERLIST4DV1& rend_list,CAM4DV1& cam)
 {
 	// NOTE: this is a matrix based function
 	// this function transforms each polygon in the global render list
@@ -1468,40 +1212,23 @@ void World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 	// and the polygon data is in the transformed list tvlist of
 	// the POLYF4DV1 object
 
-	// transform each polygon in the render list into camera coordinates
-	// assumes the render list has already been transformed to world
-	// coordinates and the result is in tvlist[] of each polygon object
 
 	for (int poly = 0; poly < rend_list.num_polys; poly++)
 	{
-		// acquire current polygon
 		POLYF4DV1* curr_poly = rend_list.poly_ptrs[poly];
-
-		// is this polygon valid?
-		// transform this polygon if and only if it's not clipped, not culled,
-		// active, and visible, note however the concept of "backface" is 
-		// irrelevant in a wire frame engine though
 		if ((curr_poly == NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
 			(curr_poly->state & POLY4DV1_STATE_CLIPPED) ||
 			(curr_poly->state & POLY4DV1_STATE_BACKFACE))
-			continue; // move onto next poly
-
-	 // all good, let's transform 
+			continue; 
 		for (int vertex = 0; vertex < 3; vertex++)
 		{
-			// transform the vertex by the mcam matrix within the camera
-			// it better be valid!
-			VECTOR4D presult; // hold result of each transformation
-
-			// transform point
+			VECTOR4D presult; 
 			Mul(curr_poly->tvlist[vertex], cam.mcam, presult);
-
-			// store result back
 			curr_poly->tvlist[vertex]=presult;
 		} 
 	} 
 } 
-///////////////////////////////////////////////////////////////
+
 
 void Camera_To_Perspective_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 	CAM4DV1& cam)
@@ -1659,7 +1386,7 @@ void Perspective_To_Screen_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 
 
 
-void Reset_RENDERLIST4DV1(RENDERLIST4DV1& rend_list)
+void Reset(RENDERLIST4DV1& rend_list)
 {
 	// this function intializes and resets the sent render list and
 	// redies it for polygons/faces to be inserted into it
@@ -1673,31 +1400,24 @@ void Reset_RENDERLIST4DV1(RENDERLIST4DV1& rend_list)
 	// we generalize the linked list more and disconnect
 	// it from the polygon pointer list
 	rend_list.num_polys = 0; // that was hard!
+}  
 
-}  // Reset_RENDERLIST4DV1
 
-////////////////////////////////////////////////////////////////
-
-void Reset_OBJECT4DV1(OBJECT4DV1& obj)
+/// <summary>
+/// 主要是重置状态，为变换做准备
+/// </summary>
+void Reset(OBJECT4DV1& obj)
 {
-	// this function resets the sent object and redies it for 
-	// transformations, basically just resets the culled, clipped and
-	// backface flags, but here's where you would add stuff
-	// to ready any object for the pipeline
-	// the object is valid, let's rip it apart polygon by polygon
-
 	// reset object's culled flag
 	RESET_BIT(obj.state, OBJECT4DV1_STATE_CULLED);
 
 	// now the clipped and backface flags for the polygons 
 	for (int poly = 0; poly < obj.num_polys; poly++)
 	{
-		// acquire polygon
 		POLY4DV1& curr_poly = obj.plist[poly];
 
-		// first is this polygon even visible?
 		if (!(curr_poly.state & POLY4DV1_STATE_ACTIVE))
-			continue; // move onto next poly
+			continue; 
 
 		 // reset clipped and backface flags
 		RESET_BIT(curr_poly.state, POLY4DV1_STATE_CLIPPED);
@@ -2090,14 +1810,12 @@ void Draw_RENDERLIST4DV1_Wire16(RENDERLIST4DV1& rend_list,
 	} 
 }
 
-
-void Build_CAM4DV1_Matrix_Euler(CAM4DV1& cam, int cam_rot_seq)
+/// <summary>
+/// 根据欧拉角创建变换矩阵
+/// </summary>
+/// <param name="cam_rot_seq"></param>
+void BuildEuler(CAM4DV1& cam, int cam_rot_seq)
 {
-	// this creates a camera matrix based on Euler angles 
-	// and stores it in the sent camera object
-	// if you recall from chapter 6 to create the camera matrix
-	// we need to create a transformation matrix that looks like:
-
 	// Mcam = mt(-1) * my(-1) * mx(-1) * mz(-1)
 	// that is the inverse of the camera translation matrix mutilplied
 	// by the inverses of yxz, in that order, however, the order of
@@ -2122,7 +1840,7 @@ void Build_CAM4DV1_Matrix_Euler(CAM4DV1& cam, int cam_rot_seq)
 		-cam.pos.x, -cam.pos.y, -cam.pos.z, 1);
 
 	// step 2: create the inverse rotation sequence for the camera
-	// rember either the transpose of the normal rotation matrix or
+	// remember either the transpose of the normal rotation matrix or
 	// plugging negative values into each of the rotations will result
 	// in an inverse matrix
 
@@ -2206,15 +1924,12 @@ void Build_CAM4DV1_Matrix_Euler(CAM4DV1& cam, int cam_rot_seq)
 	default: break;
 	} 
 
-// now mrot holds the concatenated product of inverse rotation matrices
-// multiply the inverse translation matrix against it and store in the 
-// camera objects' camera transform matrix we are done!
-	Mul(mt_inv, mrot, cam.mcam);
 
+	Mul(mt_inv, mrot, cam.mcam);
 } 
 
 
-void Build_CAM4DV1_Matrix_UVN(CAM4DV1& cam, int mode)
+void BuildUVN(CAM4DV1& cam, int mode)
 {
 	// this creates a camera matrix based on a look at vector n,
 	// look up vector v, and a look right (or left) u
@@ -2291,129 +2006,7 @@ void Build_CAM4DV1_Matrix_UVN(CAM4DV1& cam, int mode)
 	// now multiply the translation matrix and the uvn matrix and store in the 
 	// final camera matrix mcam
 	Mul(mt_inv, mt_uvn, cam.mcam);
-
-} // end Build_CAM4DV1_Matrix_UVN
-
-/////////////////////////////////////////////////////////////
-
-void Init_CAM4DV1(CAM4DV1& cam,       // the camera object
-	int cam_attr,          // attributes
-	VECTOR4D& cam_pos,   // initial camera position
-	VECTOR4D& cam_dir,  // initial camera angles
-	VECTOR4D* cam_target, // UVN target
-	float near_clip_z,     // near and far clipping planes
-	float far_clip_z,
-	float fov,             // field of view in degrees
-	float viewport_width,  // size of final screen viewport
-	float viewport_height)
-{
-	// this function initializes the camera object cam, the function
-	// doesn't do a lot of error checking or sanity checking since 
-	// I want to allow you to create projections as you wish, also 
-	// I tried to minimize the number of parameters the functions needs
-
-	// first set up parms that are no brainers
-	cam.attr = cam_attr;              // camera attributes
-
-	cam.pos= cam_pos; // positions
-	cam.dir=cam_dir; // direction vector or angles for
-									   // euler camera
-	// for UVN camera
-	cam.u.set(1, 0, 0);  // set to +x
-	cam.v.set(0, 1, 0);  // set to +y
-	cam.n.set(0, 0, 1);  // set to +z        
-
-	if (cam_target != NULL)
-		cam.target=*cam_target; // UVN target
-	else
-		Zero(cam.target);
-
-	cam.near_clip_z = near_clip_z;     // near z=constant clipping plane
-	cam.far_clip_z = far_clip_z;      // far z=constant clipping plane
-
-	cam.viewport_width = viewport_width;   // dimensions of viewport
-	cam.viewport_height = viewport_height;
-
-	cam.viewport_center_x = (viewport_width - 1) / 2; // center of viewport
-	cam.viewport_center_y = (viewport_height - 1) / 2;
-
-	cam.aspect_ratio = (float)viewport_width / (float)viewport_height;
-
-	// set all camera matrices to identity matrix
-	Identity(cam.mcam);
-	Identity(cam.mper);
-	Identity(cam.mscr);
-
-	// set independent vars
-	cam.fov = fov;
-
-	// set the viewplane dimensions up, they will be 2 x (2/ar)
-	cam.viewplane_width = 2.0;
-	cam.viewplane_height = 2.0 / cam.aspect_ratio;
-
-	// now we know fov and we know the viewplane dimensions plug into formula and
-	// solve for view distance parameters
-	float tan_fov_div2 = tan(DEG_TO_RAD(fov / 2));
-
-	cam.view_dist = (0.5) * (cam.viewplane_width) * tan_fov_div2;
-
-	// test for 90 fov first since it's easy :)
-	if (fov == 90.0)
-	{
-		// set up the clipping planes -- easy for 90 degrees!
-		VECTOR3D pt_origin; // point on the plane
-		pt_origin.set( 0, 0, 0);
-
-		VECTOR3D vn; // normal to plane
-
-		// right clipping plane 
-		vn.set(1, 0, -1); // x=z plane
-		cam.rt_clip_plane.set(pt_origin, vn, true);
-
-		// left clipping plane
-		vn.set(-1, 0, -1); // -x=z plane
-		cam.lt_clip_plane.set(pt_origin, vn, true);
-
-		// top clipping plane
-		vn.set(0, 1, -1); // y=z plane
-		cam.tp_clip_plane.set( pt_origin, vn, true);
-
-		// bottom clipping plane
-		vn.set(0, -1, -1); // -y=z plane
-		cam.bt_clip_plane.set(pt_origin, vn, true);
-	} 
-	else
-	{
-		// now compute clipping planes yuck!
-		VECTOR3D pt_origin; // point on the plane
-		pt_origin.set(0, 0, 0);
-
-		VECTOR3D vn; // normal to plane
-
-		// since we don't have a 90 fov, computing the normals
-		// are a bit tricky, there are a number of geometric constructions
-		// that solve the problem, but I'm going to solve for the
-		// vectors that represent the 2D projections of the frustrum planes
-		// on the x-z and y-z planes and then find perpendiculars to them
-
-		// right clipping plane, check the math on graph paper 
-		vn.set(cam.view_dist, 0, -cam.viewplane_width / 2.0);
-		cam.rt_clip_plane.set(pt_origin, vn, true);
-
-		// left clipping plane, we can simply reflect the right normal about
-		// the z axis since the planes are symetric about the z axis
-		// thus invert x only
-		vn.set( -cam.view_dist, 0, -cam.viewplane_width / 2.0);
-		cam.lt_clip_plane.set( pt_origin, vn, true);
-
-		// top clipping plane, same construction
-		vn.set(0, cam.view_dist, -cam.viewplane_width / 2.0);
-		cam.tp_clip_plane.set( pt_origin, vn, true);
-
-		// bottom clipping plane, same inversion
-		vn.set( 0, -cam.view_dist, -cam.viewplane_width / 2.0);
-		cam.bt_clip_plane.set(pt_origin, vn, true);
-	} 
 }
+
 
 
