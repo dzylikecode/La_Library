@@ -245,6 +245,8 @@ public:
 	}
 };
 
+class VECTOR4D;
+
 class VECTOR3D
 {
 public:
@@ -261,7 +263,7 @@ public:
 	VECTOR3D(const VECTOR3D& init, const VECTOR3D& term) :x(term.x - init.x), y(term.y - init.y), z(term.z - init.z) {};
 	void set(const VECTOR3D& init, const VECTOR3D& term) { x = term.x - init.x; y = term.y - init.y; z = term.z - init.z; }
 	void set(float outX, float outY, float outZ) { x = outX; y = outY; z = outZ; }
-	void divByW(const VECTOR4D& v4) { x = (v4).x / (v4).w; y = (v4).y / (v4).w; z = (v4).z / (v4).w; }
+	//void divByW(const VECTOR4D& v4) { x = (v4).x / (v4).w; y = (v4).y / (v4).w; z = (v4).z / (v4).w; }
 public:
 	VECTOR3D operator=(const VECTOR3D& v3) { if (this != &v3) { x = v3.x; y = v3.y; z = v3.z; }return *this; }
 };
@@ -322,12 +324,7 @@ public:
 	VECTOR3D n; // normal to the plane (not necessarily a unit vector)
 public:
 	PLANE3D() {};
-	void set(VECTOR3D& p0, VECTOR3D& normal, bool normalize = false)
-	{
-		p0 = p0;
-		if (!normalize)n = normal;
-		else Normalize(normal, n);
-	}
+	void set(VECTOR3D& p0, VECTOR3D& normal, bool normalize = false);
 };
 
 
@@ -469,7 +466,7 @@ inline void		Add(const MATRIX2X2& ma, const MATRIX2X2& mb, MATRIX2X2& msum) { ms
 void		Add(const MATRIX3X3& ma, const MATRIX3X3& mb, MATRIX3X3& msum);
 void		Add(const MATRIX4X4& ma, const MATRIX4X4& mb, MATRIX4X4& msum);
 
-QUAT operator+(const QUAT& q1, const QUAT& q2) { QUAT qsum; Add(q1, q2, qsum); return qsum; }
+inline QUAT operator+(const QUAT& q1, const QUAT& q2) { QUAT qsum; Add(q1, q2, qsum); return qsum; }
 
 inline void		Sub(const QUAT& q1, const QUAT& q2, QUAT& qdiff) { qdiff.x = q1.x - q2.x; qdiff.y = q1.y - q2.y; qdiff.z = q1.z - q2.z; qdiff.w = q1.w - q2.w; }
 inline void		Sub(const VECTOR2D& va, const VECTOR2D& vb, VECTOR2D& vdiff) { vdiff.x = va.x - vb.x; vdiff.y = va.y - vb.y; }
@@ -495,7 +492,7 @@ void   Mul(const VECTOR3D& va, const MATRIX4X4& mb, VECTOR3D& vprod);
 void   Mul(const VECTOR3D& va, const MATRIX4X3& mb, VECTOR3D& vprod);
 void   Mul(const VECTOR4D& va, const MATRIX4X4& mb, VECTOR4D& vprod);
 void   MulFast(const VECTOR4D& va, const MATRIX4X4& mb, VECTOR4D& vprod);
-FIXP16 Mul(const FIXP16 fp1, const FIXP16 fp2)
+inline FIXP16 Mul(const FIXP16 fp1, const FIXP16 fp2)
 {
 	// this function computes the product fp_prod = fp1*fp2
 	// using 64 bit math, so as not to loose precission
@@ -529,7 +526,7 @@ bool Inverse(const MATRIX2X2& m, MATRIX2X2& mi);
 bool Inverse(const MATRIX3X3& m, MATRIX3X3& mi);
 bool Inverse(const MATRIX4X4& m, MATRIX4X4& mi);
 
-FIXP16 Div(FIXP16 fp1, FIXP16 fp2)
+inline FIXP16 Div(FIXP16 fp1, FIXP16 fp2)
 {
 	// this function computes the quotient fp1/fp2 using
 	// 64 bit math, so as not to loose precision
@@ -630,3 +627,9 @@ int Intersect(const PARMLINE2D& p1, const PARMLINE2D& p2, VECTOR2D& pt);
 //线面是否相交
 int Intersect(const PARMLINE3D& pline, const PLANE3D& plane, float& t, VECTOR3D& pt);
 
+inline void PLANE3D::set(VECTOR3D& p0, VECTOR3D& normal, bool normalize)
+{
+	p0 = p0;
+	if (!normalize)n = normal;
+	else Normalize(normal, n);
+}

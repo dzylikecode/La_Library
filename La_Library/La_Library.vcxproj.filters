@@ -488,6 +488,9 @@
     <ClCompile Include="La_3DData.cpp">
       <Filter>源文件\Math\3D</Filter>
     </ClCompile>
+    <ClCompile Include="demo38.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">

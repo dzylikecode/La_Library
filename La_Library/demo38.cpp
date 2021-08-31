@@ -70,7 +70,7 @@ void StartUp(void)
 	poly1.next = poly1.prev = NULL;
 
 	// initialize the camera with 90 FOV, normalized coordinates
-	cam.set(      
+	cam.set(
 		CAM_MODEL_EULER, // euler camera model
 		cam_pos,  // initial camera position
 		cam_dir,  // initial camera angles

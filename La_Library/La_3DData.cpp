@@ -406,7 +406,7 @@ void ModelToWorld(OBJECT4DV1& obj, int coord_select)
 }
 
 
-void ModelToWorld(RENDERLIST4DV1& rend_list, VECTOR4D& world_pos, int coord_select = TRANSFORM_LOCAL_TO_TRANS)
+void ModelToWorld(RENDERLIST4DV1& rend_list, VECTOR4D& world_pos, int coord_select)
 {
 	if (coord_select == TRANSFORM_LOCAL_TO_TRANS)
 	{
@@ -1457,15 +1457,14 @@ void RotateXYZ(OBJECT4DV1& obj,const float theta_x, const float theta_y, const f
 } 
 
 
-int Insert_POLY4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
-	POLY4DV1& poly)
+bool Insert(RENDERLIST4DV1& rend_list,const POLY4DV1& poly)
 {
 	// converts the sent POLY4DV1 into a FACE4DV1 and inserts it
 	// into the render list
 
 	// step 0: are we full?
 	if (rend_list.num_polys >= RENDERLIST4DV1_MAX_POLYS)
-		return(0);
+		return(false);
 
 	// step 1: copy polygon into next opening in polygon render list
 
@@ -1519,19 +1518,17 @@ int Insert_POLY4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 	rend_list.num_polys++;
 
 	// return successful insertion
-	return(1);
+	return(true);
 } 
 
-//////////////////////////////////////////////////////////////
 
-int Insert_POLYF4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
-	POLYF4DV1& poly)
+bool Insert(RENDERLIST4DV1& rend_list,const POLYF4DV1& poly)
 {
 	// inserts the sent polyface POLYF4DV1 into the render list
 
 	// step 0: are we full?
 	if (rend_list.num_polys >= RENDERLIST4DV1_MAX_POLYS)
-		return(0);
+		return(false);
 
 	// step 1: copy polygon into next opening in polygon render list
 
@@ -1565,16 +1562,11 @@ int Insert_POLYF4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
  // increment number of polys in list
 	rend_list.num_polys++;
 
-	// return successful insertion
-	return(1);
+	return(true);
+} 
 
-} // end Insert_POLYF4DV1_RENDERLIST4DV1
 
-//////////////////////////////////////////////////////////////
-
-int Insert_OBJECT4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
-	OBJECT4DV1& obj,
-	int insert_local)
+bool Insert(RENDERLIST4DV1& rend_list,OBJECT4DV1& obj,const int insert_local)
 {
 	// converts the entire object into a face list and then inserts
 	// the visible, active, non-clipped, non-culled polygons into
@@ -1607,29 +1599,23 @@ int Insert_OBJECT4DV1_RENDERLIST4DV1(RENDERLIST4DV1& rend_list,
 			// first save old pointer
 		VECTOR4D* vlist_old = curr_poly.vlist;
 
-		if (insert_local)
-			curr_poly.vlist = obj.vlist_local;
-		else
-			curr_poly.vlist = obj.vlist_trans;
+		if (insert_local) curr_poly.vlist = obj.vlist_local;
+		else curr_poly.vlist = obj.vlist_trans;
 
 		// now insert this polygon
-		if (!Insert_POLY4DV1_RENDERLIST4DV1(rend_list, curr_poly))
+		if (!Insert(rend_list, curr_poly))
 		{
 			// fix vertex list pointer
 			curr_poly.vlist = vlist_old;
 
 			// the whole object didn't fit!
-			return(0);
+			return(false);
 		} 
-
 	 // fix vertex list pointer
 		curr_poly.vlist = vlist_old;
 
 	} 
-
-// return success
-	return(1);
-
+	return(true);
 }
 
 

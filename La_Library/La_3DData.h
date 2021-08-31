@@ -267,6 +267,7 @@ inline void Translate(OBJECT4DV1& obj, const VECTOR4D& vt){Add(obj.world_pos, vt
 void Transform(RENDERLIST4DV1& rend_list, const MATRIX4X4& mt, int coord_select);
 void Transform(OBJECT4DV1& obj, const MATRIX4X4& mt, int coord_select, bool transform_basis = true);
 void ModelToWorld(OBJECT4DV1& obj, int coord_select);
+void ModelToWorld(RENDERLIST4DV1& rend_list, VECTOR4D& world_pos, int coord_select = TRANSFORM_LOCAL_TO_TRANS);
 inline void BuildModelToWorld(const VECTOR4D& vpos, MATRIX4X4& m)
 {
 	m.set(1, 0, 0, 0,
@@ -346,7 +347,8 @@ void DrawWire(OBJECT4DV1& obj);
 void DrawWire(RENDERLIST4DV1& rend_list);
 void BuildXYZRotation(const float theta_x, const float theta_y, const float theta_z, MATRIX4X4& mrot);
 void RotateXYZ(OBJECT4DV1& obj, const float theta_x, const float theta_y, const float theta_z);
-
+bool Insert(RENDERLIST4DV1& rend_list, const POLY4DV1& poly);
+bool Insert(RENDERLIST4DV1& rend_list, const POLYF4DV1& poly);
 
 
 
