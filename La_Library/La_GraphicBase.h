@@ -20,6 +20,8 @@ typedef  COLOR laPALETTE[PALETTE_NUM];
 #define GetRValue_DX(rgb)      (LOBYTE((rgb)>>16))
 #define GetAValue_DX(rgb)	   (LOBYTE((rgb)>>24))
 
+inline void DisRGB(const int rgb, int& r, int& g, int& b) { r = GetRValue_DX(rgb); g = GetGValue_DX(rgb);  b = GetBValue_DX(rgb); }
+
 namespace GRAPHIC
 {
 	bool Flip(BYTE* image, int bytes_per_line, int height);

@@ -53,9 +53,9 @@ void StartUp(void)
 	for (int itext = 0; itext < NUM_TEXT; itext++)
 	{
 		textures1[itext].createFromSurface(TEXTSIZE, TEXTSIZE, temp, (itext % 4) * (TEXTSIZE + 1), (itext / 4) * (TEXTSIZE + 1));
-	} 
+	}
 
-// create temporary working texture (load with first texture to set loaded flags)
+	// create temporary working texture (load with first texture to set loaded flags)
 	temp_text = textures1[0];
 
 
@@ -66,7 +66,7 @@ void StartUp(void)
 	for (int itext = 0; itext < NUM_TEXT; itext++)
 	{
 		textures2[itext].createFromSurface(TEXTSIZE, TEXTSIZE, temp, (itext % 4) * (TEXTSIZE + 1), (itext / 4) * (TEXTSIZE + 1));
-	} 
+	}
 
 	keyboard.create();
 
@@ -135,9 +135,9 @@ void GameBody(void)
 			// rebuild RGB and test for overflow
 			// and write back to buffer
 			tbuffer[iy * tLpitch + ix] = RGB_DX(rf, gf, bf);
-		}    
+		}
 
-////////////////////////////////////////
+	////////////////////////////////////////
 
 	EndDrawOn(&temp_text);
 	EndDrawOn(&textures1[curr_texture1]);
@@ -203,13 +203,13 @@ void GameBody(void)
 
 
  // draw title
-	gPrintf( 10, 4, RGB(255, 255, 255), TEXT("Use <RIGHT>/<LEFT> arrows to change texture 1."));
-	gPrintf( 10, 20, RGB(255, 255, 255), TEXT("Use <UP>/<DOWN> arrows to change the texture 2."));
-	gPrintf( 10, 36, RGB(255, 255, 255), TEXT("Use <PAGE UP>/<PAGE DOWN> arrows to change blending factor alpha."));
-	gPrintf( 10, 56, RGB(255, 255, 255), TEXT("Press <ESC> to Exit. "));
+	gPrintf(10, 4, RGB(255, 255, 255), TEXT("Use <RIGHT>/<LEFT> arrows to change texture 1."));
+	gPrintf(10, 20, RGB(255, 255, 255), TEXT("Use <UP>/<DOWN> arrows to change the texture 2."));
+	gPrintf(10, 36, RGB(255, 255, 255), TEXT("Use <PAGE UP>/<PAGE DOWN> arrows to change blending factor alpha."));
+	gPrintf(10, 56, RGB(255, 255, 255), TEXT("Press <ESC> to Exit. "));
 
 	// print stats
-	gPrintf(10, WINDOW_HEIGHT - 20, RGB(255, 255, 255), TEXT("Texture 1: %d, Texture 2: %d, Blending factor: %f"),curr_texture1, curr_texture2, alphaf);
+	gPrintf(10, WINDOW_HEIGHT - 20, RGB(255, 255, 255), TEXT("Texture 1: %d, Texture 2: %d, Blending factor: %f"), curr_texture1, curr_texture2, alphaf);
 
 
 	fpsSet.adjust();

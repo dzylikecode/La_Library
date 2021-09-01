@@ -70,7 +70,7 @@ float ComputeRadius(OBJECT4DV1& obj)
 }
 
 
-bool LoadPLG(OBJECT4DV1& obj, const char* filename, const VECTOR4D& pos, const VECTOR4D& scale, const VECTOR4D& rot)
+bool LoadPLG(OBJECT4DV1& obj, const TCHAR* filename, const VECTOR4D& pos, const VECTOR4D& scale, const VECTOR4D& rot)
 {
 	FILE* fp;  
 	char buffer[256];  
@@ -90,7 +90,7 @@ bool LoadPLG(OBJECT4DV1& obj, const char* filename, const VECTOR4D& pos, const V
 	obj.world_pos.w = pos.w;
 
 	// Step 2: open the file for reading
-	if (!(fp = fopen(filename, "r")))
+	if (!(fp = fopen(TToA(filename), "r")))
 	{
 		ERROR_MSG(TEXT("Couldn't open PLG file %s."), filename);
 		return(false);
@@ -713,11 +713,13 @@ void BuildUVN(CAM4DV1& cam, int mode)
 
 
 	// build the UVN matrix by placing u,v,n as the columns of the matrix
-	mt_uvn.set(cam.u.x, cam.v.x, cam.n.x, 0,
+	mt_uvn.set(
+		cam.u.x, cam.v.x, cam.n.x, 0,
 		cam.u.y, cam.v.y, cam.n.y, 0,
 		cam.u.z, cam.v.z, cam.n.z, 0,
 		0, 0, 0, 1);
 
+	//觉得需要 inverse mt_uvn 才对
 	// now multiply the translation matrix and the uvn matrix and store in the 
 	// final camera matrix mcam
 	Mul(mt_inv, mt_uvn, cam.mcam);

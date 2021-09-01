@@ -26,6 +26,7 @@
 
 #pragma once
 #include "La_Math_Andre.h"
+#include <tchar.h>
 // DEFINES ////////////////////////////////////////////////////
 
 // defines for enhanced PLG file format -> PLX
@@ -202,7 +203,7 @@ struct CAM4DV1
 	VECTOR4D v;    //  v n 是给 uvn 的
 	VECTOR4D n;
 
-	VECTOR4D target; // look at target
+	VECTOR4D target; // look at target  注视点，比如相机在运动，但是盯着的地方不动
 
 	float view_dist;  // focal length 
 
@@ -261,12 +262,12 @@ struct RENDERLIST4DV1
 
 
 float ComputeRadius(OBJECT4DV1& obj);
-bool LoadPLG(OBJECT4DV1& obj, const char* filename, const VECTOR4D& pos = VECTOR4D(0, 0, 0), const VECTOR4D& scale = VECTOR4D(1, 1, 1), const VECTOR4D& rot = VECTOR4D(0, 0, 0));
+bool LoadPLG(OBJECT4DV1& obj, const TCHAR* filename, const VECTOR4D& pos = VECTOR4D(0, 0, 0), const VECTOR4D& scale = VECTOR4D(1, 1, 1), const VECTOR4D& rot = VECTOR4D(0, 0, 0));
 inline void Reset(RENDERLIST4DV1& rend_list) { rend_list.num_polys = 0; }
 inline void Translate(OBJECT4DV1& obj, const VECTOR4D& vt){Add(obj.world_pos, vt, obj.world_pos);}
 void Transform(RENDERLIST4DV1& rend_list, const MATRIX4X4& mt, int coord_select);
 void Transform(OBJECT4DV1& obj, const MATRIX4X4& mt, int coord_select, bool transform_basis = true);
-void ModelToWorld(OBJECT4DV1& obj, int coord_select);
+void ModelToWorld(OBJECT4DV1& obj, int coord_select = TRANSFORM_LOCAL_TO_TRANS);
 void ModelToWorld(RENDERLIST4DV1& rend_list, VECTOR4D& world_pos, int coord_select = TRANSFORM_LOCAL_TO_TRANS);
 inline void BuildModelToWorld(const VECTOR4D& vpos, MATRIX4X4& m)
 {
@@ -276,6 +277,7 @@ inline void BuildModelToWorld(const VECTOR4D& vpos, MATRIX4X4& m)
 		vpos.x, vpos.y, vpos.z, 1);
 }
 void BuildEuler(CAM4DV1& cam, int cam_rot_seq);
+void BuildUVN(CAM4DV1& cam, int mode);
 void WorldToCamera(OBJECT4DV1& obj, CAM4DV1& cam);
 void WorldToCamera(RENDERLIST4DV1& rend_list, CAM4DV1& cam);
 bool Cull(OBJECT4DV1& obj, const CAM4DV1& cam, int cull_flags);
@@ -349,7 +351,7 @@ void BuildXYZRotation(const float theta_x, const float theta_y, const float thet
 void RotateXYZ(OBJECT4DV1& obj, const float theta_x, const float theta_y, const float theta_z);
 bool Insert(RENDERLIST4DV1& rend_list, const POLY4DV1& poly);
 bool Insert(RENDERLIST4DV1& rend_list, const POLYF4DV1& poly);
-
+bool Insert(RENDERLIST4DV1& rend_list, OBJECT4DV1& obj, const int insert_local = 0);
 
 
 

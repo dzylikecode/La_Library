@@ -151,6 +151,12 @@
     <Filter Include="源文件\Math\3D">
       <UniqueIdentifier>{7a0acf94-5f11-4828-b632-18b4b992a9f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\3D">
+      <UniqueIdentifier>{34c3ef91-bfe4-4906-ab97-33bd773379ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\3D">
+      <UniqueIdentifier>{40041efe-5d6b-4015-b6dd-9d29581593d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -284,6 +290,15 @@
     </ClInclude>
     <ClInclude Include="La_Math3D.h">
       <Filter>头文件\Math\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_3D.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_3DLight.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="demo42_1.cpp">
+      <Filter>源文件\test\3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -489,6 +504,30 @@
       <Filter>源文件\Math\3D</Filter>
     </ClCompile>
     <ClCompile Include="demo38.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo39_2.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo39_1.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo40_1.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo40_2.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo41.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DLight.cpp">
+      <Filter>源文件\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo42_2.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo42_3.cpp">
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,15 +1,12 @@
-// DEMOII7_1.CPP
-// READ THIS!
-// To compile make sure to include DDRAW.LIB, DSOUND.LIB,
-// DINPUT.LIB, DINPUT8.LIB, WINMM.LIB in the project link list, and of course 
-// the C++ source modules T3DLIB1-5.CPP and the headers T3DLIB1-5.H
-// be in the working directory of the compiler
+// DEMOII8_3.CPP - Alpha blending demo 
+// to compile make sure to include DDRAW.LIB, DSOUND.LIB,
+// DINPUT.LIB, WINMM.LIB, and of course 
+// T3DLIB1.CPP,T3DLIB2.CPP,T3DLIB3.CPP..T3DLIB6.CPP
+// and only run app if desktop is in 16-bit color mode
 
 // INCLUDES ///////////////////////////////////////////////
 
-#define INITGUID       // make sure al the COM interfaces are available
-					   // instead of this you can include the .LIB file
-					   // DXGUID.LIB
+#define INITGUID
 
 #define WIN32_LEAN_AND_MEAN  
 
@@ -40,14 +37,17 @@
 #include "T3DLIB3.h"
 #include "T3DLIB4.h"
 #include "T3DLIB5.h"
+#include "T3DLIB6.h"
 
 // DEFINES ////////////////////////////////////////////////
 
-// defines for windows interface
+// defines for windows 
 #define WINDOW_CLASS_NAME "WIN3DCLASS"  // class name
+
+// setup a 640x480 16-bit windowed mode example
 #define WINDOW_TITLE      "T3D Graphics Console Ver 2.0"
-#define WINDOW_WIDTH      400   // size of window
-#define WINDOW_HEIGHT     400
+#define WINDOW_WIDTH      640   // size of window
+#define WINDOW_HEIGHT     480
 
 #define WINDOW_BPP        16    // bitdepth of window (8,16,24 etc.)
 								// note: if windowed and not
@@ -58,6 +58,8 @@
 
 #define WINDOWED_APP      1     // 0 not windowed, 1 windowed
 
+#define TEXTSIZE           128 // size of texture mxm
+#define NUM_TEXT           12  // number of textures
 
 // PROTOTYPES /////////////////////////////////////////////
 
@@ -70,21 +72,11 @@ int Game_Main(void* parms = NULL);
 
 HWND main_window_handle = NULL; // save the window handle
 HINSTANCE main_instance = NULL; // save the instance
-char buffer[256];                         // used to print text
+char buffer[80];                          // used to print text
 
-// initialize camera position and direction
-POINT4D  cam_pos = { 0,0,-100,1 };
-VECTOR4D cam_dir = { 0,0,0,1 };
-
-// all your initialization code goes here...
-VECTOR4D vscale = { .5,.5,.5,1 },
-vpos = { 0,0,0,1 },
-vrot = { 0,0,0,1 };
-
-CAM4DV1        cam;                     // the single camera
-RENDERLIST4DV1 rend_list;               // the single renderlist
-POLYF4DV1      poly1;                   // our lonely polygon
-POINT4D        poly1_pos = { 0,0,100,1 }; // world position of polygon
+BITMAP_IMAGE textures1[NUM_TEXT],  // holds source texture library  1
+textures2[NUM_TEXT],  // holds source texture library  2
+temp_text;            // temporary working texture
 
 // FUNCTIONS //////////////////////////////////////////////
 
@@ -141,13 +133,13 @@ int WINAPI WinMain(HINSTANCE hinstance,
 {
 	// this is the winmain function
 
-	WNDCLASS winclass;	// this will hold the class we create
-	HWND	 hwnd;		// generic window handle
-	MSG		 msg;		// generic message
-	HDC      hdc;       // generic dc
-	PAINTSTRUCT ps;     // generic paintstruct
+	WNDCLASSEX winclass; // this will hold the class we create
+	HWND	   hwnd;	 // generic window handle
+	MSG		   msg;		 // generic message
+	HDC        hdc;      // graphics device context
 
 	// first fill in the window class stucture
+	winclass.cbSize = sizeof(WNDCLASSEX);
 	winclass.style = CS_DBLCLKS | CS_OWNDC |
 		CS_HREDRAW | CS_VREDRAW;
 	winclass.lpfnWndProc = WindowProc;
@@ -159,30 +151,31 @@ int WINAPI WinMain(HINSTANCE hinstance,
 	winclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	winclass.lpszMenuName = NULL;
 	winclass.lpszClassName = WINDOW_CLASS_NAME;
+	winclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
-	// register the window class
-	if (!RegisterClass(&winclass))
-		return(0);
-
-	// create the window, note the test to see if WINDOWED_APP is
-	// true to select the appropriate window flags
-	if (!(hwnd = CreateWindow(WINDOW_CLASS_NAME, // class
-		WINDOW_TITLE,	 // title
-		(WINDOWED_APP ? (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION) : (WS_POPUP | WS_VISIBLE)),
-		0, 0,	   // x,y
-		WINDOW_WIDTH,  // width
-		WINDOW_HEIGHT, // height
-		NULL,	   // handle to parent 
-		NULL,	   // handle to menu
-		hinstance,// instance
-		NULL)))	// creation parms
-		return(0);
-
-	// save the window handle and instance in a global
-	main_window_handle = hwnd;
+	// save hinstance in global
 	main_instance = hinstance;
 
-	// resize the window so that client is really width x height
+	// register the window class
+	if (!RegisterClassEx(&winclass))
+		return(0);
+
+	// create the window
+	if (!(hwnd = CreateWindowEx(NULL,                  // extended style
+		WINDOW_CLASS_NAME,     // class
+		WINDOW_TITLE, // title
+		(WINDOWED_APP ? (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION) : (WS_POPUP | WS_VISIBLE)),
+		0, 0,	  // initial x,y
+		WINDOW_WIDTH, WINDOW_HEIGHT,  // initial width, height
+		NULL,	  // handle to parent 
+		NULL,	  // handle to menu
+		hinstance,// instance of this application
+		NULL)))	// extra creation parms
+		return(0);
+
+	// save main window handle
+	main_window_handle = hwnd;
+
 	if (WINDOWED_APP)
 	{
 		// now resize the window, so the client area is the actual size requested
@@ -212,12 +205,9 @@ int WINAPI WinMain(HINSTANCE hinstance,
 		ShowWindow(main_window_handle, SW_SHOW);
 	} // end if windowed
 
+
 	// perform all game console specific initialization
 	Game_Init();
-
-	// disable CTRL-ALT_DEL, ALT_TAB, comment this line out 
-	// if it causes your system to crash
-	SystemParametersInfo(SPI_SCREENSAVERRUNNING, TRUE, NULL, 0);
 
 	// enter main event loop
 	while (1)
@@ -243,82 +233,71 @@ int WINAPI WinMain(HINSTANCE hinstance,
 // shutdown game and release all resources
 	Game_Shutdown();
 
-	// enable CTRL-ALT_DEL, ALT_TAB, comment this line out 
-	// if it causes your system to crash
-	SystemParametersInfo(SPI_SCREENSAVERRUNNING, FALSE, NULL, 0);
-
 	// return to Windows like this
 	return(msg.wParam);
 
 } // end WinMain
 
-// T3D II GAME PROGRAMMING CONSOLE FUNCTIONS ////////////////
+// T3D GAME PROGRAMMING CONSOLE FUNCTIONS ////////////////
 
 int Game_Init(void* parms)
 {
 	// this function is where you do all the initialization 
 	// for your game
 
-	// start up DirectDraw (replace the parms as you desire)
+	int index; // looping variable
+
+	// initialize directdraw, very important that in the call
+	// to setcooperativelevel that the flag DDSCL_MULTITHREADED is used
+	// which increases the response of directX graphics to
+	// take the global critical section more frequently
 	DDraw_Init(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BPP, WINDOWED_APP);
+
+	// load in the textures
+	Load_Bitmap_File(&bitmap16bit, "OMPTXT128_24.BMP");
+
+	// now extract each 128x128x16 texture from the image
+	for (int itext = 0; itext < NUM_TEXT; itext++)
+	{
+		// create the bitmap
+		Create_Bitmap(&textures1[itext], (WINDOW_WIDTH / 2) - 4 * (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) - 2 * (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
+		Load_Image_Bitmap16(&textures1[itext], &bitmap16bit, itext % 4, itext / 4, BITMAP_EXTRACT_MODE_CELL);
+	} // end for
+
+// create temporary working texture (load with first texture to set loaded flags)
+	Create_Bitmap(&temp_text, (WINDOW_WIDTH / 2) - (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) + (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
+	Load_Image_Bitmap16(&temp_text, &bitmap16bit, 0, 0, BITMAP_EXTRACT_MODE_CELL);
+
+	// done, so unload the bitmap
+	Unload_Bitmap_File(&bitmap16bit);
+
+
+	// load in the textures
+	Load_Bitmap_File(&bitmap16bit, "SEXTXT128_24.BMP");
+
+	// now extract each 128x128x16 texture from the image
+	for (itext = 0; itext < NUM_TEXT; itext++)
+	{
+		// create the bitmap
+		Create_Bitmap(&textures2[itext], (WINDOW_WIDTH / 2) + 2 * (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) - 2 * (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
+		Load_Image_Bitmap16(&textures2[itext], &bitmap16bit, itext % 4, itext / 4, BITMAP_EXTRACT_MODE_CELL);
+	} // end for
+
+// done, so unload the bitmap
+	Unload_Bitmap_File(&bitmap16bit);
 
 	// initialize directinput
 	DInput_Init();
 
-	// acquire the keyboard 
+	// acquire the keyboard only
 	DInput_Init_Keyboard();
-
-	// add calls to acquire other directinput devices here...
-
-	// initialize directsound and directmusic
-	DSound_Init();
-	DMusic_Init();
 
 	// hide the mouse
 	if (!WINDOWED_APP)
 		ShowCursor(FALSE);
 
-	// seed random number generator
+	// seed random number generate
 	srand(Start_Clock());
-
-	Open_Error_File("ERROR.TXT");
-
-	// initialize math engine
-	Build_Sin_Cos_Tables();
-
-	// initialize a single polygon
-	poly1.state = POLY4DV1_STATE_ACTIVE;
-	poly1.attr = 0;
-	poly1.color = RGB16Bit(0, 255, 0);
-
-	poly1.vlist[0].x = 0;
-	poly1.vlist[0].y = 50;
-	poly1.vlist[0].z = 0;
-	poly1.vlist[0].w = 1;
-
-	poly1.vlist[1].x = 50;
-	poly1.vlist[1].y = -50;
-	poly1.vlist[1].z = 0;
-	poly1.vlist[1].w = 1;
-
-	poly1.vlist[2].x = -50;
-	poly1.vlist[2].y = -50;
-	poly1.vlist[2].z = 0;
-	poly1.vlist[2].w = 1;
-
-	poly1.next = poly1.prev = NULL;
-
-	// initialize the camera with 90 FOV, normalized coordinates
-	Init_CAM4DV1(&cam,      // the camera object
-		CAM_MODEL_EULER, // euler camera model
-		&cam_pos,  // initial camera position
-		&cam_dir,  // initial camera angles
-		NULL,      // no initial target
-		50.0,      // near and far clipping planes
-		500.0,
-		90.0,      // field of view in degrees
-		WINDOW_WIDTH,   // size of final screen viewport
-		WINDOW_HEIGHT);
 
 	// return success
 	return(1);
@@ -334,26 +313,15 @@ int Game_Shutdown(void* parms)
 
 	// shut everything down
 
-	// release all your resources created for the game here....
-
-	// now directsound
-	DSound_Stop_All_Sounds();
-	DSound_Delete_All_Sounds();
-	DSound_Shutdown();
-
-	// directmusic
-	DMusic_Delete_All_MIDI();
-	DMusic_Shutdown();
-
-	// shut down directinput
-	DInput_Release_Keyboard();
-
-	DInput_Shutdown();
-
 	// shutdown directdraw last
 	DDraw_Shutdown();
 
-	Close_Error_File();
+	// now directsound
+	DSound_Stop_All_Sounds();
+	DSound_Shutdown();
+
+	// shut down directinput
+	DInput_Shutdown();
 
 	// return success
 	return(1);
@@ -367,63 +335,144 @@ int Game_Main(void* parms)
 	// continuously in real-time this is like main() in C
 	// all the calls for you game go here!
 
-	static MATRIX4X4 mrot; // general rotation matrix
-	static float ang_y = 0;      // rotation angle
-
-	int index; // looping var
+	int          index;               // looping var
+	static int   curr_texture1 = 0;  // source texture 1
+	static int   curr_texture2 = 5;  // source texture 2
+	static float alphaf = .5;  // alpha blending factor
 
 	// start the timing clock
 	Start_Clock();
 
-	// clear the drawing surface 
+	// clear the drawing surface
 	DDraw_Fill_Surface(lpddsback, 0);
 
-	// read keyboard and other devices here
-	DInput_Read_Keyboard();
-
-	// game logic here...
-
-	// initialize the renderlist
-	Reset_RENDERLIST4DV1(&rend_list);
-
-	// insert polygon into the renderlist
-	Insert_POLYF4DV1_RENDERLIST4DV1(&rend_list, &poly1);
-
-	// generate rotation matrix around y axis
-	Build_XYZ_Rotation_MATRIX4X4(0, ang_y, 0, &mrot);
-
-	// rotate polygon slowly
-	if (++ang_y >= 360.0) ang_y = 0;
-
-	// rotate the local coords of single polygon in renderlist
-	Transform_RENDERLIST4DV1(&rend_list, &mrot, TRANSFORM_LOCAL_ONLY);
-
-	// perform local/model to world transform
-	Model_To_World_RENDERLIST4DV1(&rend_list, &poly1_pos);
-
-	// generate camera matrix
-	Build_CAM4DV1_Matrix_Euler(&cam, CAM_ROT_SEQ_ZYX);
-
-	// apply world to camera transform
-	World_To_Camera_RENDERLIST4DV1(&rend_list, &cam);
-
-	// apply camera to perspective transformation
-	Camera_To_Perspective_RENDERLIST4DV1(&rend_list, &cam);
-
-	// apply screen transform
-	Perspective_To_Screen_RENDERLIST4DV1(&rend_list, &cam);
-
-	// draw instructions
-	Draw_Text_GDI("Press ESC to exit.", 0, 0, RGB(0, 255, 0), lpddsback);
-
-	// lock the back buffer
+	// lock back buffer and copy background into it
 	DDraw_Lock_Back_Surface();
 
-	// render the polygon list
-	Draw_RENDERLIST4DV1_Wire16(&rend_list, back_buffer, back_lpitch);
+	///////////////////////////////////////////
+	// our little image processing algorithm :)
 
-	// unlock the back buffer
+	//Pixel_dest[x][y]rgb = alpha    * pixel_source1[x][y]rgb + 
+	//                      (1-alpha)* pixel_source2[x][y]rgb
+
+	USHORT* s1buffer = (USHORT*)textures1[curr_texture1].buffer;
+	USHORT* s2buffer = (USHORT*)textures2[curr_texture2].buffer;
+	USHORT* tbuffer = (USHORT*)temp_text.buffer;
+
+	// perform RGB transformation on bitmap
+	for (int iy = 0; iy < temp_text.height; iy++)
+		for (int ix = 0; ix < temp_text.width; ix++)
+		{
+			int rs1, gs1, bs1;   // used to extract the source rgb values
+			int rs2, gs2, bs2; // light map rgb values
+			int rf, gf, bf;   // the final rgb terms
+
+			// extract pixel from source bitmap
+			USHORT s1pixel = s1buffer[iy * temp_text.width + ix];
+
+			// extract RGB values
+			_RGB565FROM16BIT(s1pixel, &rs1, &gs1, &bs1);
+
+			// extract pixel from lightmap bitmap
+			USHORT s2pixel = s2buffer[iy * temp_text.width + ix];
+
+			// extract RGB values
+			_RGB565FROM16BIT(s2pixel, &rs2, &gs2, &bs2);
+
+			// alpha blend them
+			rf = (alphaf * (float)rs1) + ((1 - alphaf) * (float)rs2);
+			gf = (alphaf * (float)gs1) + ((1 - alphaf) * (float)gs2);
+			bf = (alphaf * (float)bs1) + ((1 - alphaf) * (float)bs2);
+
+			// test for overflow
+			if (rf > 255) rf = 255;
+			if (gf > 255) gf = 255;
+			if (bf > 255) bf = 255;
+
+			// rebuild RGB and test for overflow
+			// and write back to buffer
+			tbuffer[iy * temp_text.width + ix] = _RGB16BIT565(rf, gf, bf);
+
+		} // end for ix     
+
+////////////////////////////////////////
+
+// draw textures
+	Draw_Bitmap16(&temp_text, back_buffer, back_lpitch, 0);
+
+	Draw_Bitmap16(&textures1[curr_texture1], back_buffer, back_lpitch, 0);
+
+	Draw_Bitmap16(&textures2[curr_texture2], back_buffer, back_lpitch, 0);
+
+	// unlock back surface
 	DDraw_Unlock_Back_Surface();
+
+	// read keyboard
+	DInput_Read_Keyboard();
+
+	// test if user wants to change texture
+	if (keyboard_state[DIK_RIGHT])
+	{
+		if (++curr_texture1 > (NUM_TEXT - 1))
+			curr_texture1 = (NUM_TEXT - 1);
+
+		Wait_Clock(100);
+	} // end if
+
+	if (keyboard_state[DIK_LEFT])
+	{
+		if (--curr_texture1 < 0)
+			curr_texture1 = 0;
+
+		Wait_Clock(100);
+	} // end if
+
+
+ // test if user wants to change ligthmap texture
+	if (keyboard_state[DIK_UP])
+	{
+		if (++curr_texture2 > (NUM_TEXT - 1))
+			curr_texture2 = (NUM_TEXT - 1);
+
+		Wait_Clock(100);
+	} // end if
+
+	if (keyboard_state[DIK_DOWN])
+	{
+		if (--curr_texture2 < 0)
+			curr_texture2 = 0;
+
+		Wait_Clock(100);
+	} // end if
+
+ // is user changing scaling factor
+	if (keyboard_state[DIK_PGUP])
+	{
+		alphaf += .01;
+		if (alphaf > 1)
+			alphaf = 1;
+		Wait_Clock(10);
+	} // end if
+
+	if (keyboard_state[DIK_PGDN])
+	{
+		alphaf -= .01;
+		if (alphaf < 0)
+			alphaf = 0;
+
+		Wait_Clock(10);
+	} // end if
+
+
+ // draw title
+	Draw_Text_GDI("Use <RIGHT>/<LEFT> arrows to change texture 1.", 10, 4, RGB(255, 255, 255), lpddsback);
+	Draw_Text_GDI("Use <UP>/<DOWN> arrows to change the texture 2.", 10, 20, RGB(255, 255, 255), lpddsback);
+	Draw_Text_GDI("Use <PAGE UP>/<PAGE DOWN> arrows to change blending factor alpha.", 10, 36, RGB(255, 255, 255), lpddsback);
+	Draw_Text_GDI("Press <ESC> to Exit. ", 10, 56, RGB(255, 255, 255), lpddsback);
+
+	// print stats
+	sprintf(buffer, "Texture 1: %d, Texture 2: %d, Blending factor: %f", curr_texture1, curr_texture2, alphaf);
+	Draw_Text_GDI(buffer, 10, WINDOW_HEIGHT - 20, RGB(255, 255, 255), lpddsback);
 
 	// flip the surfaces
 	DDraw_Flip();
@@ -436,6 +485,9 @@ int Game_Main(void* parms)
 	{
 		PostMessage(main_window_handle, WM_DESTROY, 0, 0);
 
+		// stop all sounds
+		DSound_Stop_All_Sounds();
+
 	} // end if
 
 // return success
@@ -444,3 +496,4 @@ int Game_Main(void* parms)
 } // end Game_Main
 
 //////////////////////////////////////////////////////////
+
