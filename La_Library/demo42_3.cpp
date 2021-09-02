@@ -11,6 +11,7 @@
 #include "La_GraphicEx.h"
 #include "La_Input.h"
 #include "La_Audio.h"
+#include "La_3D.h"
 #include "La_Master.h"
 
 using namespace std;
@@ -163,17 +164,17 @@ void GameBody(void)
 			curr_texture1 = 0;
 
 		Sleep(100);
-	} // end if
+	}
 
 
- // test if user wants to change ligthmap texture
+	// test if user wants to change ligthmap texture
 	if (keyboard[DIK_UP])
 	{
 		if (++curr_texture2 > (NUM_TEXT - 1))
 			curr_texture2 = (NUM_TEXT - 1);
 
 		Sleep(100);
-	} // end if
+	}
 
 	if (keyboard[DIK_DOWN])
 	{
@@ -181,16 +182,16 @@ void GameBody(void)
 			curr_texture2 = 0;
 
 		Sleep(100);
-	} // end if
+	}
 
- // is user changing scaling factor
+	// is user changing scaling factor
 	if (keyboard[DIK_PGUP])
 	{
 		alphaf += .01;
 		if (alphaf > 1)
 			alphaf = 1;
 		Sleep(10);
-	} // end if
+	}
 
 	if (keyboard[DIK_PGDN])
 	{
@@ -199,10 +200,10 @@ void GameBody(void)
 			alphaf = 0;
 
 		Sleep(10);
-	} // end if
+	}
 
 
- // draw title
+	// draw title
 	gPrintf(10, 4, RGB(255, 255, 255), TEXT("Use <RIGHT>/<LEFT> arrows to change texture 1."));
 	gPrintf(10, 20, RGB(255, 255, 255), TEXT("Use <UP>/<DOWN> arrows to change the texture 2."));
 	gPrintf(10, 36, RGB(255, 255, 255), TEXT("Use <PAGE UP>/<PAGE DOWN> arrows to change blending factor alpha."));

@@ -1,6 +1,5 @@
 #pragma once
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
 #ifndef INITGUID
 #define INITGUID  //使用一些预定义好的 guid
 #endif

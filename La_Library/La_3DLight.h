@@ -1,3 +1,21 @@
+/*
+***************************************************************************************
+*  程    序: 
+*
+*  作    者: LaDzy
+*
+*  邮    箱: mathbewithcode@gmail.com
+*
+*  编译环境: Visual Studio 2019
+*
+*  创建时间: 2021/09/02 13:17:36
+*  最后修改: 
+*
+*  简    介: 使用父类，虚类来实现比较合理
+*
+***************************************************************************************
+*/
+
 #pragma once
 #include <windows.h>
 #include "La_3DData.h"
@@ -57,63 +75,40 @@
 #define SORT_POLYLIST_FARZ  2  // sorts on farthest z vertex of each poly
 
 
-#define PARSER_DEBUG_OFF // enables/disables conditional compilation 
 
-#define PARSER_STRIP_EMPTY_LINES        1   // strips all blank lines
-#define PARSER_LEAVE_EMPTY_LINES        2   // leaves empty lines
-#define PARSER_STRIP_WS_ENDS            4   // strips ws space at ends of line
-#define PARSER_LEAVE_WS_ENDS            8   // leaves it
-#define PARSER_STRIP_COMMENTS           16  // strips comments out
-#define PARSER_LEAVE_COMMENTS           32  // leaves comments in
-
-#define PARSER_BUFFER_SIZE              256 // size of parser line buffer
-#define PARSER_MAX_COMMENT              16  // maximum size of comment delimeter string
-
-#define PARSER_DEFAULT_COMMENT          "#"  // default comment string for parser
-
-// pattern language
-#define PATTERN_TOKEN_FLOAT   'f'
-#define PATTERN_TOKEN_INT     'i'
-#define PATTERN_TOKEN_STRING  's'
-#define PATTERN_TOKEN_LITERAL '\''
-
-// state machine defines for pattern matching
-#define PATTERN_STATE_INIT       0
-
-#define PATTERN_STATE_RESTART    1
-#define PATTERN_STATE_FLOAT      2
-#define PATTERN_STATE_INT        3 
-#define PATTERN_STATE_LITERAL    4
-#define PATTERN_STATE_STRING     5
-#define PATTERN_STATE_NEXT       6
-
-#define PATTERN_STATE_MATCH      7
-#define PATTERN_STATE_END        8
-
-#define PATTERN_MAX_ARGS         16
-#define PATTERN_BUFFER_SIZE      80
-
-// TYPES ///////////////////////////////////////////////////////////////////
+class IMAGE
+{
+public:
+	COLOR* pbuffer;
+	int width, height;
+public:
+	IMAGE() :pbuffer(nullptr) {};
+	void release(){ if (pbuffer) delete[] pbuffer; }
+	~IMAGE() { release(); }
+};
 
 // RGB+alpha color
-typedef struct RGBAV1_TYP
+struct RGBAV1
 {
+public:
 	union
 	{
 		int rgba;                    // compressed format
 		UCHAR rgba_M[4];             // array format
 		struct { UCHAR a, b, g, r; }; // explict name format
-	}; // end union
+	}; 
+//public:
+//	RGBAV1 operator=(const COLOR)
+};
 
-} RGBAV1, * RGBAV1_PTR;
-
+#define RGBA(r,g,b, a)   ((a) + ((b) << 8) + ((g) << 16) + ((r) << 24) )
 
 // a first version of a "material"
-typedef struct MATV1_TYP
+struct MATV1
 {
-	int state;           // state of material
+	int state;          
 	int id;              // id of this material, index into material array
-	char name[64];       // name of material
+	char name[64];      
 	int  attr;           // attributes, the modes for shading, constant, flat, 
 						 // gouraud, fast phong, environment, textured etc.
 						 // and other special flags...
@@ -133,20 +128,19 @@ typedef struct MATV1_TYP
 							 // rd = color*kd etc.
 
 	char texture_file[80];   // file location of texture
-	GRAPHIC::BITMAP texture;    // actual texture map (if any)
+	IMAGE texture;    // actual texture map (if any)
 
 	int   iaux1, iaux2;      // auxiliary vars for future expansion
 	float faux1, faux2;
 	void* ptr;
-
-} MATV1, * MATV1_PTR;
+};
 
 
 // first light structure
-typedef struct LIGHTV1_TYP
+struct LIGHTV1
 {
-	int state; // state of light
-	int id;    // id of light
+	int state; 
+	int id;    
 	int attr;  // type of light, and extra qualifiers
 
 	RGBAV1 c_ambient;   // ambient light intensity
@@ -164,109 +158,60 @@ typedef struct LIGHTV1_TYP
 	float faux1, faux2;
 	void* ptr;
 
-} LIGHTV1, * LIGHTV1_PTR;
+	void set(
+		int          _state,      // state of light
+		int          _attr,       // type of light, and extra qualifiers
+		RGBAV1       _c_ambient,  // ambient light intensity
+		RGBAV1       _c_diffuse,  // diffuse light intensity
+		RGBAV1       _c_specular, // specular light intensity
+		const VECTOR4D& _pos,        // position of light
+		const VECTOR4D& _dir,        // direction of light
+		float        _kc,         // attenuation factors
+		float        _kl,
+		float        _kq,
+		float        _spot_inner, // inner angle for spot light
+		float        _spot_outer, // outer angle for spot light
+		float        _pf)         // power factor/falloff for spot lights
+	{
+
+		// all good, initialize the light (many fields may be dead)
+		this->state = _state;      // state of light
+		this->attr = _attr;       // type of light, and extra qualifiers
+
+		this->c_ambient = _c_ambient;  // ambient light intensity
+		this->c_diffuse = _c_diffuse;  // diffuse light intensity
+		this->c_specular = _c_specular; // specular light intensity
+
+		this->kc = _kc;         // constant, linear, and quadratic attenuation factors
+		this->kl = _kl;
+		this->kq = _kq;
+
+		this->pos = _pos;  // position of light
+		this->dir = _dir;
+		Normalize(this->dir);
+		this->spot_inner = _spot_inner; // inner angle for spot light
+		this->spot_outer = _spot_outer; // outer angle for spot light
+		this->pf = _pf;         // power factor/falloff for spot lights
+	} 
+
+};
 
 
-// pcx file header
-typedef struct PCX_HEADER_TYP
-{
-	UCHAR  manufacturer;    // always 0x0A
-	UCHAR  version;         // version 0x05 for version 3.0 and later
-	UCHAR  encoding;        // always 1
-	UCHAR  bits_per_pixel;  // bits per pixel 1,2,4,8
-	USHORT xmin, ymin;      // coordinates of upper left corner
-	USHORT xmax, ymax;      // coordinates of lower right corner
-	USHORT hres;            // horizontal resolution of image in dpi 75/100 typ
-	USHORT yres;            // vertical resolution of image in dpi 75/100
-	UCHAR  EGAcolors[48];   // ega palette, not used for 256 color images
-	UCHAR  reserved;        // reserved for future use, video mode?
-	UCHAR  color_planes;    // number of color planes 3 for 24-bit imagery
-	USHORT bytes_per_line;  // bytes per line, always even!
-	USHORT palette_type;    // 1 for gray scale, 2 for color palette
-	USHORT scrnw;           // width of screen image taken from
-	USHORT scrnh;           // height of screen image taken from     
-	UCHAR  filler[54];      // filler bytes
-} PCX_HEADER, * PCX_HEADER_PTR;
+void DrawSolid(OBJECT4DV1& obj);
+void DrawSolid(RENDERLIST4DV1& rend_list);
+bool Insert2(RENDERLIST4DV1& rend_list, OBJECT4DV1& obj, int insert_local, int lighting_on);
+bool LightWorld(OBJECT4DV1& obj, CAM4DV1& cam, LIGHTV1* lights, int max_lights);
+bool LightWorld(RENDERLIST4DV1& rend_list, CAM4DV1& cam, LIGHTV1* lights, int max_lights);
+void Sort(RENDERLIST4DV1& rend_list, int sort_method);
 
 
-// CLASSES /////////////////////////////////////////////////////////////////
 
-// parser class ///////////////////////////////////////////////
-class CPARSERV1
-{
-public:
 
-	// constructor /////////////////////////////////////////////////
-	CPARSERV1();
 
-	// destructor ///////////////////////////////////////////////////
-	~CPARSERV1();
-
-	// reset file system ////////////////////////////////////////////
-	int Reset();
-
-	// open file /////////////////////////////////////////////////////
-	int Open(char* filename);
-
-	// close file ////////////////////////////////////////////////////
-	int Close();
-
-	// get line //////////////////////////////////////////////////////
-	char* Getline(int mode);
-
-	// sets the comment string ///////////////////////////////////////
-	int SetComment(char* string);
-
-	// find pattern in line //////////////////////////////////////////
-	int Pattern_Match(char* string, char* pattern, ...);
-
-	// VARIABLE DECLARATIONS /////////////////////////////////////////
-
-public:
-
-	FILE* fstream;                    // file pointer
-	char buffer[PARSER_BUFFER_SIZE];  // line buffer
-	int  length;                      // length of current line
-	int  num_lines;                   // number of lines processed
-	char comment[PARSER_MAX_COMMENT]; // single line comment string
-
-// pattern matching parameter storage, easier that variable arguments
-// anything matched will be stored here on exit from the call to pattern()
-	char  pstrings[PATTERN_MAX_ARGS][PATTERN_BUFFER_SIZE]; // any strings
-	int   num_pstrings;
-
-	float pfloats[PATTERN_MAX_ARGS];                       // any floats
-	int   num_pfloats;
-
-	int   pints[PATTERN_MAX_ARGS];                         // any ints
-	int   num_pints;
-
-}; 
 
 
 #define SIGN(x) ((x) > 0 ? (1) : (-1))
 
-
-
-extern MATV1 materials[MAX_MATERIALS]; // materials in system
-extern int num_materials;              // current number of materials
-
-
-extern LIGHTV1 lights[MAX_LIGHTS];  // lights in system
-extern int num_lights;              // current number of lights
-
-// these look up tables are used by the 8-bit lighting engine
-// the first one holds a color translation table in the form of each
-// row is a color 0..255, and each row consists of 256 shades of that color
-// the data in each row is the color/intensity indices and the resulting value
-// is an 8-bit index into the real color lookup that should be used as the color
-
-// the second table works by each index being a compressed 16bit RGB value
-// the data indexed by that RGB value IS the index 0..255 of the real
-// color lookup that matches the desired color the closest
-
-extern UCHAR rgbilookup[256][256];         // intensity RGB 8-bit lookup storage
-extern UCHAR rgblookup[65536];             // RGB 8-bit color lookup
 
 
 

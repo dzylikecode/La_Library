@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 			// [i] [i] [i] ²âÊÔ
 			printf("\nEnter pattern to match?");
 			std::cin.getline(pattern, 80);
-			while(pattern[0] == '\0')
+			while (pattern[0] == '\0')
 				std::cin.getline(pattern, 80);
 			// open the file
 			if (!parser.open(path + filename))
@@ -117,8 +117,8 @@ int main(int argc, char** argv)
 					printf("\n%d strings matched", parser.num_pstrings);
 					for (int s = 0; s < parser.num_pstrings; s++)
 						printf("\nString[%d]: %s", s, parser.pstrings[s]);
-				} 
-			} 
+				}
+			}
 			parser.close();
 		} break;
 
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 			exit(0);
 		} break;
 
-		} 
-	} 
+		}
+	}
 	return argc;
 }

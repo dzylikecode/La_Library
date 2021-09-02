@@ -144,6 +144,7 @@
 	int state;    
 	int attr;    
 	int color;    
+	int lightColor;
 	VECTOR4D* vlist; 
 	int vert[3];       //Ë÷Òý
 };

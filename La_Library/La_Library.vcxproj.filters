@@ -157,6 +157,15 @@
     <Filter Include="源文件\3D">
       <UniqueIdentifier>{40041efe-5d6b-4015-b6dd-9d29581593d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\File">
+      <UniqueIdentifier>{83787091-b023-4a16-9a67-a6e48809f978}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\File">
+      <UniqueIdentifier>{da55f1e2-142f-429e-9f5f-19f69409096e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Base">
+      <UniqueIdentifier>{380d649c-2dee-4b6d-bf5c-2bf984a92b52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="La_String.h">
@@ -285,9 +294,6 @@
     <ClInclude Include="La_Math_Andre.h">
       <Filter>头文件\Math\3D</Filter>
     </ClInclude>
-    <ClInclude Include="La_3DData.h">
-      <Filter>头文件\Math\3D</Filter>
-    </ClInclude>
     <ClInclude Include="La_Math3D.h">
       <Filter>头文件\Math\3D</Filter>
     </ClInclude>
@@ -299,6 +305,21 @@
     </ClInclude>
     <ClInclude Include="demo42_1.cpp">
       <Filter>源文件\test\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Color.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_3DData.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Parser.h">
+      <Filter>头文件\File</Filter>
+    </ClInclude>
+    <ClInclude Include="La_3DFile.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="La_BaseType.h">
+      <Filter>头文件\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -500,9 +521,6 @@
     <ClCompile Include="La_Math_Andre.cpp">
       <Filter>源文件\Math\3D</Filter>
     </ClCompile>
-    <ClCompile Include="La_3DData.cpp">
-      <Filter>源文件\Math\3D</Filter>
-    </ClCompile>
     <ClCompile Include="demo38.cpp">
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
@@ -528,6 +546,27 @@
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
     <ClCompile Include="demo42_3.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DData.cpp">
+      <Filter>源文件\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Parser.cpp">
+      <Filter>源文件\File</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DFile.cpp">
+      <Filter>源文件\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo43_41.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo44_41.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo45_41.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo46.cpp">
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
   </ItemGroup>

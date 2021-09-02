@@ -86,7 +86,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -100,7 +100,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -145,14 +145,21 @@
     <ClInclude Include="dmusici.h" />
     <ClInclude Include="La_3D.h" />
     <ClInclude Include="La_3DData.h" />
-    <ClInclude Include="La_3DLight.h">
+    <ClInclude Include="La_3DFile.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="La_3DLight.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="La_3DVector.h" />
     <ClInclude Include="La_Audio.h" />
     <ClInclude Include="La_AudioBase.h" />
+    <ClInclude Include="La_BaseType.h" />
     <ClInclude Include="La_Bitmap.h" />
     <ClInclude Include="La_Blink.h" />
+    <ClInclude Include="La_Color.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="La_Complex.h" />
     <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
@@ -176,6 +183,7 @@
     <ClInclude Include="La_Matrix.h" />
     <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Palette.h" />
+    <ClInclude Include="La_Parser.h" />
     <ClInclude Include="La_Physics.h" />
     <ClInclude Include="La_PhysicsBase.h" />
     <ClInclude Include="La_Polygon.h" />
@@ -309,6 +317,22 @@
     <ClCompile Include="demo42_3.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="demo43_41.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="demo44_41.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="demo45_41.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="demo46.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="demo4_绘制飞机.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -325,8 +349,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_3DData.cpp" />
-    <ClCompile Include="La_3DLight.cpp">
+    <ClCompile Include="La_3DFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="La_3DLight.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_AudioBase.cpp" />
     <ClCompile Include="La_Blink.cpp" />
@@ -336,6 +363,7 @@
     <ClCompile Include="La_InputBase.cpp" />
     <ClCompile Include="La_Math_Andre.cpp" />
     <ClCompile Include="La_Palette.cpp" />
+    <ClCompile Include="La_Parser.cpp" />
     <ClCompile Include="La_PhysicsBase.cpp" />
     <ClCompile Include="La_Vector.cpp" />
     <ClCompile Include="ToConvert.cpp">

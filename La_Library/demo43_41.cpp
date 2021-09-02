@@ -59,8 +59,8 @@ KEYBOARD keyboard;
 #define NUM_POINTS        (NUM_POINTS_X*NUM_POINTS_Z)
 
 // defines for objects
-#define NUM_TOWERS        96
-#define NUM_TANKS         24
+#define NUM_TOWERS        64 // 96
+#define NUM_TANKS         32 // 24
 #define TANK_SPEED        15
 
 
@@ -102,7 +102,7 @@ void StartUp(void)
 		WINDOW_WIDTH,   // size of final screen viewport
 		WINDOW_HEIGHT);
 
-	LoadPLG(obj_tank, path + TEXT("tank2.plg"), vpos, VECTOR4D(0.75, 0.75, 0.75), vrot);
+	LoadPLG(obj_tank, path + TEXT("tank3.plg"), vpos, VECTOR4D(0.75, 0.75, 0.75), vrot);
 	LoadPLG(obj_player, path + TEXT("tank2.plg"), vpos, VECTOR4D(0.75, 0.75, 0.75), vrot);
 
 
@@ -218,6 +218,29 @@ void GameBody(void)
 	// generate camera matrix
 	BuildEuler(cam, CAM_ROT_SEQ_ZYX);
 
+
+	// insert the player into the world
+	// reset the object (this only matters for backface and object removal)
+	Reset(obj_player);
+
+	// set position of tank
+	obj_player.world_pos.x = cam.pos.x + 300 * SinFast(cam.dir.y);
+	obj_player.world_pos.y = cam.pos.y - 70;
+	obj_player.world_pos.z = cam.pos.z + 300 * CosFast(cam.dir.y);
+
+	// generate rotation matrix around y axis
+	BuildXYZRotation(0, cam.dir.y + turning, 0, mrot);
+
+	// rotate the local coords of the object
+	Transform(obj_player, mrot, TRANSFORM_LOCAL_TO_TRANS);
+
+	// perform world transform
+	ModelToWorld(obj_player, TRANSFORM_TRANS_ONLY);
+
+	// insert the object into render list
+	Insert2(rend_list, obj_player, 0, 0);
+
+
 	// insert the tanks in the world
 	for (int index = 0; index < NUM_TANKS; index++)
 	{
@@ -244,31 +267,9 @@ void GameBody(void)
 			ModelToWorld(obj_tank, TRANSFORM_TRANS_ONLY);
 
 			// insert the object into render list
-			Insert(rend_list, obj_tank);
+			Insert2(rend_list, obj_tank, 0, 0);
 		}
 	}
-
-	// insert the player into the world
-	// reset the object (this only matters for backface and object removal)
-	Reset(obj_player);
-
-	// set position of tank
-	obj_player.world_pos.x = cam.pos.x + 300 * SinFast(cam.dir.y);
-	obj_player.world_pos.y = cam.pos.y - 70;
-	obj_player.world_pos.z = cam.pos.z + 300 * CosFast(cam.dir.y);
-
-	// generate rotation matrix around y axis
-	BuildXYZRotation(0, cam.dir.y + turning, 0, mrot);
-
-	// rotate the local coords of the object
-	Transform(obj_player, mrot, TRANSFORM_LOCAL_TO_TRANS);
-
-	// perform world transform
-	ModelToWorld(obj_player, TRANSFORM_TRANS_ONLY);
-
-	// insert the object into render list
-	Insert(rend_list, obj_player);
-
 
 	// insert the towers in the world
 	for (int index = 0; index < NUM_TOWERS; index++)
@@ -290,7 +291,7 @@ void GameBody(void)
 			ModelToWorld(obj_tower);
 
 			// insert the object into render list
-			Insert(rend_list, obj_tower);
+			Insert2(rend_list, obj_tower, 0, 0);
 		}
 
 	}
@@ -316,7 +317,7 @@ void GameBody(void)
 				ModelToWorld(obj_marker);
 
 				// insert the object into render list
-				Insert(rend_list, obj_marker);
+				Insert2(rend_list, obj_marker, 0, 0);
 			}
 		}
 	// remove backfaces
@@ -342,7 +343,7 @@ void GameBody(void)
 	BeginDrawOn();
 
 	// render the object
-	DrawWire(rend_list);
+	DrawSolid(rend_list);
 
 	EndDrawOn();
 

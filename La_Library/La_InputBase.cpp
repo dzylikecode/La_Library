@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+
 #include "La_InputBase.h"
 #include "La_WindowsBase.h"
 #include "La_Log.h"

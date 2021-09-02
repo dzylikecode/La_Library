@@ -281,6 +281,7 @@ public:
 public:
 	VECTOR4D() {};
 	VECTOR4D(float outX, float outY, float outZ) :x(outX), y(outY), z(outZ), w(1.0) {};
+	VECTOR4D(float outX, float outY, float outZ, float outW) :x(outX), y(outY), z(outZ), w(outW) {};
 	VECTOR4D(const VECTOR4D& v4) :x(v4.x), y(v4.y), z(v4.z), w(v4.w) {};
 	VECTOR4D(const VECTOR4D& init, const VECTOR4D& term) :x(term.x - init.x), y(term.y - init.y), z(term.z - init.z), w(1) {};
 	void set(const VECTOR4D& init, const VECTOR4D& term) { x = term.x - init.x; y = term.y - init.y; z = term.z - init.z; w = 1; }

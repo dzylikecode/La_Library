@@ -15,7 +15,6 @@
 *
 ***************************************************************************************
 */
-#define _CRT_SECURE_NO_WARNINGS
 #pragma once
 #include "La_WindowsBase.h"
 #include <stdio.h>

@@ -1,12 +1,17 @@
-// DEMOII8_3.CPP - Alpha blending demo 
-// to compile make sure to include DDRAW.LIB, DSOUND.LIB,
-// DINPUT.LIB, WINMM.LIB, and of course 
-// T3DLIB1.CPP,T3DLIB2.CPP,T3DLIB3.CPP..T3DLIB6.CPP
-// and only run app if desktop is in 16-bit color mode
+// DEMOII8_6.CPP - flat shading demo with z-sorting
+// READ THIS!
+// To compile make sure to include DDRAW.LIB, DSOUND.LIB,
+// DINPUT.LIB, DINPUT8.LIB, WINMM.LIB in the project link list, and of course 
+// the C++ source modules T3DLIB1-6.CPP and the headers T3DLIB1-6.H
+// be in the working directory of the compiler
 
 // INCLUDES ///////////////////////////////////////////////
 
-#define INITGUID
+#define DEBUG_ON
+
+#define INITGUID       // make sure al the COM interfaces are available
+					   // instead of this you can include the .LIB file
+					   // DXGUID.LIB
 
 #define WIN32_LEAN_AND_MEAN  
 
@@ -15,7 +20,7 @@
 #include <mmsystem.h>
 #include <iostream.h> // include important C/C++ stuff
 #include <conio.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <malloc.h>
 #include <memory.h>
 #include <string.h>
@@ -41,13 +46,11 @@
 
 // DEFINES ////////////////////////////////////////////////
 
-// defines for windows 
+// defines for windows interface
 #define WINDOW_CLASS_NAME "WIN3DCLASS"  // class name
-
-// setup a 640x480 16-bit windowed mode example
 #define WINDOW_TITLE      "T3D Graphics Console Ver 2.0"
-#define WINDOW_WIDTH      640   // size of window
-#define WINDOW_HEIGHT     480
+#define WINDOW_WIDTH      1024 // size of window
+#define WINDOW_HEIGHT     768
 
 #define WINDOW_BPP        16    // bitdepth of window (8,16,24 etc.)
 								// note: if windowed and not
@@ -56,10 +59,27 @@
 								// also if 8-bit the a pallete
 								// is created and attached
 
-#define WINDOWED_APP      1     // 0 not windowed, 1 windowed
+#define WINDOWED_APP      0     // 0 not windowed, 1 windowed
 
-#define TEXTSIZE           128 // size of texture mxm
-#define NUM_TEXT           12  // number of textures
+
+// defines for the game universe 
+#define UNIVERSE_RADIUS   4000
+
+#define POINT_SIZE        100
+#define NUM_POINTS_X      (2*UNIVERSE_RADIUS/POINT_SIZE)
+#define NUM_POINTS_Z      (2*UNIVERSE_RADIUS/POINT_SIZE)
+#define NUM_POINTS        (NUM_POINTS_X*NUM_POINTS_Z)
+
+// defines for objects
+#define NUM_TOWERS        64 // 96
+#define NUM_TANKS         32 // 24
+#define TANK_SPEED        15
+
+// create some constants for ease of access
+#define AMBIENT_LIGHT_INDEX   0 // ambient light index
+#define INFINITE_LIGHT_INDEX  1 // infinite light index
+#define POINT_LIGHT_INDEX     2 // point light index
+#define SPOT_LIGHT_INDEX      3 // spot light index
 
 // PROTOTYPES /////////////////////////////////////////////
 
@@ -72,11 +92,30 @@ int Game_Main(void* parms = NULL);
 
 HWND main_window_handle = NULL; // save the window handle
 HINSTANCE main_instance = NULL; // save the instance
-char buffer[80];                          // used to print text
+char buffer[2048];                        // used to print text
 
-BITMAP_IMAGE textures1[NUM_TEXT],  // holds source texture library  1
-textures2[NUM_TEXT],  // holds source texture library  2
-temp_text;            // temporary working texture
+// initialize camera position and direction
+POINT4D  cam_pos = { 0,40,0,1 };
+POINT4D  cam_target = { 0,0,0,1 };
+VECTOR4D cam_dir = { 0,0,0,1 };
+
+// all your initialization code goes here...
+VECTOR4D vscale = { 1.0,1.0,1.0,1 },
+vpos = { 0,0,0,1 },
+vrot = { 0,0,0,1 };
+
+CAM4DV1        cam;       // the single camera
+
+OBJECT4DV1     obj_tower,    // used to hold the master tower
+obj_tank,     // used to hold the master tank
+obj_marker,   // the ground marker
+obj_player;   // the player object             
+
+POINT4D        towers[NUM_TOWERS],
+tanks[NUM_TANKS];
+
+RENDERLIST4DV1 rend_list; // the render list
+
 
 // FUNCTIONS //////////////////////////////////////////////
 
@@ -133,13 +172,13 @@ int WINAPI WinMain(HINSTANCE hinstance,
 {
 	// this is the winmain function
 
-	WNDCLASSEX winclass; // this will hold the class we create
-	HWND	   hwnd;	 // generic window handle
-	MSG		   msg;		 // generic message
-	HDC        hdc;      // graphics device context
+	WNDCLASS winclass;	// this will hold the class we create
+	HWND	 hwnd;		// generic window handle
+	MSG		 msg;		// generic message
+	HDC      hdc;       // generic dc
+	PAINTSTRUCT ps;     // generic paintstruct
 
 	// first fill in the window class stucture
-	winclass.cbSize = sizeof(WNDCLASSEX);
 	winclass.style = CS_DBLCLKS | CS_OWNDC |
 		CS_HREDRAW | CS_VREDRAW;
 	winclass.lpfnWndProc = WindowProc;
@@ -151,31 +190,30 @@ int WINAPI WinMain(HINSTANCE hinstance,
 	winclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	winclass.lpszMenuName = NULL;
 	winclass.lpszClassName = WINDOW_CLASS_NAME;
-	winclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-	// save hinstance in global
-	main_instance = hinstance;
 
 	// register the window class
-	if (!RegisterClassEx(&winclass))
+	if (!RegisterClass(&winclass))
 		return(0);
 
-	// create the window
-	if (!(hwnd = CreateWindowEx(NULL,                  // extended style
-		WINDOW_CLASS_NAME,     // class
-		WINDOW_TITLE, // title
+	// create the window, note the test to see if WINDOWED_APP is
+	// true to select the appropriate window flags
+	if (!(hwnd = CreateWindow(WINDOW_CLASS_NAME, // class
+		WINDOW_TITLE,	 // title
 		(WINDOWED_APP ? (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION) : (WS_POPUP | WS_VISIBLE)),
-		0, 0,	  // initial x,y
-		WINDOW_WIDTH, WINDOW_HEIGHT,  // initial width, height
-		NULL,	  // handle to parent 
-		NULL,	  // handle to menu
-		hinstance,// instance of this application
-		NULL)))	// extra creation parms
+		0, 0,	   // x,y
+		WINDOW_WIDTH,  // width
+		WINDOW_HEIGHT, // height
+		NULL,	   // handle to parent 
+		NULL,	   // handle to menu
+		hinstance,// instance
+		NULL)))	// creation parms
 		return(0);
 
-	// save main window handle
+	// save the window handle and instance in a global
 	main_window_handle = hwnd;
+	main_instance = hinstance;
 
+	// resize the window so that client is really width x height
 	if (WINDOWED_APP)
 	{
 		// now resize the window, so the client area is the actual size requested
@@ -205,9 +243,12 @@ int WINAPI WinMain(HINSTANCE hinstance,
 		ShowWindow(main_window_handle, SW_SHOW);
 	} // end if windowed
 
-
 	// perform all game console specific initialization
 	Game_Init();
+
+	// disable CTRL-ALT_DEL, ALT_TAB, comment this line out 
+	// if it causes your system to crash
+	SystemParametersInfo(SPI_SCREENSAVERRUNNING, TRUE, NULL, 0);
 
 	// enter main event loop
 	while (1)
@@ -233,73 +274,174 @@ int WINAPI WinMain(HINSTANCE hinstance,
 // shutdown game and release all resources
 	Game_Shutdown();
 
+	// enable CTRL-ALT_DEL, ALT_TAB, comment this line out 
+	// if it causes your system to crash
+	SystemParametersInfo(SPI_SCREENSAVERRUNNING, FALSE, NULL, 0);
+
 	// return to Windows like this
 	return(msg.wParam);
 
 } // end WinMain
 
-// T3D GAME PROGRAMMING CONSOLE FUNCTIONS ////////////////
+// T3D II GAME PROGRAMMING CONSOLE FUNCTIONS ////////////////
 
 int Game_Init(void* parms)
 {
 	// this function is where you do all the initialization 
 	// for your game
 
-	int index; // looping variable
+	int index; // looping var
 
-	// initialize directdraw, very important that in the call
-	// to setcooperativelevel that the flag DDSCL_MULTITHREADED is used
-	// which increases the response of directX graphics to
-	// take the global critical section more frequently
+	// start up DirectDraw (replace the parms as you desire)
 	DDraw_Init(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BPP, WINDOWED_APP);
-
-	// load in the textures
-	Load_Bitmap_File(&bitmap16bit, "OMPTXT128_24.BMP");
-
-	// now extract each 128x128x16 texture from the image
-	for (int itext = 0; itext < NUM_TEXT; itext++)
-	{
-		// create the bitmap
-		Create_Bitmap(&textures1[itext], (WINDOW_WIDTH / 2) - 4 * (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) - 2 * (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
-		Load_Image_Bitmap16(&textures1[itext], &bitmap16bit, itext % 4, itext / 4, BITMAP_EXTRACT_MODE_CELL);
-	} // end for
-
-// create temporary working texture (load with first texture to set loaded flags)
-	Create_Bitmap(&temp_text, (WINDOW_WIDTH / 2) - (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) + (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
-	Load_Image_Bitmap16(&temp_text, &bitmap16bit, 0, 0, BITMAP_EXTRACT_MODE_CELL);
-
-	// done, so unload the bitmap
-	Unload_Bitmap_File(&bitmap16bit);
-
-
-	// load in the textures
-	Load_Bitmap_File(&bitmap16bit, "SEXTXT128_24.BMP");
-
-	// now extract each 128x128x16 texture from the image
-	for (itext = 0; itext < NUM_TEXT; itext++)
-	{
-		// create the bitmap
-		Create_Bitmap(&textures2[itext], (WINDOW_WIDTH / 2) + 2 * (TEXTSIZE / 2), (WINDOW_HEIGHT / 2) - 2 * (TEXTSIZE / 2), TEXTSIZE, TEXTSIZE, 16);
-		Load_Image_Bitmap16(&textures2[itext], &bitmap16bit, itext % 4, itext / 4, BITMAP_EXTRACT_MODE_CELL);
-	} // end for
-
-// done, so unload the bitmap
-	Unload_Bitmap_File(&bitmap16bit);
 
 	// initialize directinput
 	DInput_Init();
 
-	// acquire the keyboard only
+	// acquire the keyboard 
 	DInput_Init_Keyboard();
+
+	// add calls to acquire other directinput devices here...
+
+	// initialize directsound and directmusic
+	DSound_Init();
+	DMusic_Init();
 
 	// hide the mouse
 	if (!WINDOWED_APP)
 		ShowCursor(FALSE);
 
-	// seed random number generate
+	// seed random number generator
 	srand(Start_Clock());
 
-	// return success
+	Open_Error_File("ERROR.TXT");
+
+	// initialize math engine
+	Build_Sin_Cos_Tables();
+
+	// initialize the camera with 90 FOV, normalized coordinates
+	Init_CAM4DV1(&cam,      // the camera object
+		CAM_MODEL_EULER, // the euler model
+		&cam_pos,  // initial camera position
+		&cam_dir,  // initial camera angles
+		&cam_target,      // no target
+		200.0,      // near and far clipping planes
+		12000.0,
+		120.0,      // field of view in degrees
+		WINDOW_WIDTH,   // size of final screen viewport
+		WINDOW_HEIGHT);
+
+	// load the master tank object
+	VECTOR4D_INITXYZ(&vscale, 0.75, 0.75, 0.75);
+	Load_OBJECT4DV1_PLG(&obj_tank, "tank3.plg", &vscale, &vpos, &vrot);
+
+	//Load_OBJECT4DV1_3DSASC(&obj_tank,"sphere01.asc",  
+	//                       &vscale, &vpos, &vrot, 
+	//                       VERTEX_FLAGS_INVERT_WINDING_ORDER | VERTEX_FLAGS_SWAP_YZ );
+
+
+	// load player object for 3rd person view
+	VECTOR4D_INITXYZ(&vscale, 0.75, 0.75, 0.75);
+	Load_OBJECT4DV1_PLG(&obj_player, "tank2.plg", &vscale, &vpos, &vrot);
+
+	//Load_OBJECT4DV1_3DSASC(&obj_player,"sphere01.asc",  
+	//                       &vscale, &vpos, &vrot, 
+	//                       VERTEX_FLAGS_INVERT_WINDING_ORDER | VERTEX_FLAGS_SWAP_YZ );
+
+
+	// load the master tower object
+	VECTOR4D_INITXYZ(&vscale, 1.0, 2.0, 1.0);
+	Load_OBJECT4DV1_PLG(&obj_tower, "tower1.plg", &vscale, &vpos, &vrot);
+
+	// load the master ground marker
+	VECTOR4D_INITXYZ(&vscale, 3.0, 3.0, 3.0);
+	Load_OBJECT4DV1_PLG(&obj_marker, "marker1.plg", &vscale, &vpos, &vrot);
+
+	// position the tanks
+	for (index = 0; index < NUM_TANKS; index++)
+	{
+		// randomly position the tanks
+		tanks[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
+		tanks[index].y = 0; // obj_tank.max_radius;
+		tanks[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
+		tanks[index].w = RAND_RANGE(0, 360);
+	} // end for
+
+// position the towers
+	for (index = 0; index < NUM_TOWERS; index++)
+	{
+		// randomly position the tower
+		towers[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
+		towers[index].y = 0; // obj_tower.max_radius;
+		towers[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
+	} // end for
+
+// set up lights
+	Reset_Lights_LIGHTV1();
+
+	// create some working colors
+	RGBAV1 white, gray, black, red, green, blue;
+
+	white.rgba = _RGBA32BIT(255, 255, 255, 0);
+	gray.rgba = _RGBA32BIT(100, 100, 100, 0);
+	black.rgba = _RGBA32BIT(0, 0, 0, 0);
+	red.rgba = _RGBA32BIT(255, 0, 0, 0);
+	green.rgba = _RGBA32BIT(0, 255, 0, 0);
+	blue.rgba = _RGBA32BIT(0, 0, 255, 0);
+
+
+	// ambient light
+	Init_Light_LIGHTV1(AMBIENT_LIGHT_INDEX,
+		LIGHTV1_STATE_ON,      // turn the light on
+		LIGHTV1_ATTR_AMBIENT,  // ambient light type
+		gray, black, black,    // color for ambient term only
+		NULL, NULL,            // no need for pos or dir
+		0, 0, 0,                 // no need for attenuation
+		0, 0, 0);                // spotlight info NA
+
+
+	VECTOR4D dlight_dir = { -1,0,-1,0 };
+
+	// directional light
+	Init_Light_LIGHTV1(INFINITE_LIGHT_INDEX,
+		LIGHTV1_STATE_ON,      // turn the light on
+		LIGHTV1_ATTR_INFINITE, // infinite light type
+		black, gray, black,    // color for diffuse term only
+		NULL, &dlight_dir,     // need direction only
+		0, 0, 0,                 // no need for attenuation
+		0, 0, 0);                // spotlight info NA
+
+
+	VECTOR4D plight_pos = { 0,200,0,0 };
+
+	// point light
+	Init_Light_LIGHTV1(POINT_LIGHT_INDEX,
+		LIGHTV1_STATE_ON,      // turn the light on
+		LIGHTV1_ATTR_POINT,    // pointlight type
+		black, green, black,   // color for diffuse term only
+		&plight_pos, NULL,     // need pos only
+		0, .001, 0,              // linear attenuation only
+		0, 0, 1);                // spotlight info NA
+
+	VECTOR4D slight_pos = { 0,200,0,0 };
+	VECTOR4D slight_dir = { -1,0,-1,0 };
+
+	// spot light
+	Init_Light_LIGHTV1(SPOT_LIGHT_INDEX,
+		LIGHTV1_STATE_ON,         // turn the light on
+		LIGHTV1_ATTR_SPOTLIGHT2,  // spot light type 2
+		black, red, black,      // color for diffuse term only
+		&slight_pos, &slight_dir, // need pos only
+		0, .001, 0,                 // linear attenuation only
+		0, 0, 1);
+
+
+	// create lookup for lighting engine
+	RGB_16_8_IndexedRGB_Table_Builder(DD_PIXEL_FORMAT565,  // format we want to build table for
+		palette,             // source palette
+		rgblookup);          // lookup table
+
+// return success
 	return(1);
 
 } // end Game_Init
@@ -313,15 +455,27 @@ int Game_Shutdown(void* parms)
 
 	// shut everything down
 
-	// shutdown directdraw last
-	DDraw_Shutdown();
+	// release all your resources created for the game here....
 
 	// now directsound
 	DSound_Stop_All_Sounds();
+	DSound_Delete_All_Sounds();
 	DSound_Shutdown();
 
+	// directmusic
+	DMusic_Delete_All_MIDI();
+	DMusic_Shutdown();
+
 	// shut down directinput
+	DInput_Release_Keyboard();
+
+	// shutdown directinput
 	DInput_Shutdown();
+
+	// shutdown directdraw last
+	DDraw_Shutdown();
+
+	Close_Error_File();
 
 	// return success
 	return(1);
@@ -335,144 +489,408 @@ int Game_Main(void* parms)
 	// continuously in real-time this is like main() in C
 	// all the calls for you game go here!
 
-	int          index;               // looping var
-	static int   curr_texture1 = 0;  // source texture 1
-	static int   curr_texture2 = 5;  // source texture 2
-	static float alphaf = .5;  // alpha blending factor
+	static MATRIX4X4 mrot;   // general rotation matrix
+
+	// these are used to create a circling camera
+	static float view_angle = 0;
+	static float camera_distance = 6000;
+	static VECTOR4D pos = { 0,0,0,0 };
+	static float tank_speed;
+	static float turning = 0;
+	// state variables for different rendering modes and help
+	static int wireframe_mode = -1;
+	static int backface_mode = 1;
+	static int lighting_mode = 1;
+	static int help_mode = 1;
+	static int zsort_mode = 1;
+
+	char work_string[256]; // temp string
+
+	int index; // looping var
 
 	// start the timing clock
 	Start_Clock();
 
-	// clear the drawing surface
+	// clear the drawing surface 
 	DDraw_Fill_Surface(lpddsback, 0);
 
-	// lock back buffer and copy background into it
-	DDraw_Lock_Back_Surface();
+	// draw the sky
+	//Draw_Rectangle(0,0, WINDOW_WIDTH-1, WINDOW_HEIGHT/2, 166, lpddsback);
+	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, rgblookup[RGB16Bit565(115,42,16)], lpddsback);
+	//Draw_Rectangle(0,0, WINDOW_WIDTH-1, WINDOW_HEIGHT/2, rgblookup[RGB16Bit565(0,140,192)], lpddsback);
+	Draw_Rectangle(0, 0, WINDOW_WIDTH - 1, WINDOW_HEIGHT / 2, RGB16Bit(0, 140, 192), lpddsback);
 
-	///////////////////////////////////////////
-	// our little image processing algorithm :)
+	// draw the ground
+	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, 28, lpddsback);
+	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, rgblookup[RGB16Bit565(115,42,16)], lpddsback);
+	Draw_Rectangle(0, WINDOW_HEIGHT / 2, WINDOW_WIDTH - 1, WINDOW_HEIGHT - 1, RGB16Bit(103, 62, 3), lpddsback);
 
-	//Pixel_dest[x][y]rgb = alpha    * pixel_source1[x][y]rgb + 
-	//                      (1-alpha)* pixel_source2[x][y]rgb
-
-	USHORT* s1buffer = (USHORT*)textures1[curr_texture1].buffer;
-	USHORT* s2buffer = (USHORT*)textures2[curr_texture2].buffer;
-	USHORT* tbuffer = (USHORT*)temp_text.buffer;
-
-	// perform RGB transformation on bitmap
-	for (int iy = 0; iy < temp_text.height; iy++)
-		for (int ix = 0; ix < temp_text.width; ix++)
-		{
-			int rs1, gs1, bs1;   // used to extract the source rgb values
-			int rs2, gs2, bs2; // light map rgb values
-			int rf, gf, bf;   // the final rgb terms
-
-			// extract pixel from source bitmap
-			USHORT s1pixel = s1buffer[iy * temp_text.width + ix];
-
-			// extract RGB values
-			_RGB565FROM16BIT(s1pixel, &rs1, &gs1, &bs1);
-
-			// extract pixel from lightmap bitmap
-			USHORT s2pixel = s2buffer[iy * temp_text.width + ix];
-
-			// extract RGB values
-			_RGB565FROM16BIT(s2pixel, &rs2, &gs2, &bs2);
-
-			// alpha blend them
-			rf = (alphaf * (float)rs1) + ((1 - alphaf) * (float)rs2);
-			gf = (alphaf * (float)gs1) + ((1 - alphaf) * (float)gs2);
-			bf = (alphaf * (float)bs1) + ((1 - alphaf) * (float)bs2);
-
-			// test for overflow
-			if (rf > 255) rf = 255;
-			if (gf > 255) gf = 255;
-			if (bf > 255) bf = 255;
-
-			// rebuild RGB and test for overflow
-			// and write back to buffer
-			tbuffer[iy * temp_text.width + ix] = _RGB16BIT565(rf, gf, bf);
-
-		} // end for ix     
-
-////////////////////////////////////////
-
-// draw textures
-	Draw_Bitmap16(&temp_text, back_buffer, back_lpitch, 0);
-
-	Draw_Bitmap16(&textures1[curr_texture1], back_buffer, back_lpitch, 0);
-
-	Draw_Bitmap16(&textures2[curr_texture2], back_buffer, back_lpitch, 0);
-
-	// unlock back surface
-	DDraw_Unlock_Back_Surface();
-
-	// read keyboard
+	// read keyboard and other devices here
 	DInput_Read_Keyboard();
 
-	// test if user wants to change texture
-	if (keyboard_state[DIK_RIGHT])
-	{
-		if (++curr_texture1 > (NUM_TEXT - 1))
-			curr_texture1 = (NUM_TEXT - 1);
+	// game logic here...
 
-		Wait_Clock(100);
-	} // end if
+	// reset the render list
+	Reset_RENDERLIST4DV1(&rend_list);
 
-	if (keyboard_state[DIK_LEFT])
-	{
-		if (--curr_texture1 < 0)
-			curr_texture1 = 0;
+	// allow user to move camera
 
-		Wait_Clock(100);
-	} // end if
+	// turbo
+	if (keyboard_state[DIK_SPACE])
+		tank_speed = 5 * TANK_SPEED;
+	else
+		tank_speed = TANK_SPEED;
 
-
- // test if user wants to change ligthmap texture
+	// forward/backward
 	if (keyboard_state[DIK_UP])
 	{
-		if (++curr_texture2 > (NUM_TEXT - 1))
-			curr_texture2 = (NUM_TEXT - 1);
-
-		Wait_Clock(100);
+		// move forward
+		cam.pos.x += tank_speed * Fast_Sin(cam.dir.y);
+		cam.pos.z += tank_speed * Fast_Cos(cam.dir.y);
 	} // end if
 
 	if (keyboard_state[DIK_DOWN])
 	{
-		if (--curr_texture2 < 0)
-			curr_texture2 = 0;
-
-		Wait_Clock(100);
+		// move backward
+		cam.pos.x -= tank_speed * Fast_Sin(cam.dir.y);
+		cam.pos.z -= tank_speed * Fast_Cos(cam.dir.y);
 	} // end if
 
- // is user changing scaling factor
-	if (keyboard_state[DIK_PGUP])
+ // rotate
+	if (keyboard_state[DIK_RIGHT])
 	{
-		alphaf += .01;
-		if (alphaf > 1)
-			alphaf = 1;
-		Wait_Clock(10);
+		cam.dir.y += 3;
+
+		// add a little turn to object
+		if ((turning += 2) > 15)
+			turning = 15;
 	} // end if
 
-	if (keyboard_state[DIK_PGDN])
+	if (keyboard_state[DIK_LEFT])
 	{
-		alphaf -= .01;
-		if (alphaf < 0)
-			alphaf = 0;
+		cam.dir.y -= 3;
 
-		Wait_Clock(10);
+		// add a little turn to object
+		if ((turning -= 2) < -15)
+			turning = -15;
+
+	} // end if
+	else // center heading again
+	{
+		if (turning > 0)
+			turning -= 1;
+		else
+			if (turning < 0)
+				turning += 1;
+
+	} // end else
+
+ // modes and lights
+
+ // wireframe mode
+	if (keyboard_state[DIK_W])
+	{
+		// toggle wireframe mode
+		wireframe_mode = -wireframe_mode;
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // backface removal
+	if (keyboard_state[DIK_B])
+	{
+		// toggle backface removal
+		backface_mode = -backface_mode;
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // lighting
+	if (keyboard_state[DIK_L])
+	{
+		// toggle lighting engine completely
+		lighting_mode = -lighting_mode;
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // toggle ambient light
+	if (keyboard_state[DIK_A])
+	{
+		// toggle ambient light
+		if (lights[AMBIENT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+			lights[AMBIENT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+		else
+			lights[AMBIENT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // toggle infinite light
+	if (keyboard_state[DIK_I])
+	{
+		// toggle ambient light
+		if (lights[INFINITE_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+			lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+		else
+			lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // toggle point light
+	if (keyboard_state[DIK_P])
+	{
+		// toggle point light
+		if (lights[POINT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+			lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+		else
+			lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
 	} // end if
 
 
- // draw title
-	Draw_Text_GDI("Use <RIGHT>/<LEFT> arrows to change texture 1.", 10, 4, RGB(255, 255, 255), lpddsback);
-	Draw_Text_GDI("Use <UP>/<DOWN> arrows to change the texture 2.", 10, 20, RGB(255, 255, 255), lpddsback);
-	Draw_Text_GDI("Use <PAGE UP>/<PAGE DOWN> arrows to change blending factor alpha.", 10, 36, RGB(255, 255, 255), lpddsback);
-	Draw_Text_GDI("Press <ESC> to Exit. ", 10, 56, RGB(255, 255, 255), lpddsback);
+ // toggle spot light
+	if (keyboard_state[DIK_S])
+	{
+		// toggle spot light
+		if (lights[SPOT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+			lights[SPOT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+		else
+			lights[SPOT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
-	// print stats
-	sprintf(buffer, "Texture 1: %d, Texture 2: %d, Blending factor: %f", curr_texture1, curr_texture2, alphaf);
-	Draw_Text_GDI(buffer, 10, WINDOW_HEIGHT - 20, RGB(255, 255, 255), lpddsback);
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+
+ // help menu
+	if (keyboard_state[DIK_H])
+	{
+		// toggle help menu 
+		help_mode = -help_mode;
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+ // z-sorting
+	if (keyboard_state[DIK_Z])
+	{
+		// toggle z sorting
+		zsort_mode = -zsort_mode;
+		Wait_Clock(100); // wait, so keyboard doesn't bounce
+	} // end if
+
+
+
+	static float plight_ang = 0, slight_ang = 0; // angles for light motion
+
+	// move point light source in ellipse around game world
+	lights[POINT_LIGHT_INDEX].pos.x = 4000 * Fast_Cos(plight_ang);
+	lights[POINT_LIGHT_INDEX].pos.y = 200;
+	lights[POINT_LIGHT_INDEX].pos.z = 4000 * Fast_Sin(plight_ang);
+
+	if ((plight_ang += 3) > 360)
+		plight_ang = 0;
+
+	// move spot light source in ellipse around game world
+	lights[SPOT_LIGHT_INDEX].pos.x = 2000 * Fast_Cos(slight_ang);
+	lights[SPOT_LIGHT_INDEX].pos.y = 200;
+	lights[SPOT_LIGHT_INDEX].pos.z = 2000 * Fast_Sin(slight_ang);
+
+	if ((slight_ang -= 5) < 0)
+		slight_ang = 360;
+
+	// generate camera matrix
+	Build_CAM4DV1_Matrix_Euler(&cam, CAM_ROT_SEQ_ZYX);
+
+	// insert the player into the world
+	// reset the object (this only matters for backface and object removal)
+	Reset_OBJECT4DV1(&obj_player);
+
+	// set position of tank
+	obj_player.world_pos.x = cam.pos.x + 300 * Fast_Sin(cam.dir.y);
+	obj_player.world_pos.y = cam.pos.y - 70;
+	obj_player.world_pos.z = cam.pos.z + 300 * Fast_Cos(cam.dir.y);
+
+	// generate rotation matrix around y axis
+	Build_XYZ_Rotation_MATRIX4X4(0, cam.dir.y + turning, 0, &mrot);
+
+	// rotate the local coords of the object
+	Transform_OBJECT4DV1(&obj_player, &mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
+
+	// perform world transform
+	Model_To_World_OBJECT4DV1(&obj_player, TRANSFORM_TRANS_ONLY);
+
+	// insert the object into render list
+	Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_player, 0, 0);
+
+	//////////////////////////////////////////////////////////
+
+	// insert the tanks in the world
+	for (index = 0; index < NUM_TANKS; index++)
+	{
+		// reset the object (this only matters for backface and object removal)
+		Reset_OBJECT4DV1(&obj_tank);
+
+		// generate rotation matrix around y axis
+		Build_XYZ_Rotation_MATRIX4X4(0, tanks[index].w, 0, &mrot);
+
+		// rotate the local coords of the object
+		Transform_OBJECT4DV1(&obj_tank, &mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
+
+		// set position of tank
+		obj_tank.world_pos.x = tanks[index].x;
+		obj_tank.world_pos.y = tanks[index].y;
+		obj_tank.world_pos.z = tanks[index].z;
+
+		// attempt to cull object   
+		if (!Cull_OBJECT4DV1(&obj_tank, &cam, CULL_OBJECT_XYZ_PLANES))
+		{
+			// if we get here then the object is visible at this world position
+			// so we can insert it into the rendering list
+			// perform local/model to world transform
+			Model_To_World_OBJECT4DV1(&obj_tank, TRANSFORM_TRANS_ONLY);
+
+			// insert the object into render list
+			Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_tank, 0, 0);
+		} // end if
+
+	} // end for
+
+////////////////////////////////////////////////////////
+
+// insert the towers in the world
+	for (index = 0; index < NUM_TOWERS; index++)
+	{
+		// reset the object (this only matters for backface and object removal)
+		Reset_OBJECT4DV1(&obj_tower);
+
+		// set position of tower
+		obj_tower.world_pos.x = towers[index].x;
+		obj_tower.world_pos.y = towers[index].y;
+		obj_tower.world_pos.z = towers[index].z;
+
+		// attempt to cull object   
+		if (!Cull_OBJECT4DV1(&obj_tower, &cam, CULL_OBJECT_XYZ_PLANES))
+		{
+			// if we get here then the object is visible at this world position
+			// so we can insert it into the rendering list
+			// perform local/model to world transform
+			Model_To_World_OBJECT4DV1(&obj_tower);
+
+			// insert the object into render list
+			Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_tower, 0, 0);
+
+		} // end if
+
+	} // end for
+
+///////////////////////////////////////////////////////////////
+
+// seed number generator so that modulation of markers is always the same
+	srand(13);
+
+	// insert the ground markers into the world
+	for (int index_x = 0; index_x < NUM_POINTS_X; index_x++)
+		for (int index_z = 0; index_z < NUM_POINTS_Z; index_z++)
+		{
+			// reset the object (this only matters for backface and object removal)
+			Reset_OBJECT4DV1(&obj_marker);
+
+			// set position of tower
+			obj_marker.world_pos.x = RAND_RANGE(-100, 100) - UNIVERSE_RADIUS + index_x * POINT_SIZE;
+			obj_marker.world_pos.y = obj_marker.max_radius;
+			obj_marker.world_pos.z = RAND_RANGE(-100, 100) - UNIVERSE_RADIUS + index_z * POINT_SIZE;
+
+			// attempt to cull object   
+			if (!Cull_OBJECT4DV1(&obj_marker, &cam, CULL_OBJECT_XYZ_PLANES))
+			{
+				// if we get here then the object is visible at this world position
+				// so we can insert it into the rendering list
+				// perform local/model to world transform
+				Model_To_World_OBJECT4DV1(&obj_marker);
+
+				// insert the object into render list
+				Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_marker, 0, 0);
+
+			} // end if
+
+		} // end for
+
+////////////////////////////////////////////////////////////////////////
+
+// remove backfaces
+	if (backface_mode == 1)
+		Remove_Backfaces_RENDERLIST4DV1(&rend_list, &cam);
+
+	// light scene all at once 
+	if (lighting_mode == 1)
+		Light_RENDERLIST4DV1_World16(&rend_list, &cam, lights, 4);
+
+	// apply world to camera transform
+	World_To_Camera_RENDERLIST4DV1(&rend_list, &cam);
+
+	// sort the polygon list (hurry up!)
+	if (zsort_mode == 1)
+		Sort_RENDERLIST4DV1(&rend_list, SORT_POLYLIST_AVGZ);
+
+	// apply camera to perspective transformation
+	Camera_To_Perspective_RENDERLIST4DV1(&rend_list, &cam);
+
+	// apply screen transform
+	Perspective_To_Screen_RENDERLIST4DV1(&rend_list, &cam);
+
+	sprintf(work_string, "pos:[%f, %f, %f] heading:[%f] elev:[%f], polys[%d]",
+		cam.pos.x, cam.pos.y, cam.pos.z, cam.dir.y, cam.dir.x, debug_polys_rendered_per_frame);
+
+	Draw_Text_GDI(work_string, 0, WINDOW_HEIGHT - 20, RGB(0, 255, 0), lpddsback);
+
+	sprintf(work_string, "Lighting [%s]: Ambient=%d, Infinite=%d, Point=%d, Spot=%d | Zsort [%s], BckFceRM [%s]",
+		((lighting_mode == 1) ? "ON" : "OFF"),
+		lights[AMBIENT_LIGHT_INDEX].state,
+		lights[INFINITE_LIGHT_INDEX].state,
+		lights[POINT_LIGHT_INDEX].state,
+		lights[SPOT_LIGHT_INDEX].state,
+		((zsort_mode == 1) ? "ON" : "OFF"),
+		((backface_mode == 1) ? "ON" : "OFF"));
+
+	Draw_Text_GDI(work_string, 0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), lpddsback);
+
+	// draw instructions
+	Draw_Text_GDI("Press ESC to exit. Press <H> for Help.", 0, 0, RGB(0, 255, 0), lpddsback);
+
+	// should we display help
+	int text_y = 16;
+	if (help_mode == 1)
+	{
+		// draw help menu
+		Draw_Text_GDI("<A>..............Toggle ambient light source.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<I>..............Toggle infinite light source.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<P>..............Toggle point light source.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<S>..............Toggle spot light source.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<W>..............Toggle wire frame/solid mode.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<B>..............Toggle backface removal.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<RIGHT ARROW>....Rotate player right.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<LEFT ARROW>.....Rotate player left.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<UP ARROW>.......Move player forward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<DOWN ARROW>.....Move player backward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<SPACE BAR>......Turbo.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<H>..............Toggle Help.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<ESC>............Exit demo.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+
+	} // end help
+
+// lock the back buffer
+	DDraw_Lock_Back_Surface();
+
+	// reset number of polys rendered
+	debug_polys_rendered_per_frame = 0;
+
+	// render the object
+	if (wireframe_mode == 1)
+		Draw_RENDERLIST4DV1_Wire16(&rend_list, back_buffer, back_lpitch);
+	else
+		Draw_RENDERLIST4DV1_Solid16(&rend_list, back_buffer, back_lpitch);
+
+	// unlock the back buffer
+	DDraw_Unlock_Back_Surface();
 
 	// flip the surfaces
 	DDraw_Flip();
@@ -484,10 +902,6 @@ int Game_Main(void* parms)
 	if (KEY_DOWN(VK_ESCAPE) || keyboard_state[DIK_ESCAPE])
 	{
 		PostMessage(main_window_handle, WM_DESTROY, 0, 0);
-
-		// stop all sounds
-		DSound_Stop_All_Sounds();
-
 	} // end if
 
 // return success
@@ -496,4 +910,3 @@ int Game_Main(void* parms)
 } // end Game_Main
 
 //////////////////////////////////////////////////////////
-
