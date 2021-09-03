@@ -321,6 +321,9 @@
     <ClInclude Include="La_BaseType.h">
       <Filter>头文件\Base</Filter>
     </ClInclude>
+    <ClInclude Include="La_3DTexture.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -568,6 +571,15 @@
     </ClCompile>
     <ClCompile Include="demo46.cpp">
       <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo47.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo48.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DTexture.cpp">
+      <Filter>源文件\3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

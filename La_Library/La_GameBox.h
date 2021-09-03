@@ -42,6 +42,7 @@ private:
 	EXTEND_FUNCTION gameBody;
 public:
 	GAMEBox();
+	void setClassStyle(UINT style) { wndclassEx.style = style; }
 	void loadCursor(int Macro) { wndclassEx.hCursor = LoadCursor(wndclassEx.hInstance, MAKEINTRESOURCE(Macro)); }
 	void loadCursor(LPCTSTR filePath) { wndclassEx.hCursor = LoadCursorFromFile(filePath); }
 	void loadSmallIcon(int Macro) { wndclassEx.hIconSm = LoadIcon(wndclassEx.hInstance, MAKEINTRESOURCE(Macro)); }

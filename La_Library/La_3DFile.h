@@ -1,5 +1,7 @@
 #pragma once
 #include "La_BaseType.h"
+#include "La_3DData.h"
+#include "La_3DLight.h"
 // pcx file header
 struct PCX_HEADER
 {
@@ -21,5 +23,5 @@ struct PCX_HEADER
 	UCHAR  filler[54];      // filler bytes
 };
 
-int Load3DSASC(OBJECT4DV1& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
-int LoadCOB(OBJECT4DV1& obj, char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials);
+int Load3DSASC(OBJECT4DV1& obj, const char* filename, const VECTOR4D& scale, const VECTOR4D& pos, const VECTOR4D& rot, int vertex_flags);
+int LoadCOB(OBJECT4DV1& obj, char* filename, const VECTOR4D& scale, const VECTOR4D& pos, const VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials);

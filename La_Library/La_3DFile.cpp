@@ -3,7 +3,7 @@
 #include "La_Parser.h"
 #include "La_3DLight.h"
 #include "La_GeometryBase.h"
-int Load3DSASC(OBJECT4DV1& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags)
+int Load3DSASC(OBJECT4DV1& obj, const char* filename, const VECTOR4D& scale, const VECTOR4D& pos, const VECTOR4D& rot, int vertex_flags)
 {
 	// this function loads a 3D Studi .ASC file object in off disk, additionally
 	// it allows the caller to scale, position, and rotate the object
@@ -356,7 +356,7 @@ int Load3DSASC(OBJECT4DV1& obj, const char* filename, VECTOR4D& scale, VECTOR4D&
 
 
 
-int LoadCOB(OBJECT4DV1& obj, char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials)
+int LoadCOB(OBJECT4DV1& obj, char* filename, const VECTOR4D& scale, const VECTOR4D& pos, const VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials)
 {
 	// this function loads a Caligari TrueSpace .COB file object in off disk, additionally
 	// it allows the caller to scale, position, and rotate the object

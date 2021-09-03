@@ -1,8 +1,6 @@
 #include "La_3DLight.h"
 #include "La_Log.h"
 
-MATV1 materials[MAX_MATERIALS]; // materials in system
-int num_materials;              // current number of materials
 
 
 

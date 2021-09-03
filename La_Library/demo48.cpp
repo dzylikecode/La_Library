@@ -1,20 +1,3 @@
-/*
-***************************************************************************************
-*  程    序:
-*
-*  作    者: LaDzy
-*
-*  邮    箱: mathbewithcode@gmail.com
-*
-*  编译环境: Visual Studio 2019
-*
-*  创建时间: 2021/09/03 17:54:21
-*  最后修改:
-*
-*  简    介: removebackface 选项有点问题,应该是 disable 的时候，过多导致数量不够，越界
-*
-***************************************************************************************
-*/
 
 
 #include <stdio.h>
@@ -92,7 +75,10 @@ tanks[NUM_TANKS];
 
 RENDERLIST4DV1 rend_list; // the render list
 LIGHTV1 lights[4];
-ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo47\\";
+ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo48\\";
+
+MATV1 materials[MAX_MATERIALS];
+int numMaterials = 0;
 
 // state variables for different rendering modes and help
 int wireframe_mode = -1;
@@ -103,7 +89,9 @@ int zsort_mode = 1;
 
 // controlled during load dialog
 int swapyz = 0,
-iwinding = 0;
+iwinding = 0,
+dolocal = 1,
+doworld = 1;
 
 TCHAR ascfilename[256]; // holds file name when loader loads
 
@@ -111,10 +99,7 @@ BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam);
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	// this is the main message handler of the system
-	PAINTSTRUCT	ps;		   // used in WM_PAINT
-	HDC			hdc;	   // handle to a device context
-	TCHAR       buffer[256];
+	TCHAR buffer[256];
 	// what is the message 
 	switch (msg)
 	{
@@ -138,10 +123,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 				// load in default object
 				vscale.set(5.00, 5.00, 5.00);
 
-				Load3DSASC(obj_player, TToA(AToT(path) + ascfilename),
+				LoadCOB(obj_player, TToA(AToT(path) + ascfilename),
 					vscale, vpos, vrot,
 					(swapyz * VERTEX_FLAGS_SWAP_YZ) |
-					(iwinding * VERTEX_FLAGS_INVERT_WINDING_ORDER));
+					(iwinding * VERTEX_FLAGS_INVERT_WINDING_ORDER) |
+					(dolocal * VERTEX_FLAGS_TRANSFORM_LOCAL) |
+					(doworld * VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD),
+					materials, numMaterials);
 			}
 		} break;
 
@@ -225,14 +213,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			_stprintf(buffer, TEXT("Polys: %d, Vertices: %d"), obj_player.num_polys, obj_player.num_vertices);
 			//  pop up a message box
 			MessageBox(hwnd, buffer,
-				TEXT(".ASC File Loader Demo"),
+				TEXT(".COB File Loader Demo"),
 				MB_OK | MB_ICONEXCLAMATION);
 		} break;
 
 		default: break;
 
-		}
-	} break;
+		} // end switch wparam
+
+	} break; // end WM_COMMAND
 
 
 	case WM_DESTROY:
@@ -247,11 +236,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	// process any messages that we didn't take care of 
 	return (DefWindowProc(hwnd, msg, wparam, lparam));
-
 }
 
 
-BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)
+
+BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)  // second message parameter
 {
 	// dialog handler for the line input
 
@@ -259,6 +248,8 @@ BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)
 	HWND htextedit = GetDlgItem(hwnddlg, IDC_EDIT1);
 	HWND hswapyz = GetDlgItem(hwnddlg, IDC_SWAPYZ);
 	HWND hiwinding = GetDlgItem(hwnddlg, IDC_IWINDING);
+	HWND hlocal = GetDlgItem(hwnddlg, IDC_LOCAL);
+	HWND hworld = GetDlgItem(hwnddlg, IDC_WORLD);
 
 
 	switch (umsg)
@@ -282,6 +273,8 @@ BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)
 			// set swap and winding order globals
 			swapyz = (int)SendMessage(hswapyz, BM_GETCHECK, 0, 0);
 			iwinding = (int)SendMessage(hiwinding, BM_GETCHECK, 0, 0);
+			dolocal = (int)SendMessage(hlocal, BM_GETCHECK, 0, 0);
+			doworld = (int)SendMessage(hworld, BM_GETCHECK, 0, 0);
 
 			EndDialog(hwnddlg, IDOK);
 			return TRUE;
@@ -295,6 +288,7 @@ BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)
 
 		default: break;
 		}
+
 	} break;
 	}
 	return 0;
@@ -302,10 +296,8 @@ BOOL CALLBACK DialogProc(HWND hwnddlg, UINT umsg, WPARAM wparam, LPARAM lparam)
 
 
 
-
 void StartUp(void)
 {
-
 	// initialize the camera with 90 FOV, normalized coordinates
 	cam.set(
 		CAM_MODEL_EULER, // the euler model
@@ -318,9 +310,11 @@ void StartUp(void)
 		WINDOW_WIDTH,   // size of final screen viewport
 		WINDOW_HEIGHT);
 
-	Load3DSASC(obj_player, path + "sphere01.asc",
+	LoadCOB(obj_player, path + "sphere01.cob",
 		VECTOR4D(5.00, 5.00, 5.00), vpos, vrot,
-		VERTEX_FLAGS_INVERT_WINDING_ORDER | VERTEX_FLAGS_SWAP_YZ);
+		VERTEX_FLAGS_SWAP_YZ |
+		VERTEX_FLAGS_TRANSFORM_LOCAL | VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD,
+		materials, numMaterials);
 
 	// create some working colors
 	RGBAV1 white, gray, black, red, green, blue;
@@ -439,7 +433,7 @@ void GameBody(void)
 		obj_player.dir.y += 360;
 
 	// ambient rotation
-	obj_player.dir.y++;
+	obj_player.dir.y += 2;
 
 
 	// scale object
@@ -501,9 +495,9 @@ void GameBody(void)
 			lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
- // toggle point light
+	// toggle point light
 	if (keyboard[DIK_P])
 	{
 		// toggle point light
@@ -513,10 +507,10 @@ void GameBody(void)
 			lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 
- // toggle spot light
+	// toggle spot light
 	if (keyboard[DIK_S])
 	{
 		// toggle spot light
@@ -526,24 +520,24 @@ void GameBody(void)
 			lights[SPOT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 
- // help menu
+	// help menu
 	if (keyboard[DIK_H])
 	{
 		// toggle help menu 
 		help_mode = -help_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
- // z-sorting
+	// z-sorting
 	if (keyboard[DIK_Z])
 	{
 		// toggle z sorting
 		zsort_mode = -zsort_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 
 	static float plight_ang = 0, slight_ang = 0; // angles for light motion
@@ -655,6 +649,7 @@ void GameBody(void)
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<SPACE BAR>......Turbo."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<H>..............Toggle Help."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<ESC>............Exit demo."));
+
 	}
 
 	BeginDrawOn();

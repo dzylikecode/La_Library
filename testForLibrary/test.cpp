@@ -1,9 +1,11 @@
-// DEMOII8_6.CPP - flat shading demo with z-sorting
+// DEMOII8_9.CPP - .COB file loading demo with the works!
 // READ THIS!
 // To compile make sure to include DDRAW.LIB, DSOUND.LIB,
 // DINPUT.LIB, DINPUT8.LIB, WINMM.LIB in the project link list, and of course 
 // the C++ source modules T3DLIB1-6.CPP and the headers T3DLIB1-6.H
 // be in the working directory of the compiler
+// also this program uses a menu, thus you need to include the resource
+// template DEMOII8_8.RC to complile
 
 // INCLUDES ///////////////////////////////////////////////
 
@@ -31,7 +33,7 @@
 #include <fcntl.h>
 
 #include <ddraw.h>  // directX includes
-#include <dsound.h>
+#include <dsound.h> 
 #include <dmksctrl.h>
 #include <dmusici.h>
 #include <dmusicc.h>
@@ -44,13 +46,15 @@
 #include "T3DLIB5.h"
 #include "T3DLIB6.h"
 
+#include "demoii8_9res.h" // include the resource header
+
 // DEFINES ////////////////////////////////////////////////
 
 // defines for windows interface
 #define WINDOW_CLASS_NAME "WIN3DCLASS"  // class name
 #define WINDOW_TITLE      "T3D Graphics Console Ver 2.0"
-#define WINDOW_WIDTH      1024 // size of window
-#define WINDOW_HEIGHT     768
+#define WINDOW_WIDTH      800 // size of window
+#define WINDOW_HEIGHT     600
 
 #define WINDOW_BPP        16    // bitdepth of window (8,16,24 etc.)
 								// note: if windowed and not
@@ -59,10 +63,10 @@
 								// also if 8-bit the a pallete
 								// is created and attached
 
-#define WINDOWED_APP      0     // 0 not windowed, 1 windowed
+#define WINDOWED_APP      1     // 0 not windowed, 1 windowed
 
 
-// defines for the game universe 
+// defines for the game universe
 #define UNIVERSE_RADIUS   4000
 
 #define POINT_SIZE        100
@@ -88,6 +92,11 @@ int Game_Init(void* parms = NULL);
 int Game_Shutdown(void* parms = NULL);
 int Game_Main(void* parms = NULL);
 
+BOOL CALLBACK DialogProc(HWND hwnddlg,  // handle to dialog box
+	UINT umsg,     // message
+	WPARAM wparam, // first message parameter
+	LPARAM lparam);  // second message parameter
+
 // GLOBALS ////////////////////////////////////////////////
 
 HWND main_window_handle = NULL; // save the window handle
@@ -95,7 +104,7 @@ HINSTANCE main_instance = NULL; // save the instance
 char buffer[2048];                        // used to print text
 
 // initialize camera position and direction
-POINT4D  cam_pos = { 0,40,0,1 };
+POINT4D  cam_pos = { 0,0,-250,1 };
 POINT4D  cam_target = { 0,0,0,1 };
 VECTOR4D cam_dir = { 0,0,0,1 };
 
@@ -116,6 +125,20 @@ tanks[NUM_TANKS];
 
 RENDERLIST4DV1 rend_list; // the render list
 
+// state variables for different rendering modes and help
+int wireframe_mode = -1;
+int backface_mode = 1;
+int lighting_mode = 1;
+int help_mode = 1;
+int zsort_mode = 1;
+
+// controlled during load dialog
+int swapyz = 0,
+iwinding = 0,
+dolocal = 1,
+doworld = 1;
+
+char ascfilename[256]; // holds file name when loader loads
 
 // FUNCTIONS //////////////////////////////////////////////
 
@@ -147,6 +170,128 @@ LRESULT CALLBACK WindowProc(HWND hwnd,
 		return(0);
 	} break;
 
+	case WM_COMMAND:
+	{
+		switch (LOWORD(wparam))
+		{
+			// handle the FILE menu
+		case ID_FILE_EXIT:
+		{
+			// terminate window
+			PostQuitMessage(0);
+		} break;
+
+		case ID_FILE_LOADASCFILE:
+		{
+			// call line input dialog
+			if (DialogBox(main_instance, MAKEINTRESOURCE(IDD_DIALOG1), hwnd, DialogProc) == IDOK)
+			{
+
+				// load in default object
+				VECTOR4D_INITXYZ(&vscale, 5.00, 5.00, 5.00);
+
+				Load_OBJECT4DV1_COB(&obj_player, ascfilename,
+					&vscale, &vpos, &vrot,
+					(swapyz * VERTEX_FLAGS_SWAP_YZ) |
+					(iwinding * VERTEX_FLAGS_INVERT_WINDING_ORDER) |
+					(dolocal * VERTEX_FLAGS_TRANSFORM_LOCAL) |
+					(doworld * VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD));
+
+			} // end if
+
+		} break;
+
+		case ID_LIGHTS_TOGGLEAMBIENTLIGHT:
+		{
+			// toggle ambient light
+			if (lights[AMBIENT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+				lights[AMBIENT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+			else
+				lights[AMBIENT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		} break;
+
+		case ID_LIGHTS_TOGGLEPOINTLIGHT:
+		{
+			// toggle point light
+			if (lights[POINT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+				lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+			else
+				lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		} break;
+
+		case ID_LIGHTS_TOGGLESPOTLIGHT:
+		{
+			// toggle spot light
+			if (lights[SPOT_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+				lights[SPOT_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+			else
+				lights[SPOT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		} break;
+
+		case ID_LIGHTS_TOGGLEINFINITELIGHT:
+		{
+			// toggle spot light
+			if (lights[INFINITE_LIGHT_INDEX].state == LIGHTV1_STATE_ON)
+				lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_OFF;
+			else
+				lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
+
+		} break;
+
+		case ID_ZSORTING_ENABLE:
+		{
+			zsort_mode = 1;
+		} break;
+
+		case ID_ZSORTING_DISABLE:
+		{
+			zsort_mode = -1;
+		} break;
+
+		case ID_BACKFACEREMOVAL_ENABLE:
+		{
+			backface_mode = 1;
+		} break;
+
+		case ID_BACKFACEREMOVAL_DISABLE:
+		{
+			backface_mode = -1;
+		} break;
+
+
+		case ID_RENDERINGMODE_SOLID:
+		{
+			// toggle wireframe mode
+			wireframe_mode = -1;
+		} break;
+
+		case ID_RENDERINGMODE_WIREFRAME:
+		{
+			// toggle wireframe mode
+			wireframe_mode = 1;
+		} break;
+
+
+		// handle the HELP menu
+		case ID_HELP_ABOUT:
+		{
+			sprintf(buffer, "Polys: %d, Vertices: %d", obj_player.num_polys, obj_player.num_vertices);
+			//  pop up a message box
+			MessageBox(hwnd, buffer,
+				".COB File Loader Demo",
+				MB_OK | MB_ICONEXCLAMATION);
+		} break;
+
+		default: break;
+
+		} // end switch wparam
+
+	} break; // end WM_COMMAND
+
+
 	case WM_DESTROY:
 	{
 		// kill the application			
@@ -162,6 +307,70 @@ LRESULT CALLBACK WindowProc(HWND hwnd,
 	return (DefWindowProc(hwnd, msg, wparam, lparam));
 
 } // end WinProc
+
+///////////////////////////////////////////////////////////
+
+BOOL CALLBACK DialogProc(HWND hwnddlg,  // handle to dialog box
+	UINT umsg,     // message
+	WPARAM wparam, // first message parameter
+	LPARAM lparam)  // second message parameter
+
+{
+	// dialog handler for the line input
+
+	// get the handle to the text edit box
+	HWND htextedit = GetDlgItem(hwnddlg, IDC_EDIT1);
+	HWND hswapyz = GetDlgItem(hwnddlg, IDC_SWAPYZ);
+	HWND hiwinding = GetDlgItem(hwnddlg, IDC_IWINDING);
+	HWND hlocal = GetDlgItem(hwnddlg, IDC_LOCAL);
+	HWND hworld = GetDlgItem(hwnddlg, IDC_WORLD);
+
+
+	switch (umsg)
+	{
+	case WM_INITDIALOG:
+	{
+		SetFocus(htextedit);
+	} break;
+
+	case WM_COMMAND:
+	{
+		switch (LOWORD(wparam))
+		{
+		case IDOK:
+		{
+			int linelength = SendMessage(htextedit, EM_LINELENGTH, 0, 0);
+			ascfilename[0] = (unsigned char)255;
+			SendMessage(htextedit, EM_GETLINE, 0, (LPARAM)(LPCSTR)ascfilename);
+			ascfilename[linelength] = 0;
+
+			// set swap and winding order globals
+			swapyz = (int)SendMessage(hswapyz, BM_GETCHECK, 0, 0);
+			iwinding = (int)SendMessage(hiwinding, BM_GETCHECK, 0, 0);
+			dolocal = (int)SendMessage(hlocal, BM_GETCHECK, 0, 0);
+			doworld = (int)SendMessage(hworld, BM_GETCHECK, 0, 0);
+
+			EndDialog(hwnddlg, IDOK);
+			return TRUE;
+		} break;
+
+		case IDCANCEL:
+		{
+			EndDialog(hwnddlg, IDCANCEL);
+			return TRUE;
+		} break;
+
+		default: break;
+		} // end switch 
+
+	} break;
+
+	} // end switch
+
+	// return normal
+	return 0;
+
+} // end DialogProc
 
 // WINMAIN ////////////////////////////////////////////////
 
@@ -188,7 +397,7 @@ int WINAPI WinMain(HINSTANCE hinstance,
 	winclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	winclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	winclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	winclass.lpszMenuName = NULL;
+	winclass.lpszMenuName = MAKEINTRESOURCE(IDR_ASCMENU);
 	winclass.lpszClassName = WINDOW_CLASS_NAME;
 
 	// register the window class
@@ -331,52 +540,15 @@ int Game_Init(void* parms)
 		WINDOW_WIDTH,   // size of final screen viewport
 		WINDOW_HEIGHT);
 
-	// load the master tank object
-	VECTOR4D_INITXYZ(&vscale, 0.75, 0.75, 0.75);
-	Load_OBJECT4DV1_PLG(&obj_tank, "tank3.plg", &vscale, &vpos, &vrot);
+	// load in default object
+	VECTOR4D_INITXYZ(&vscale, 5.00, 5.00, 5.00);
 
-	//Load_OBJECT4DV1_3DSASC(&obj_tank,"sphere01.asc",  
-	//                       &vscale, &vpos, &vrot, 
-	//                       VERTEX_FLAGS_INVERT_WINDING_ORDER | VERTEX_FLAGS_SWAP_YZ );
+	Load_OBJECT4DV1_COB(&obj_player, "sphere01.cob",
+		&vscale, &vpos, &vrot,
+		VERTEX_FLAGS_SWAP_YZ |
+		VERTEX_FLAGS_TRANSFORM_LOCAL | VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD);
 
-
-	// load player object for 3rd person view
-	VECTOR4D_INITXYZ(&vscale, 0.75, 0.75, 0.75);
-	Load_OBJECT4DV1_PLG(&obj_player, "tank2.plg", &vscale, &vpos, &vrot);
-
-	//Load_OBJECT4DV1_3DSASC(&obj_player,"sphere01.asc",  
-	//                       &vscale, &vpos, &vrot, 
-	//                       VERTEX_FLAGS_INVERT_WINDING_ORDER | VERTEX_FLAGS_SWAP_YZ );
-
-
-	// load the master tower object
-	VECTOR4D_INITXYZ(&vscale, 1.0, 2.0, 1.0);
-	Load_OBJECT4DV1_PLG(&obj_tower, "tower1.plg", &vscale, &vpos, &vrot);
-
-	// load the master ground marker
-	VECTOR4D_INITXYZ(&vscale, 3.0, 3.0, 3.0);
-	Load_OBJECT4DV1_PLG(&obj_marker, "marker1.plg", &vscale, &vpos, &vrot);
-
-	// position the tanks
-	for (index = 0; index < NUM_TANKS; index++)
-	{
-		// randomly position the tanks
-		tanks[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		tanks[index].y = 0; // obj_tank.max_radius;
-		tanks[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		tanks[index].w = RAND_RANGE(0, 360);
-	} // end for
-
-// position the towers
-	for (index = 0; index < NUM_TOWERS; index++)
-	{
-		// randomly position the tower
-		towers[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		towers[index].y = 0; // obj_tower.max_radius;
-		towers[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-	} // end for
-
-// set up lights
+	// set up lights
 	Reset_Lights_LIGHTV1();
 
 	// create some working colors
@@ -495,17 +667,7 @@ int Game_Main(void* parms)
 	static float view_angle = 0;
 	static float camera_distance = 6000;
 	static VECTOR4D pos = { 0,0,0,0 };
-	static float tank_speed;
-	static float turning = 0;
-	// state variables for different rendering modes and help
-	static int wireframe_mode = -1;
-	static int backface_mode = 1;
-	static int lighting_mode = 1;
-	static int help_mode = 1;
-	static int zsort_mode = 1;
-
 	char work_string[256]; // temp string
-
 	int index; // looping var
 
 	// start the timing clock
@@ -513,17 +675,6 @@ int Game_Main(void* parms)
 
 	// clear the drawing surface 
 	DDraw_Fill_Surface(lpddsback, 0);
-
-	// draw the sky
-	//Draw_Rectangle(0,0, WINDOW_WIDTH-1, WINDOW_HEIGHT/2, 166, lpddsback);
-	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, rgblookup[RGB16Bit565(115,42,16)], lpddsback);
-	//Draw_Rectangle(0,0, WINDOW_WIDTH-1, WINDOW_HEIGHT/2, rgblookup[RGB16Bit565(0,140,192)], lpddsback);
-	Draw_Rectangle(0, 0, WINDOW_WIDTH - 1, WINDOW_HEIGHT / 2, RGB16Bit(0, 140, 192), lpddsback);
-
-	// draw the ground
-	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, 28, lpddsback);
-	//Draw_Rectangle(0,WINDOW_HEIGHT/2, WINDOW_WIDTH-1, WINDOW_HEIGHT-1, rgblookup[RGB16Bit565(115,42,16)], lpddsback);
-	Draw_Rectangle(0, WINDOW_HEIGHT / 2, WINDOW_WIDTH - 1, WINDOW_HEIGHT - 1, RGB16Bit(103, 62, 3), lpddsback);
 
 	// read keyboard and other devices here
 	DInput_Read_Keyboard();
@@ -535,55 +686,54 @@ int Game_Main(void* parms)
 
 	// allow user to move camera
 
-	// turbo
-	if (keyboard_state[DIK_SPACE])
-		tank_speed = 5 * TANK_SPEED;
-	else
-		tank_speed = TANK_SPEED;
-
 	// forward/backward
 	if (keyboard_state[DIK_UP])
 	{
 		// move forward
-		cam.pos.x += tank_speed * Fast_Sin(cam.dir.y);
-		cam.pos.z += tank_speed * Fast_Cos(cam.dir.y);
+		cam.pos.x += 5 * Fast_Sin(cam.dir.y);
+		cam.pos.z += 5 * Fast_Cos(cam.dir.y);
 	} // end if
 
 	if (keyboard_state[DIK_DOWN])
 	{
 		// move backward
-		cam.pos.x -= tank_speed * Fast_Sin(cam.dir.y);
-		cam.pos.z -= tank_speed * Fast_Cos(cam.dir.y);
+		cam.pos.x -= 5 * Fast_Sin(cam.dir.y);
+		cam.pos.z -= 5 * Fast_Cos(cam.dir.y);
 	} // end if
 
- // rotate
+ // rotate object
 	if (keyboard_state[DIK_RIGHT])
 	{
-		cam.dir.y += 3;
-
-		// add a little turn to object
-		if ((turning += 2) > 15)
-			turning = 15;
+		obj_player.dir.y += 2;
 	} // end if
 
 	if (keyboard_state[DIK_LEFT])
 	{
-		cam.dir.y -= 3;
-
-		// add a little turn to object
-		if ((turning -= 2) < -15)
-			turning = -15;
-
+		obj_player.dir.y -= 6;
 	} // end if
-	else // center heading again
-	{
-		if (turning > 0)
-			turning -= 1;
-		else
-			if (turning < 0)
-				turning += 1;
 
-	} // end else
+	if (obj_player.dir.y > 360)
+		obj_player.dir.y -= 360;
+
+	if (obj_player.dir.y < 0)
+		obj_player.dir.y += 360;
+
+	// ambient rotation
+	obj_player.dir.y += 2;
+
+
+	// scale object
+	if (keyboard_state[DIK_PGUP])
+	{
+		VECTOR4D_INITXYZ(&vscale, 1.1, 1.1, 1.1);
+		Scale_OBJECT4DV1(&obj_player, &vscale);
+	} // end if
+
+	if (keyboard_state[DIK_PGDN])
+	{
+		VECTOR4D_INITXYZ(&vscale, .9, .9, .9);
+		Scale_OBJECT4DV1(&obj_player, &vscale);
+	} // end if
 
  // modes and lights
 
@@ -678,24 +828,26 @@ int Game_Main(void* parms)
 	} // end if
 
 
-
 	static float plight_ang = 0, slight_ang = 0; // angles for light motion
 
 	// move point light source in ellipse around game world
-	lights[POINT_LIGHT_INDEX].pos.x = 4000 * Fast_Cos(plight_ang);
+	lights[POINT_LIGHT_INDEX].pos.x = 300 * Fast_Cos(plight_ang);
 	lights[POINT_LIGHT_INDEX].pos.y = 200;
-	lights[POINT_LIGHT_INDEX].pos.z = 4000 * Fast_Sin(plight_ang);
+	lights[POINT_LIGHT_INDEX].pos.z = 300 * Fast_Sin(plight_ang);
 
 	if ((plight_ang += 3) > 360)
 		plight_ang = 0;
 
 	// move spot light source in ellipse around game world
-	lights[SPOT_LIGHT_INDEX].pos.x = 2000 * Fast_Cos(slight_ang);
+	lights[SPOT_LIGHT_INDEX].pos.x = 200 * Fast_Cos(slight_ang);
 	lights[SPOT_LIGHT_INDEX].pos.y = 200;
-	lights[SPOT_LIGHT_INDEX].pos.z = 2000 * Fast_Sin(slight_ang);
+	lights[SPOT_LIGHT_INDEX].pos.z = 200 * Fast_Sin(slight_ang);
 
 	if ((slight_ang -= 5) < 0)
 		slight_ang = 360;
+
+
+	/////////////////////////////////////////
 
 	// generate camera matrix
 	Build_CAM4DV1_Matrix_Euler(&cam, CAM_ROT_SEQ_ZYX);
@@ -704,13 +856,8 @@ int Game_Main(void* parms)
 	// reset the object (this only matters for backface and object removal)
 	Reset_OBJECT4DV1(&obj_player);
 
-	// set position of tank
-	obj_player.world_pos.x = cam.pos.x + 300 * Fast_Sin(cam.dir.y);
-	obj_player.world_pos.y = cam.pos.y - 70;
-	obj_player.world_pos.z = cam.pos.z + 300 * Fast_Cos(cam.dir.y);
-
 	// generate rotation matrix around y axis
-	Build_XYZ_Rotation_MATRIX4X4(0, cam.dir.y + turning, 0, &mrot);
+	Build_XYZ_Rotation_MATRIX4X4(0, obj_player.dir.y, 0, &mrot);
 
 	// rotate the local coords of the object
 	Transform_OBJECT4DV1(&obj_player, &mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
@@ -718,111 +865,26 @@ int Game_Main(void* parms)
 	// perform world transform
 	Model_To_World_OBJECT4DV1(&obj_player, TRANSFORM_TRANS_ONLY);
 
+
+	// perform lighting
+	if (lighting_mode == 1)
+		Light_OBJECT4DV1_World16(&obj_player, &cam, lights, 4);
+
 	// insert the object into render list
-	Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_player, 0, 0);
+	Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_player, 0, lighting_mode);
 
-	//////////////////////////////////////////////////////////
+	// insert the object into render list
+	//Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_player,0, 0);
 
-	// insert the tanks in the world
-	for (index = 0; index < NUM_TANKS; index++)
-	{
-		// reset the object (this only matters for backface and object removal)
-		Reset_OBJECT4DV1(&obj_tank);
+	//////////////////////////////////////
 
-		// generate rotation matrix around y axis
-		Build_XYZ_Rotation_MATRIX4X4(0, tanks[index].w, 0, &mrot);
-
-		// rotate the local coords of the object
-		Transform_OBJECT4DV1(&obj_tank, &mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
-
-		// set position of tank
-		obj_tank.world_pos.x = tanks[index].x;
-		obj_tank.world_pos.y = tanks[index].y;
-		obj_tank.world_pos.z = tanks[index].z;
-
-		// attempt to cull object   
-		if (!Cull_OBJECT4DV1(&obj_tank, &cam, CULL_OBJECT_XYZ_PLANES))
-		{
-			// if we get here then the object is visible at this world position
-			// so we can insert it into the rendering list
-			// perform local/model to world transform
-			Model_To_World_OBJECT4DV1(&obj_tank, TRANSFORM_TRANS_ONLY);
-
-			// insert the object into render list
-			Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_tank, 0, 0);
-		} // end if
-
-	} // end for
-
-////////////////////////////////////////////////////////
-
-// insert the towers in the world
-	for (index = 0; index < NUM_TOWERS; index++)
-	{
-		// reset the object (this only matters for backface and object removal)
-		Reset_OBJECT4DV1(&obj_tower);
-
-		// set position of tower
-		obj_tower.world_pos.x = towers[index].x;
-		obj_tower.world_pos.y = towers[index].y;
-		obj_tower.world_pos.z = towers[index].z;
-
-		// attempt to cull object   
-		if (!Cull_OBJECT4DV1(&obj_tower, &cam, CULL_OBJECT_XYZ_PLANES))
-		{
-			// if we get here then the object is visible at this world position
-			// so we can insert it into the rendering list
-			// perform local/model to world transform
-			Model_To_World_OBJECT4DV1(&obj_tower);
-
-			// insert the object into render list
-			Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_tower, 0, 0);
-
-		} // end if
-
-	} // end for
-
-///////////////////////////////////////////////////////////////
-
-// seed number generator so that modulation of markers is always the same
-	srand(13);
-
-	// insert the ground markers into the world
-	for (int index_x = 0; index_x < NUM_POINTS_X; index_x++)
-		for (int index_z = 0; index_z < NUM_POINTS_Z; index_z++)
-		{
-			// reset the object (this only matters for backface and object removal)
-			Reset_OBJECT4DV1(&obj_marker);
-
-			// set position of tower
-			obj_marker.world_pos.x = RAND_RANGE(-100, 100) - UNIVERSE_RADIUS + index_x * POINT_SIZE;
-			obj_marker.world_pos.y = obj_marker.max_radius;
-			obj_marker.world_pos.z = RAND_RANGE(-100, 100) - UNIVERSE_RADIUS + index_z * POINT_SIZE;
-
-			// attempt to cull object   
-			if (!Cull_OBJECT4DV1(&obj_marker, &cam, CULL_OBJECT_XYZ_PLANES))
-			{
-				// if we get here then the object is visible at this world position
-				// so we can insert it into the rendering list
-				// perform local/model to world transform
-				Model_To_World_OBJECT4DV1(&obj_marker);
-
-				// insert the object into render list
-				Insert_OBJECT4DV1_RENDERLIST4DV12(&rend_list, &obj_marker, 0, 0);
-
-			} // end if
-
-		} // end for
-
-////////////////////////////////////////////////////////////////////////
-
-// remove backfaces
+	// remove backfaces
 	if (backface_mode == 1)
 		Remove_Backfaces_RENDERLIST4DV1(&rend_list, &cam);
 
 	// light scene all at once 
-	if (lighting_mode == 1)
-		Light_RENDERLIST4DV1_World16(&rend_list, &cam, lights, 4);
+	//if (lighting_mode==1)
+	//   Light_RENDERLIST4DV1_World16(&rend_list, &cam, lights, 4);
 
 	// apply world to camera transform
 	World_To_Camera_RENDERLIST4DV1(&rend_list, &cam);
@@ -867,10 +929,12 @@ int Game_Main(void* parms)
 		Draw_Text_GDI("<S>..............Toggle spot light source.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
 		Draw_Text_GDI("<W>..............Toggle wire frame/solid mode.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
 		Draw_Text_GDI("<B>..............Toggle backface removal.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
-		Draw_Text_GDI("<RIGHT ARROW>....Rotate player right.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
-		Draw_Text_GDI("<LEFT ARROW>.....Rotate player left.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
-		Draw_Text_GDI("<UP ARROW>.......Move player forward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
-		Draw_Text_GDI("<DOWN ARROW>.....Move player backward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<RIGHT ARROW>....Rotate object right.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<LEFT ARROW>.....Rotate object left.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<UP ARROW>.......Move camera forward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<DOWN ARROW>.....Move camera backward.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<PG UP>..........Scale object down", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
+		Draw_Text_GDI("<PG DWN>.........Scale object down", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
 		Draw_Text_GDI("<SPACE BAR>......Turbo.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
 		Draw_Text_GDI("<H>..............Toggle Help.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);
 		Draw_Text_GDI("<ESC>............Exit demo.", 0, text_y += 12, RGB(255, 255, 255), lpddsback);

@@ -354,5 +354,5 @@ bool Insert(RENDERLIST4DV1& rend_list, const POLY4DV1& poly);
 bool Insert(RENDERLIST4DV1& rend_list, const POLYF4DV1& poly);
 bool Insert(RENDERLIST4DV1& rend_list, OBJECT4DV1& obj, const int insert_local = 0);
 
-
+void Scale(OBJECT4DV1& obj, const VECTOR4D& vs);
 
