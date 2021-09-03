@@ -1,7 +1,7 @@
 #pragma once
 #include "La_BaseType.h"
 // pcx file header
-typedef struct PCX_HEADER
+struct PCX_HEADER
 {
 	UCHAR  manufacturer;    // always 0x0A
 	UCHAR  version;         // version 0x05 for version 3.0 and later
@@ -20,3 +20,6 @@ typedef struct PCX_HEADER
 	USHORT scrnh;           // height of screen image taken from     
 	UCHAR  filler[54];      // filler bytes
 };
+
+int Load3DSASC(OBJECT4DV1& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
+int LoadCOB(OBJECT4DV1& obj, char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials);

@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <float.h>
 
-int ReplaceChars(char* string_in, char* string_out, char* replace_chars, char rep_char, int case_on)
+int ReplaceChars(char* string_in, char* string_out, const char* replace_chars, char rep_char, bool case_on)
 {
 	// this function simply replaces the characters from the input string that
 	// are listed in replace with the replace char, the results are stored in 

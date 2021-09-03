@@ -111,7 +111,7 @@ public:
 };
 
 
-int ReplaceChars(char* string_in, char* string_out, char* replace_chars, char rep_char, int case_on);
+int ReplaceChars(char* string_in, char* string_out, const char* replace_chars, char rep_char, bool case_on = true);
 int StripChars(const char* string_in, char* string_out, const char* strip_chars, bool case_on = true);
 int IsInt(char* istring);
 float IsFloat(char* fstring);

@@ -62,31 +62,6 @@ void DrawSolid(RENDERLIST4DV1& rend_list)
 	} 
 } 
 
-void Reset_Materials_MATV1(void)
-{
-	// this function resets all the materials
-	static bool first_time = true;
-
-	// if this is the first time then zero EVERYTHING out
-	if (first_time)
-	{
-		memset(materials, 0, MAX_MATERIALS * sizeof(MATV1));
-		first_time = false;
-	}
-
-	// scan thru materials and release all textures, if any?
-	for (int curr_matt = 0; curr_matt < MAX_MATERIALS; curr_matt++)
-	{
-		// regardless if the material is active check to see if there is a 
-		// dangling texture map
-		materials[curr_matt].texture.release();
-
-		// now it's safe to zero memory out
-		memset(&materials[curr_matt], 0, sizeof(MATV1));
-	}
-}
-
-
 
 
 /// <summary>

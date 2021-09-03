@@ -1,11 +1,9 @@
 #include "La_3DFile.h"
-
-int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
-	char* filename,       // filename of ASC file
-	VECTOR4D& scale,   // initial scaling factors
-	VECTOR4D& pos,     // initial position
-	VECTOR4D& rot,     // initial rotations
-	int vertex_flags)     // flags to re-order vertices
+#include "La_3DData.h"
+#include "La_Parser.h"
+#include "La_3DLight.h"
+#include "La_GeometryBase.h"
+int Load3DSASC(OBJECT4DV1& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags)
 {
 	// this function loads a 3D Studi .ASC file object in off disk, additionally
 	// it allows the caller to scale, position, and rotate the object
@@ -47,14 +45,14 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 	while (1)
 	{
 		// get the next line, we are looking for "Named object:"
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("Image 'name' not found in .ASC file %s.", filename);
 			return(0);
-		} // end if
+		}
 
-	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Named'] ['object:']"))
+		// check for pattern?  
+		if (parser.match(parser.buffer, "['Named'] ['object:']"))
 		{
 			// at this point we have the string with the name in it, parse it out by finding 
 			// name between quotes "name...."
@@ -70,22 +68,21 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 			ERROR_MSG("\nASC Reader Object Name: %s", obj.name);
 
 			break;
-		} // end if
+		}
+	}
 
-	} // end while
-
-// step 4: get number of vertices and polys in object
+	// step 4: get number of vertices and polys in object
 	while (1)
 	{
 		// get the next line, we are looking for "Tri-mesh, Vertices:" 
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("'Tri-mesh' line not found in .ASC file %s.", filename);
 			return(0);
-		} // end if
+		}
 
-	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Tri-mesh,'] ['Vertices:'] [i] ['Faces:'] [i]"))
+		// check for pattern?  
+		if (parser.match(parser.buffer, "['Tri-mesh,'] ['Vertices:'] [i] ['Faces:'] [i]"))
 		{
 			// simply extract the number of vertices and polygons from the pattern matching 
 			// output arrays
@@ -96,51 +93,50 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 				obj.num_vertices, obj.num_polys);
 			break;
 
-		} // end if
+		}
+	}
 
-	} // end while
+	// Step 5: load the vertex list
 
-// Step 5: load the vertex list
-
-// advance parser to vertex list denoted by:
-// "Vertex list:"
+	// advance parser to vertex list denoted by:
+	// "Vertex list:"
 	while (1)
 	{
 		// get next line
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("\n'Vertex list:' line not found in .ASC file %s.", filename);
 			return(0);
-		} // end if
+		}
 
-	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Vertex'] ['list:']"))
+		// check for pattern?  
+		if (parser.match(parser.buffer, "['Vertex'] ['list:']"))
 		{
 			ERROR_MSG("\nASC Reader found vertex list in .ASC file %s.", filename);
 			break;
-		} // end if
-	} // end while
+		}
+	}
 
-// now read in vertex list, format:
-// "Vertex: d  X:d.d Y:d.d  Z:d.d"
+	// now read in vertex list, format:
+	// "Vertex: d  X:d.d Y:d.d  Z:d.d"
 	for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 	{
 		// hunt for vertex
 		while (1)
 		{
 			// get the next vertex
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nVertex list ended abruptly! in .ASC file %s.", filename);
 				return(0);
-			} // end if
+			}
 
-		 // strip all ":XYZ", make this easier, note use of input and output as same var, this is legal
-		 // since the output is guaranteed to be the same length or shorter as the input :)
+			// strip all ":XYZ", make this easier, note use of input and output as same var, this is legal
+			// since the output is guaranteed to be the same length or shorter as the input :)
 			StripChars(parser.buffer, parser.buffer, ":XYZ");
 
 			// check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "['Vertex'] [i] [f] [f] [f]"))
+			if (parser.match(parser.buffer, "['Vertex'] [i] [f] [f] [f]"))
 			{
 				// at this point we have the x,y,z in the the pfloats array locations 0,1,2
 				obj.vlist_local[vertex].x = parser.pfloats[0];
@@ -188,23 +184,20 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 					obj.vlist_local[vertex].w);
 
 				// scale vertices
-				if (scale)
-				{
-					obj.vlist_local[vertex].x *= scale.x;
-					obj.vlist_local[vertex].y *= scale.y;
-					obj.vlist_local[vertex].z *= scale.z;
-				} // end if
 
-			 // found vertex, break out of while for next pass
+				obj.vlist_local[vertex].x *= scale.x;
+				obj.vlist_local[vertex].y *= scale.y;
+				obj.vlist_local[vertex].z *= scale.z;
+
+				// found vertex, break out of while for next pass
 				break;
 
-			} // end if
+			}
+		}
 
-		} // end while
+	}
 
-	} // end for vertex
-
-// compute average and max radius
+	// compute average and max radius
 	ComputeRadius(obj);
 
 	ERROR_MSG("\nObject average radius = %f, max radius = %f",
@@ -216,26 +209,26 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 	while (1)
 	{
 		// get next line
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("\n'Face list:' line not found in .ASC file %s.", filename);
 			return(0);
 		}
 
 		// check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Face'] ['list:']"))
+		if (parser.match(parser.buffer, "['Face'] ['list:']"))
 		{
 			ERROR_MSG("\nASC Reader found face list in .ASC file %s.", filename);
 			break;
-		} // end if
-	} // end while
+		}
+	}
 
-// now read each face in format:
-// Face ddd:    A:ddd B:ddd C:ddd AB:1|0 BC:1|0 CA:1|
-// Material:"rdddgdddbddda0"
-// the A, B, C part is vertex 0,1,2 but the AB, BC, CA part
-// has to do with the edges and the vertex ordering
-// the material indicates the color, and has an 'a0' tacked on the end???
+	// now read each face in format:
+	// Face ddd:    A:ddd B:ddd C:ddd AB:1|0 BC:1|0 CA:1|
+	// Material:"rdddgdddbddda0"
+	// the A, B, C part is vertex 0,1,2 but the AB, BC, CA part
+	// has to do with the edges and the vertex ordering  顶点环绕方向
+	// the material indicates the color, and has an 'a0' tacked on the end???
 
 	int  poly_surface_desc = 0; // ASC surface descriptor/material in this case
 	int  poly_num_verts = 0; // number of vertices for current poly (always 3)
@@ -248,18 +241,18 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 		while (1)
 		{
 			// get the next polygon face
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nface list ended abruptly! in .ASC file %s.", filename);
 				return(0);
-			} // end if
+			}
 
-		 // strip all ":ABC", make this easier, note use of input and output as same var, this is legal
-		 // since the output is guaranteed to be the same length or shorter as the input :)
+			// strip all ":ABC", make this easier, note use of input and output as same var, this is legal
+			// since the output is guaranteed to be the same length or shorter as the input :)
 			StripChars(parser.buffer, parser.buffer, ":ABC");
 
 			// check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "['Face'] [i] [i] [i] [i]"))
+			if (parser.match(parser.buffer, "['Face'] [i] [i] [i] [i]"))
 			{
 				// at this point we have the vertex indices in the the pints array locations 1,2,3, 
 				// 0 contains the face number
@@ -271,35 +264,34 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 					obj.plist[poly].vert[0] = parser.pints[3];
 					obj.plist[poly].vert[1] = parser.pints[2];
 					obj.plist[poly].vert[2] = parser.pints[1];
-				} // end if
+				}
 				else
 				{ // leave winding order alone
 					poly_num_verts = 3;
 					obj.plist[poly].vert[0] = parser.pints[1];
 					obj.plist[poly].vert[1] = parser.pints[2];
 					obj.plist[poly].vert[2] = parser.pints[3];
-				} // end else
+				}
 
-			 // point polygon vertex list to object's vertex list
-			 // note that this is redundant since the polylist is contained
-			 // within the object in this case and its up to the user to select
-			 // whether the local or transformed vertex list is used when building up
-			 // polygon geometry, might be a better idea to set to NULL in the context
-			 // of polygons that are part of an object
+				// point polygon vertex list to object's vertex list
+				// note that this is redundant since the polylist is contained
+				// within the object in this case and its up to the user to select
+				// whether the local or transformed vertex list is used when building up
+				// polygon geometry, might be a better idea to set to NULL in the context
+				// of polygons that are part of an object
 				obj.plist[poly].vlist = obj.vlist_local;
 
 				// found the face, break out of while for another pass
 				break;
 
-			} // end if
+			}
+		}
 
-		} // end while      
-
-	   // hunt until next material for face is found
+		// hunt until next material for face is found
 		while (1)
 		{
 			// get the next polygon material (the "page xxx" breaks mess everything up!!!)
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nmaterial list ended abruptly! in .ASC file %s.", filename);
 				return(0);
@@ -314,7 +306,7 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 			ReplaceChars(parser.buffer, parser.buffer, ":\"rgba", ' ');
 
 			// check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "[i] [i] [i]"))
+			if (parser.match(parser.buffer, "[i] [i] [i]"))
 			{
 				// at this point we have the red, green, and blue components in the the pints array locations 0,1,2, 
 				r = parser.pints[0];
@@ -327,25 +319,16 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 				// we need to know what color depth we are dealing with, so check
 				// the bits per pixel, this assumes that the system has already
 				// made the call to DDraw_Init() or set the bit depth
-				if (screen_bpp == 16)
-				{
-					// cool, 16 bit mode
-					SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_RGB16);
-					obj.plist[poly].color = RGB16Bit(r, g, b);
-					ERROR_MSG("\nPolygon 16-bit");
-				} // end if 
-				else
-				{
-					// 8 bit mode
-					SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_8BITCOLOR);
-					obj.plist[poly].color = RGBto8BitIndex(r, g, b, palette, 0);
-					ERROR_MSG("\nPolygon 8-bit, index=%d", obj.plist[poly].color);
-				} // end else
 
-			 // for now manually set shading mode
-			 //SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PURE);
-			 //SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
-			 //SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PHONG);
+					// cool, 16 bit mode
+				SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_RGB24);
+				obj.plist[poly].color = RGB_DX(r, g, b);
+				ERROR_MSG("\nPolygon 16-bit");
+
+				// for now manually set shading mode
+				//SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PURE);
+				//SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
+				//SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_PHONG);
 				SET_BIT(obj.plist[poly].attr, POLY4DV1_ATTR_SHADE_MODE_FLAT);
 
 				// set polygon to active
@@ -354,9 +337,8 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 				// found the material, break out of while for another pass
 				break;
 
-			} // end if
-
-		} // end while      
+			}
+		}
 
 		ERROR_MSG("\nPolygon %d:", poly);
 		ERROR_MSG("\nSurface Desc = [RGB]=[%d, %d, %d], vert_indices [%d, %d, %d]",
@@ -365,21 +347,16 @@ int Load_OBJECT4DV1_3DSASC(OBJECT4DV1& obj,   // pointer to object
 			obj.plist[poly].vert[1],
 			obj.plist[poly].vert[2]);
 
-	} // end for poly
+	}
 
-// return success
+
 	return(1);
 
-} // end Load_OBJECT4DV1_3DASC
+}
 
 
-int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
-	char* filename,       // filename of Caligari COB file
-	VECTOR4D& scale,   // initial scaling factors
-	VECTOR4D& pos,     // initial position
-	VECTOR4D& rot,     // initial rotations
-	int vertex_flags)     // flags to re-order vertices 
-						  // and perform transforms
+
+int LoadCOB(OBJECT4DV1& obj, char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials)
 {
 	// this function loads a Caligari TrueSpace .COB file object in off disk, additionally
 	// it allows the caller to scale, position, and rotate the object
@@ -398,7 +375,7 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 	int r, g, b;              // working colors
 
 	// cache for texture vertices
-	VERTEX2DF texture_vertices[1024];
+	GRAPHIC::VERTEX2D texture_vertices[1024];
 
 	int num_texture_vertices = 0;
 
@@ -406,83 +383,70 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 		mat_world;  // "   " for local to world " "
 
 // initialize matrices
-	MAT_IDENTITY_4X4(&mat_local);
-	MAT_IDENTITY_4X4(&mat_world);
+	Identity(mat_local);
+	Identity(mat_world);
 
 	// Step 1: clear out the object and initialize it a bit
-	memset(obj, 0, sizeof(OBJECT4DV1));
+	memset(&obj, 0, sizeof(OBJECT4DV1));
 
 	// set state of object to active and visible
 	obj.state = OBJECT4DV1_STATE_ACTIVE | OBJECT4DV1_STATE_VISIBLE;
 
 	// set position of object is caller requested position
-	if (pos)
-	{
 		// set position of object
-		obj.world_pos.x = pos.x;
-		obj.world_pos.y = pos.y;
-		obj.world_pos.z = pos.z;
-		obj.world_pos.w = pos.w;
-	} // end 
-	else
-	{
-		// set it to (0,0,0,1)
-		obj.world_pos.x = 0;
-		obj.world_pos.y = 0;
-		obj.world_pos.z = 0;
-		obj.world_pos.w = 1;
-	} // end else
+	obj.world_pos.x = pos.x;
+	obj.world_pos.y = pos.y;
+	obj.world_pos.z = pos.z;
+	obj.world_pos.w = pos.w;
 
- // Step 2: open the file for reading using the parser
+
+
+	// Step 2: open the file for reading using the parser
 	if (!parser.open(filename))
 	{
 		ERROR_MSG("Couldn't open .COB file %s.", filename);
 		return(0);
-	} // end if
+	}
 
- // Step 3: 
+	// Step 3: 
 
- // lets find the name of the object first 
+	// lets find the name of the object first 
 	while (1)
 	{
 		// get the next line, we are looking for "Name"
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("Image 'name' not found in .COB file %s.", filename);
 			return(0);
-		} // end if
-
+		} 
 	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Name'] [s>0]"))
+		if (parser.match(parser.buffer, "['Name'] [s>0]"))
 		{
 			// name should be in second string variable, index 1
 			strcpy(obj.name, parser.pstrings[1]);
 			ERROR_MSG("\nCOB Reader Object Name: %s", obj.name);
 
 			break;
-		} // end if
+		}
+	}
 
-	} // end while
+	// step 4: get local and world transforms and store them
 
-
-// step 4: get local and world transforms and store them
-
-// center 0 0 0
-// x axis 1 0 0
-// y axis 0 1 0
-// z axis 0 0 1
+	// center 0 0 0     局部坐标系
+	// x axis 1 0 0
+	// y axis 0 1 0
+	// z axis 0 0 1
 
 	while (1)
 	{
 		// get the next line, we are looking for "center"
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("Center not found in .COB file %s.", filename);
 			return(0);
-		} // end if
-
+		} 
 	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['center'] [f] [f] [f]"))
+		if (parser.match(parser.buffer, "['center'] [f] [f] [f]"))
 		{
 			// the "center" holds the translation factors, so place in
 			// last row of homogeneous matrix, note that these are row vectors
@@ -495,8 +459,8 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			// so build up   
 
 			// "x axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "['x'] ['axis'] [f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "['x'] ['axis'] [f] [f] [f]");
 
 			// place row in x column of transform matrix
 			mat_local.M[0][0] = parser.pfloats[0]; // rxx
@@ -504,8 +468,8 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			mat_local.M[2][0] = parser.pfloats[2]; // rxz
 
 			// "y axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "['y'] ['axis'] [f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "['y'] ['axis'] [f] [f] [f]");
 
 			// place row in y column of transform matrix
 			mat_local.M[0][1] = parser.pfloats[0]; // ryx
@@ -513,38 +477,37 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			mat_local.M[2][1] = parser.pfloats[2]; // ryz
 
 			// "z axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "['z'] ['axis'] [f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "['z'] ['axis'] [f] [f] [f]");
 
 			// place row in z column of transform matrix
 			mat_local.M[0][2] = parser.pfloats[0]; // rzx
 			mat_local.M[1][2] = parser.pfloats[1]; // rzy
 			mat_local.M[2][2] = parser.pfloats[2]; // rzz
 
-			Print_Mat_4X4(&mat_local, "Local COB Matrix:");
+			ERROR_MSG("Local COB Matrix:\n%s", mat_local);
 
 			break;
-		} // end if
-
-	} // end while
+		} 
+	}
 
 // now "Transform"
 	while (1)
 	{
 		// get the next line, we are looking for "Transform"
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("Transform not found in .COB file %s.", filename);
 			return(0);
-		} // end if
+		} 
 
 	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Transform']"))
+		if (parser.match(parser.buffer, "['Transform']"))
 		{
 
 			// "x axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "[f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "[f] [f] [f]");
 
 			// place row in x column of transform matrix
 			mat_world.M[0][0] = parser.pfloats[0]; // rxx
@@ -552,8 +515,8 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			mat_world.M[2][0] = parser.pfloats[2]; // rxz
 
 			// "y axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "[f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "[f] [f] [f]");
 
 			// place row in y column of transform matrix
 			mat_world.M[0][1] = parser.pfloats[0]; // ryx
@@ -561,35 +524,33 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			mat_world.M[2][1] = parser.pfloats[2]; // ryz
 
 			// "z axis" 
-			parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
-			parser.Pattern_Match(parser.buffer, "[f] [f] [f]");
+			parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS);
+			parser.match(parser.buffer, "[f] [f] [f]");
 
 			// place row in z column of transform matrix
 			mat_world.M[0][2] = parser.pfloats[0]; // rzx
 			mat_world.M[1][2] = parser.pfloats[1]; // rzy
 			mat_world.M[2][2] = parser.pfloats[2]; // rzz
 
-			Print_Mat_4X4(&mat_world, "World COB Matrix:");
+			ERROR_MSG("World COB Matrix:\n%s", mat_world);
 
 			// no need to read in last row, since it's always 0,0,0,1 and we don't use it anyway
 			break;
 
-		} // end if
-
-	} // end while
-
-// step 6: get number of vertices and polys in object
+		}
+	}
+	// step 6: get number of vertices and polys in object
 	while (1)
 	{
 		// get the next line, we are looking for "World Vertices" 
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("'World Vertices' line not found in .COB file %s.", filename);
 			return(0);
-		} // end if
+		} 
 
 	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['World'] ['Vertices'] [i]"))
+		if (parser.match(parser.buffer, "['World'] ['Vertices'] [i]"))
 		{
 			// simply extract the number of vertices from the pattern matching 
 			// output arrays
@@ -598,27 +559,26 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			ERROR_MSG("\nCOB Reader Num Vertices: %d", obj.num_vertices);
 			break;
 
-		} // end if
+		}
+	}
 
-	} // end while
-
-// Step 7: load the vertex list
-// now read in vertex list, format:
-// "d.d d.d d.d"
+	// Step 7: load the vertex list
+	// now read in vertex list, format:
+	// "d.d d.d d.d"
 	for (int vertex = 0; vertex < obj.num_vertices; vertex++)
 	{
 		// hunt for vertex
 		while (1)
 		{
 			// get the next vertex
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nVertex list ended abruptly! in .COB file %s.", filename);
 				return(0);
 			} // end if
 
 		 // check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "[f] [f] [f]"))
+			if (parser.match(parser.buffer, "[f] [f] [f]"))
 			{
 				// at this point we have the x,y,z in the the pfloats array locations 0,1,2
 				obj.vlist_local[vertex].x = parser.pfloats[0];
@@ -642,17 +602,17 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				VECTOR4D temp_vector; // temp for calculations
 
 				// now apply local and world transformations encoded in COB format
-				if (vertex_flags & VERTEX_FLAGS_TRANSFORM_LOCAL)
+				if (vertex_flags & VERTEX_FLAGS_TRANSFORM_LOCAL)  //局部坐标变换
 				{
-					Mat_Mul_VECTOR4D_4X4(&obj.vlist_local[vertex], &mat_local, &temp_vector);
-					VECTOR4D_COPY(&obj.vlist_local[vertex], &temp_vector);
-				} // end if 
+					Mul(obj.vlist_local[vertex], mat_local, temp_vector);
+					obj.vlist_local[vertex] = temp_vector;
+				}
 
-				if (vertex_flags & VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD)
+				if (vertex_flags & VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD) //世界坐标变换
 				{
-					Mat_Mul_VECTOR4D_4X4(&obj.vlist_local[vertex], &mat_world, &temp_vector);
-					VECTOR4D_COPY(&obj.vlist_local[vertex], &temp_vector);
-				} // end if 
+					Mul(obj.vlist_local[vertex], mat_world, temp_vector);
+					obj.vlist_local[vertex] = temp_vector;
+				}
 
 				float temp_f; // used for swapping
 
@@ -677,12 +637,9 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 					SWAP(obj.vlist_local[vertex].x, obj.vlist_local[vertex].y, temp_f);
 
 				// scale vertices
-				if (scale)
-				{
-					obj.vlist_local[vertex].x *= scale.x;
-					obj.vlist_local[vertex].y *= scale.y;
-					obj.vlist_local[vertex].z *= scale.z;
-				} // end if
+				obj.vlist_local[vertex].x *= scale.x;
+				obj.vlist_local[vertex].y *= scale.y;
+				obj.vlist_local[vertex].z *= scale.z;
 
 				ERROR_MSG("\nVertex %d = %f, %f, %f, %f", vertex,
 					obj.vlist_local[vertex].x,
@@ -693,14 +650,11 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				// found vertex, break out of while for next pass
 				break;
 
-			} // end if
-
-		} // end while
-
-	} // end for vertex
-
-// compute average and max radius
-	Compute_OBJECT4DV1_Radius(obj);
+			}
+		}
+	}
+	// compute average and max radius
+	ComputeRadius(obj);
 
 	ERROR_MSG("\nObject average radius = %f, max radius = %f",
 		obj.avg_radius, obj.max_radius);
@@ -710,14 +664,13 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 	while (1)
 	{
 		// get the next line, we are looking for "Texture Vertices ddd" 
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("'Texture Vertices' line not found in .COB file %s.", filename);
 			return(0);
-		} // end if
-
-	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Texture'] ['Vertices'] [i]"))
+		}
+		// check for pattern?  
+		if (parser.match(parser.buffer, "['Texture'] ['Vertices'] [i]"))
 		{
 			// simply extract the number of texture vertices from the pattern matching 
 			// output arrays
@@ -726,26 +679,23 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			ERROR_MSG("\nCOB Reader Texture Vertices: %d", num_texture_vertices);
 			break;
 
-		} // end if
-
-	} // end while
-
-// Step 9: load the texture vertex list in format "U V"
-// "d.d d.d"
+		}
+	}
+	// Step 9: load the texture vertex list in format "U V"
+	// "d.d d.d"
 	for (int tvertex = 0; tvertex < num_texture_vertices; tvertex++)
 	{
 		// hunt for texture
 		while (1)
 		{
 			// get the next vertex
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nTexture Vertex list ended abruptly! in .COB file %s.", filename);
 				return(0);
-			} // end if
-
-		 // check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "[f] [f]"))
+			}
+			// check for pattern?  
+			if (parser.match(parser.buffer, "[f] [f]"))
 			{
 				// at this point we have the U V in the the pfloats array locations 0,1 for this 
 				// texture vertex, although we do nothing with them at this point with this parser
@@ -759,12 +709,9 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				// found vertex, break out of while for next pass
 				break;
 
-			} // end if
-
-		} // end while
-
-	} // end for
-
+			}
+		}
+	}
 	int poly_material[OBJECT4DV1_MAX_POLYS]; // this holds the material index for each polygon
 											 // we need these indices since when reading the file
 											 // we read the polygons BEFORE the materials, so we need
@@ -789,14 +736,14 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 	while (1)
 	{
 		// get next line
-		if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+		if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 		{
 			ERROR_MSG("\n'Faces' line not found in .ASC file %s.", filename);
 			return(0);
-		} // end if
+		} 
 
 	 // check for pattern?  
-		if (parser.Pattern_Match(parser.buffer, "['Faces'] [i]"))
+		if (parser.match(parser.buffer, "['Faces'] [i]"))
 		{
 			ERROR_MSG("\nCOB Reader found face list in .COB file %s.", filename);
 
@@ -804,14 +751,14 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			obj.num_polys = parser.pints[0];
 
 			break;
-		} // end if
-	} // end while
+		}
+	}
 
-// now read each face in format:
-// Face verts nn flags ff mat mm
-// the nn is the number of vertices, always 3
-// the ff is the flags, unused for now, has to do with holes
-// the mm is the material index number 
+	// now read each face in format:
+	// Face verts nn flags ff mat mm
+	// the nn is the number of vertices, always 3
+	// the ff is the flags, unused for now, has to do with holes
+	// the mm is the material index number 
 
 
 	int poly_surface_desc = 0; // ASC surface descriptor/material in this case
@@ -824,14 +771,13 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 		while (1)
 		{
 			// get the next polygon face
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nface list ended abruptly! in .COB file %s.", filename);
 				return(0);
-			} // end if
-
-		 // check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "['Face'] ['verts'] [i] ['flags'] [i] ['mat'] [i]"))
+			}
+			// check for pattern?  
+			if (parser.match(parser.buffer, "['Face'] ['verts'] [i] ['flags'] [i] ['mat'] [i]"))
 			{
 				// at this point we have the number of vertices for the polygon, the flags, and it's material index
 				// in the integer output array locations 0,1,2
@@ -840,7 +786,7 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				// the index to take into consideration that the data in parser.pints[2] is 0 based, and we need
 				// an index relative to the entire library, so we simply need to add num_materials to offset the 
 				// index properly, but we will leave this reference zero based for now... and fix up later
-				poly_material[poly] = parser.pints[2];
+				poly_material[poly] = parser.pints[2];  //面的材料标记
 
 				// update the reference array
 				if (material_index_referenced[poly_material[poly]] == 0)
@@ -850,27 +796,24 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 
 					// increment total number of materials for this object
 					num_materials_object++;
-				} // end if        
+				}
 
-
-			 // test if number of vertices is 3
+				// test if number of vertices is 3
 				if (parser.pints[0] != 3)
 				{
 					ERROR_MSG("\nface not a triangle! in .COB file %s.", filename);
 					return(0);
-				} // end if
-
-			// now read out the vertex indices and texture indices format:
-			// <vindex0, tindex0>  <vindex1, tindex1> <vindex1, tindex1> 
-				if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+				}
+				// now read out the vertex indices and texture indices format:
+				// <vindex0, tindex0>  <vindex1, tindex1> <vindex1, tindex1> 
+				if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 				{
 					ERROR_MSG("\nface list ended abruptly! in .COB file %s.", filename);
 					return(0);
-				} // end if
-
-			 // lets replace ",<>" with ' ' to make extraction easy
+				}
+				// lets replace ",<>" with ' ' to make extraction easy  第一个是顶点索引，第二个是纹理索引
 				ReplaceChars(parser.buffer, parser.buffer, ",<>", ' ');
-				parser.Pattern_Match(parser.buffer, "[i] [i] [i] [i] [i] [i]");
+				parser.match(parser.buffer, "[i] [i] [i] [i] [i] [i]");
 
 				// 0,2,4 holds vertex indices
 				// 1,3,5 holds texture indices -- unused for now, no place to put them!
@@ -882,21 +825,21 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 					obj.plist[poly].vert[0] = parser.pints[4];
 					obj.plist[poly].vert[1] = parser.pints[2];
 					obj.plist[poly].vert[2] = parser.pints[0];
-				} // end if
+				}
 				else
 				{ // leave winding order alone
 					poly_num_verts = 3;
 					obj.plist[poly].vert[0] = parser.pints[0];
 					obj.plist[poly].vert[1] = parser.pints[2];
 					obj.plist[poly].vert[2] = parser.pints[4];
-				} // end else
+				}
 
-			 // point polygon vertex list to object's vertex list
-			 // note that this is redundant since the polylist is contained
-			 // within the object in this case and its up to the user to select
-			 // whether the local or transformed vertex list is used when building up
-			 // polygon geometry, might be a better idea to set to NULL in the context
-			 // of polygons that are part of an object
+				// point polygon vertex list to object's vertex list
+				// note that this is redundant since the polylist is contained
+				// within the object in this case and its up to the user to select
+				// whether the local or transformed vertex list is used when building up
+				// polygon geometry, might be a better idea to set to NULL in the context
+				// of polygons that are part of an object
 				obj.plist[poly].vlist = obj.vlist_local;
 
 
@@ -906,9 +849,8 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				// found the face, break out of while for another pass
 				break;
 
-			} // end if
-
-		} // end while      
+			}
+		}
 
 		ERROR_MSG("\nPolygon %d:", poly);
 		ERROR_MSG("\nLocal material Index=%d, total materials for object = %d, vert_indices [%d, %d, %d]",
@@ -917,23 +859,23 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 			obj.plist[poly].vert[0],
 			obj.plist[poly].vert[1],
 			obj.plist[poly].vert[2]);
-	} // end for poly
+	}
 
-// now find materials!!! and we are out of here!
+	// now find materials!!! and we are out of here!
 	for (int curr_material = 0; curr_material < num_materials_object; curr_material++)
 	{
 		// hunt for the material header "mat# ddd"
 		while (1)
 		{
 			// get the next polygon material 
-			if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+			if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 			{
 				ERROR_MSG("\nmaterial list ended abruptly! in .COB file %s.", filename);
 				return(0);
-			} // end if
+			}
 
-		 // check for pattern?  
-			if (parser.Pattern_Match(parser.buffer, "['mat#'] [i]"))
+			// check for pattern?  
+			if (parser.match(parser.buffer, "['mat#'] [i]"))
 			{
 				// extract the material that is being defined 
 				int material_index = parser.pints[0];
@@ -942,17 +884,17 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nRGB color ended abruptly! in .COB file %s.", filename);
 						return(0);
-					} // end if
+					}
 
 					// replace the , comma's if there are any with spaces
 					ReplaceChars(parser.buffer, parser.buffer, ",", ' ', 1);
 
 					// look for "rgb float,float,float"
-					if (parser.Pattern_Match(parser.buffer, "['rgb'] [f] [f] [f]"))
+					if (parser.match(parser.buffer, "['rgb'] [f] [f] [f]"))
 					{
 						// extract data and store color in material libary
 						// pfloats[] 0,1,2,3, has data
@@ -961,30 +903,29 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 						materials[material_index + num_materials].color.b = (int)(parser.pfloats[2] * 255 + 0.5);
 
 						break; // while looking for rgb
-					} // end if
+					}
+				}
 
-				} // end while    
+				// extract out lighting constants for the heck of it, they are on a line like this:
+				// "alpha float ka float ks float exp float ior float"
+				// alpha is transparency           0 - 1
+				// ka is ambient coefficient       0 - 1
+				// ks is specular coefficient      0 - 1
+				// exp is highlight power exponent 0 - 1
+				// ior is index of refraction (unused)
 
-		  // extract out lighting constants for the heck of it, they are on a line like this:
-		  // "alpha float ka float ks float exp float ior float"
-		  // alpha is transparency           0 - 1
-		  // ka is ambient coefficient       0 - 1
-		  // ks is specular coefficient      0 - 1
-		  // exp is highlight power exponent 0 - 1
-		  // ior is index of refraction (unused)
-
-		  // although our engine will have minimal support for these, we might as well get them
+				// although our engine will have minimal support for these, we might as well get them
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nmaterial properties ended abruptly! in .COB file %s.", filename);
 						return(0);
-					} // end if
+					}
 
-				 // look for "alpha float ka float ks float exp float ior float"
-					if (parser.Pattern_Match(parser.buffer, "['alpha'] [f] ['ka'] [f] ['ks'] [f] ['exp'] [f]"))
+					// look for "alpha float ka float ks float exp float ior float"
+					if (parser.match(parser.buffer, "['alpha'] [f] ['ka'] [f] ['ks'] [f] ['exp'] [f]"))
 					{
 						// extract data and store in material libary
 						// pfloats[] 0,1,2,3, has data
@@ -1013,72 +954,68 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 							materials[material_index + num_materials].rs.rgba_M[rgb_index] =
 								((UCHAR)(materials[material_index + num_materials].ks *
 									(float)materials[material_index + num_materials].color.rgba_M[rgb_index] + 0.5));
-
-						} // end for rgb_index
+						} 
 
 						break;
-					} // end if
+					}
+				}
 
-				} // end while    
+				// now we need to know the shading model, it's a bit tricky, we need to look for the lines
+				// "Shader class: color" first, then after this line is:
+				// "Shader name: "xxxxxx" (xxxxxx) "
+				// where the xxxxx part will be "plain color" and "plain" for colored polys 
+				// or "texture map" and "caligari texture"  for textures
+				// THEN based on that we hunt for "Shader class: reflectance" which is where the type
+				// of shading is encoded, we look for the "Shader name: "xxxxxx" (xxxxxx) " again, 
+				// and based on it's value we map it to our shading system as follows:
+				// "constant" . MATV1_ATTR_SHADE_MODE_CONSTANT 
+				// "matte"    . MATV1_ATTR_SHADE_MODE_FLAT
+				// "plastic"  . MATV1_ATTR_SHADE_MODE_GOURAUD
+				// "phong"    . MATV1_ATTR_SHADE_MODE_FASTPHONG 
+				// and in the case that in the "color" class, we found a "texture map" then the "shading mode" is
+				// "texture map" . MATV1_ATTR_SHADE_MODE_TEXTURE 
+				// which must be logically or'ed with the other previous modes
 
-		  // now we need to know the shading model, it's a bit tricky, we need to look for the lines
-		  // "Shader class: color" first, then after this line is:
-		  // "Shader name: "xxxxxx" (xxxxxx) "
-		  // where the xxxxx part will be "plain color" and "plain" for colored polys 
-		  // or "texture map" and "caligari texture"  for textures
-		  // THEN based on that we hunt for "Shader class: reflectance" which is where the type
-		  // of shading is encoded, we look for the "Shader name: "xxxxxx" (xxxxxx) " again, 
-		  // and based on it's value we map it to our shading system as follows:
-		  // "constant" . MATV1_ATTR_SHADE_MODE_CONSTANT 
-		  // "matte"    . MATV1_ATTR_SHADE_MODE_FLAT
-		  // "plastic"  . MATV1_ATTR_SHADE_MODE_GOURAUD
-		  // "phong"    . MATV1_ATTR_SHADE_MODE_FASTPHONG 
-		  // and in the case that in the "color" class, we found a "texture map" then the "shading mode" is
-		  // "texture map" . MATV1_ATTR_SHADE_MODE_TEXTURE 
-		  // which must be logically or'ed with the other previous modes
-
-		  //  look for the "shader class: color"
+				//  look for the "shader class: color"
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nshader class ended abruptly! in .COB file %s.", filename);
 						return(0);
-					} // end if
+					}
 
-					if (parser.Pattern_Match(parser.buffer, "['Shader'] ['class:'] ['color']"))
+					if (parser.match(parser.buffer, "['Shader'] ['class:'] ['color']"))
 					{
 						break;
-					} // end if
+					}
+				}
 
-				} // end while
-
-		  // now look for the shader name for this class
-		  // Shader name: "plain color" or Shader name: "texture map"
+				// now look for the shader name for this class
+				// Shader name: "plain color" or Shader name: "texture map"
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nshader name ended abruptly! in .COB file %s.", filename);
 						return(0);
-					} // end if
-
-				 // replace the " with spaces
+					}
+					// replace the " with spaces
 					ReplaceChars(parser.buffer, parser.buffer, "\"", ' ', 1);
 
 					// is this a "plain color" poly?
-					if (parser.Pattern_Match(parser.buffer, "['Shader'] ['name:'] ['plain'] ['color']"))
+					if (parser.match(parser.buffer, "['Shader'] ['name:'] ['plain'] ['color']"))
 					{
 						// not much to do this is default, we need to wait for the reflectance type
 						// to tell us the shading mode
 
 						break;
-					} // end if
+					}
 
-				 // is this a "texture map" poly?
-					if (parser.Pattern_Match(parser.buffer, "['Shader'] ['name:'] ['texture'] ['map']"))
+					// is this a "texture map" poly?
+					if (parser.match(parser.buffer, "['Shader'] ['name:'] ['texture'] ['map']"))
 					{
 						// set the texture mapping flag in material
 						SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_TEXTURE);
@@ -1091,17 +1028,17 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 						while (1)
 						{
 							// get the next line
-							if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+							if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 							{
 								ERROR_MSG("\ncouldnt find texture name! in .COB file %s.", filename);
 								return(0);
-							} // end if
+							}
 
-						 // replace the " with spaces
+							// replace the " with spaces
 							ReplaceChars(parser.buffer, parser.buffer, "\"", ' ', 1);
 
 							// is this the file name?
-							if (parser.Pattern_Match(parser.buffer, "['file'] ['name:'] ['string'] [s>0]"))
+							if (parser.match(parser.buffer, "['file'] ['name:'] ['string'] [s>0]"))
 							{
 								// ok, simply convert to a real file name by changing the slashes
 								ReplaceChars(parser.pstrings[3], parser.pstrings[3], "\\", '/', 1);
@@ -1110,110 +1047,108 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 								strcpy(materials[material_index + num_materials].texture_file, parser.pstrings[3]);
 
 								break;
-							} // end if
+							}
 
-						} // end while
+						}
 
 						break;
-					} // end if
+					}
 
-				} // end while 
+				}
 
-		   // alright, finally! Now we need to know what the actual shader type, now in the COB format
-		   // I have decided that in the "reflectance" class that's where we will look at what kind
-		   // of shader is supposed to be used on the polygon
+				// alright, finally! Now we need to know what the actual shader type, now in the COB format
+				// I have decided that in the "reflectance" class that's where we will look at what kind
+				// of shader is supposed to be used on the polygon
 
-		   //  look for the "Shader class: reflectance"
+				//  look for the "Shader class: reflectance"
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nshader reflectance class not found in .COB file %s.", filename);
 						return(0);
-					} // end if
+					}
 
-				 // look for "Shader class: reflectance"
-					if (parser.Pattern_Match(parser.buffer, "['Shader'] ['class:'] ['reflectance']"))
+					// look for "Shader class: reflectance"
+					if (parser.match(parser.buffer, "['Shader'] ['class:'] ['reflectance']"))
 					{
 						// now we know the next "shader name" is what we are looking for so, break
 
 						break;
-					} // end if
+					}
 
-				} // end while    
+				}
 
-		   // looking for "Shader name: "xxxxxx" (xxxxxx) " again, 
-		   // and based on it's value we map it to our shading system as follows:
-		   // "constant" . MATV1_ATTR_SHADE_MODE_CONSTANT 
-		   // "matte"    . MATV1_ATTR_SHADE_MODE_FLAT
-		   // "plastic"  . MATV1_ATTR_SHADE_MODE_GOURAUD
-		   // "phong"    . MATV1_ATTR_SHADE_MODE_FASTPHONG 
-		   // and in the case that in the "color" class, we found a "texture map" then the "shading mode" is
-		   // "texture map" . MATV1_ATTR_SHADE_MODE_TEXTURE 
-		   // which must be logically or'ed with the other previous modes
+				// looking for "Shader name: "xxxxxx" (xxxxxx) " again, 
+				// and based on it's value we map it to our shading system as follows:
+				// "constant" . MATV1_ATTR_SHADE_MODE_CONSTANT 
+				// "matte"    . MATV1_ATTR_SHADE_MODE_FLAT
+				// "plastic"  . MATV1_ATTR_SHADE_MODE_GOURAUD
+				// "phong"    . MATV1_ATTR_SHADE_MODE_FASTPHONG 
+				// and in the case that in the "color" class, we found a "texture map" then the "shading mode" is
+				// "texture map" . MATV1_ATTR_SHADE_MODE_TEXTURE 
+				// which must be logically or'ed with the other previous modes
 				while (1)
 				{
 					// get the next line
-					if (!parser.Getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
+					if (!parser.getline(PARSER_STRIP_EMPTY_LINES | PARSER_STRIP_WS_ENDS))
 					{
 						ERROR_MSG("\nshader name ended abruptly! in .COB file %s.", filename);
 						return(0);
-					} // end if
+					}
 
-				 // get rid of those quotes
+					// get rid of those quotes
 					ReplaceChars(parser.buffer, parser.buffer, "\"", ' ', 1);
 
 					// did we find the name?
-					if (parser.Pattern_Match(parser.buffer, "['Shader'] ['name:'] [s>0]"))
+					if (parser.match(parser.buffer, "['Shader'] ['name:'] [s>0]"))
 					{
 						// figure out which shader to use
 						if (strcmp(parser.pstrings[2], "constant") == 0)
 						{
 							// set the shading mode flag in material
 							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_CONSTANT);
-						} // end if
+						}
+						else if (strcmp(parser.pstrings[2], "matte") == 0)
+						{
+							// set the shading mode flag in material
+							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
+						}
 						else
-							if (strcmp(parser.pstrings[2], "matte") == 0)
+							if (strcmp(parser.pstrings[2], "plastic") == 0)
+							{
+								// set the shading mode flag in material
+								SET_BIT(materials[curr_material + num_materials].attr, MATV1_ATTR_SHADE_MODE_GOURAUD);
+							}
+							else if (strcmp(parser.pstrings[2], "phong") == 0)
+							{
+								// set the shading mode flag in material
+								SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FASTPHONG);
+							}
+							else
 							{
 								// set the shading mode flag in material
 								SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
-							} // end if
-							else
-								if (strcmp(parser.pstrings[2], "plastic") == 0)
-								{
-									// set the shading mode flag in material
-									SET_BIT(materials[curr_material + num_materials].attr, MATV1_ATTR_SHADE_MODE_GOURAUD);
-								} // end if
-								else
-									if (strcmp(parser.pstrings[2], "phong") == 0)
-									{
-										// set the shading mode flag in material
-										SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FASTPHONG);
-									} // end if
-									else
-									{
-										// set the shading mode flag in material
-										SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
-									} // end else
+							}
 
 						break;
-					} // end if
+					}
 
-				} // end while
+				}
 
-			  // found the material, break out of while for another pass
+				// found the material, break out of while for another pass
 				break;
 
-			} // end if found material
+			}
 
-		} // end while looking for mat#1
+		}
 
-	} // end for curr_material
+	}
 
-// at this point poly_material[] holds all the indices for the polygon materials (zero based, so they need fix up)
-// and we must access the materials array to fill in each polygon with the polygon color, etc.
-// now that we finally have the material libary loaded
+	// at this point poly_material[] holds all the indices for the polygon materials (zero based, so they need fix up)
+	// and we must access the materials array to fill in each polygon with the polygon color, etc.
+	// now that we finally have the material libary loaded
 	for (int curr_poly = 0; curr_poly < obj.num_polys; curr_poly++)
 	{
 		ERROR_MSG("\nfixing poly material %d from index %d to index %d", curr_poly,
@@ -1225,71 +1160,55 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 		// we need to know what color depth we are dealing with, so check
 		// the bits per pixel, this assumes that the system has already
 		// made the call to DDraw_Init() or set the bit depth
-		if (screen_bpp == 16)
-		{
+
 			// cool, 16 bit mode
-			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_RGB16);
-			obj.plist[curr_poly].color = RGB16Bit(materials[poly_material[curr_poly]].color.r,
-				materials[poly_material[curr_poly]].color.g,
-				materials[poly_material[curr_poly]].color.b);
-			ERROR_MSG("\nPolygon 16-bit");
-		} // end
-		else
-		{
-			// 8 bit mode
-			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_8BITCOLOR);
-			obj.plist[curr_poly].color = RGBto8BitIndex(materials[poly_material[curr_poly]].color.r,
-				materials[poly_material[curr_poly]].color.g,
-				materials[poly_material[curr_poly]].color.b,
-				palette, 0);
+		SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_RGB24);
+		obj.plist[curr_poly].color = RGB_DX(materials[poly_material[curr_poly]].color.r,
+			materials[poly_material[curr_poly]].color.g,
+			materials[poly_material[curr_poly]].color.b);
+		ERROR_MSG("\nPolygon 16-bit");
 
-			ERROR_MSG("\nPolygon 8-bit, index=%d", obj.plist[curr_poly].color);
-		} // end else
 
-	  // now set all the shading flags
-	  // figure out which shader to use
+		// now set all the shading flags
+		// figure out which shader to use
 		if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_CONSTANT)
 		{
 			// set shading mode
 			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_CONSTANT);
-		} // end if
+		}
+		else if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_FLAT)
+		{
+			// set shading mode
+			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_FLAT);
+		}
+		else if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_GOURAUD)
+		{
+			// set shading mode
+			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
+		}
+		else if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_FASTPHONG)
+		{
+			// set shading mode
+			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_FASTPHONG);
+		}
 		else
-			if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_FLAT)
-			{
-				// set shading mode
-				SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_FLAT);
-			} // end if
-			else
-				if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_GOURAUD)
-				{
-					// set shading mode
-					SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
-				} // end if
-				else
-					if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_FASTPHONG)
-					{
-						// set shading mode
-						SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_FASTPHONG);
-					} // end if
-					else
-					{
-						// set shading mode
-						SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
-					} // end if
+		{
+			// set shading mode
+			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_GOURAUD);
+		}
 
 		if (materials[poly_material[curr_poly]].attr & MATV1_ATTR_SHADE_MODE_TEXTURE)
 		{
 			// set shading mode
 			SET_BIT(obj.plist[curr_poly].attr, POLY4DV1_ATTR_SHADE_MODE_TEXTURE);
-		} // end if
+		}
 
-	} // end for curr_poly
+	}
 
-// local object materials have been added to database, update total materials in system
+	// local object materials have been added to database, update total materials in system
 	num_materials += num_materials_object;
 
-#ifdef DEBUG_ON
-	for (curr_material = 0; curr_material < num_materials; curr_material++)
+	for (int curr_material = 0; curr_material < num_materials; curr_material++)
 	{
 		ERROR_MSG("\nMaterial %d", curr_material);
 
@@ -1307,11 +1226,8 @@ int Load_OBJECT4DV1_COB(OBJECT4DV1& obj,   // pointer to object
 		ERROR_MSG("\nks            = %f", materials[curr_material].ks);
 		ERROR_MSG("\npower         = %f", materials[curr_material].power);
 		ERROR_MSG("\nchar texture_file = %s\n", materials[curr_material].texture_file);
-	} // end for curr_material
-#endif
+	}
 
-// return success
 	return(1);
-
-} // end Load_OBJECT4DV1_COB
+}
 

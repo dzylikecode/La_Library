@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
-#include <string.h>
+#include <string>
+#include <sstream>
 #include <math.h>
 #include <corecrt_math.h>
 #include <string>
@@ -195,7 +196,19 @@ public:
 		M20 = m20; M21 = m21; M22 = m22; M23 = m23;
 		M30 = m30; M31 = m31; M32 = m32; M33 = m33;
 	}
-
+	operator const char* ()
+	{
+		std::stringstream str;
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				str << M[i][j] << " ";
+			}
+			str << std::endl;
+		}
+		return str.str().c_str();
+	}
 };
 
 class MATRIX4X3

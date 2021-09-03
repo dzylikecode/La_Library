@@ -133,6 +133,12 @@ struct MATV1
 	int   iaux1, iaux2;      // auxiliary vars for future expansion
 	float faux1, faux2;
 	void* ptr;
+public:
+	void reset()
+	{
+		texture.release();
+		memset(this, 0, sizeof(*this));
+	}
 };
 
 
