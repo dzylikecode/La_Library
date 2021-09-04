@@ -52,12 +52,14 @@ vrot = { 0,0,0 };
 
 CAM4DV1        cam;       // the single camera
 
-OBJECT4DV2     obj_flat_cube;
+OBJECT4DV2     obj_constant_water,
+obj_flat_water,
+obj_gouraud_water;
 
 RENDERLIST4DV2 rend_list; // the render list
 
 LIGHTV1 lights[5];
-ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo51\\";
+ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo50\\";
 
 MATV1 materials[MAX_MATERIALS];
 int numMaterials = 0;
@@ -80,11 +82,22 @@ void StartUp(void)
 		WINDOW_HEIGHT);
 
 	// load constant shaded water
-	vscale.set(20.00, 20.00, 20.00);
-	LoadCOB(obj_flat_cube, path + "cube_flat_textured_01.cob",
+	vscale.set(10.00, 10.00, 10.00);
+	LoadCOB(obj_constant_water, path + "water_constant_01.cob",
 		vscale, vpos, vrot, VERTEX_FLAGS_SWAP_YZ |
 		VERTEX_FLAGS_TRANSFORM_LOCAL |
-		VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD,materials, numMaterials);
+		VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD, materials, numMaterials);
+
+	// load flat shaded water
+	LoadCOB(obj_flat_water, path + "water_flat_01.cob",
+		vscale, vpos, vrot, VERTEX_FLAGS_SWAP_YZ |
+		VERTEX_FLAGS_TRANSFORM_LOCAL |
+		VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD, materials, numMaterials);
+
+	LoadCOB(obj_gouraud_water, path + "water_gouraud_01.cob",
+		vscale, vpos, vrot, VERTEX_FLAGS_SWAP_YZ |
+		VERTEX_FLAGS_TRANSFORM_LOCAL |
+		VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD, materials, numMaterials);
 
 	// create some working colors
 	RGBAV1 white, gray, black, red, green, blue;
@@ -187,9 +200,9 @@ void GameBody(void)
 		if (++wireframe_mode > 1)
 			wireframe_mode = 0;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} 
+	}
 
- // backface removal
+	// backface removal
 	if (keyboard[DIK_B])
 	{
 		// toggle backface removal
@@ -399,21 +412,21 @@ void GameBody(void)
 		((zsort_mode == 1) ? "ON" : "OFF"),
 		((backface_mode == 1) ? "ON" : "OFF"));
 
-	gPrintf(0, WINDOW_HEIGHT - 34, RGB(0, 255, 0),AToT(work_string));
+	gPrintf(0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), AToT(work_string));
 
 	// draw instructions
-	gPrintf( 0, 0, RGB(0, 255, 0), TEXT("Press ESC to exit. Press <H> for Help."));
+	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Press ESC to exit. Press <H> for Help."));
 
 	// should we display help
 	int text_y = 16;
 	if (help_mode == 1)
 	{
 		// draw help menu
-		gPrintf( 0, text_y += 12, RGB(255, 255, 255), TEXT("<A>..............Toggle ambient light source."));
-		gPrintf( 0, text_y += 12, RGB(255, 255, 255), TEXT("<I>..............Toggle infinite light source."));
+		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<A>..............Toggle ambient light source."));
+		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<I>..............Toggle infinite light source."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<P>..............Toggle point light source."));
-		gPrintf( 0, text_y += 12, RGB(255, 255, 255), TEXT("<S>..............Toggle spot light source."));
-		gPrintf( 0, text_y += 12, RGB(255, 255, 255), TEXT("<W>..............Toggle wire frame/solid mode."));
+		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<S>..............Toggle spot light source."));
+		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<W>..............Toggle wire frame/solid mode."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<B>..............Toggle backface removal."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<H>..............Toggle Help."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<ESC>............Exit demo."));

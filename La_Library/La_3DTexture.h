@@ -280,7 +280,7 @@ public:
 		int _num_vertices,
 		int _num_polys,
 		int _num_frames,
-		bool destroy = true)
+		bool destroy = false)
 	{
 		// this function does nothing more than allocate the memory for an OBJECT4DV2
 		// based on the sent data, later we may want to create more robust initializers
@@ -448,10 +448,10 @@ void Transform(OBJECT4DV2& obj,  // object to transform
 	int coord_select,    // selects coords to transform
 	int transform_basis, // flags if vector orientation
 						 // should be transformed too
-	int all_frames);
+	int all_frames = 0);
 
 void RotateXYZ(OBJECT4DV2& obj, float theta_x, float theta_y, float theta_z, int all_frames);
-void ModelToWorld(OBJECT4DV2& obj, int coord_select, int all_frames);
+void ModelToWorld(OBJECT4DV2& obj, int coord_select = TRANSFORM_LOCAL_TO_TRANS, int all_frames = 0);
 int Cull(OBJECT4DV2& obj, CAM4DV1& cam, int cull_flags);
 void RemoveBackfaces(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
 void RemoveBackfaces(OBJECT4DV2& obj, CAM4DV1& cam);
@@ -488,3 +488,10 @@ void DrawTriangle2(float x1, float y1,
 	float x3, float y3,
 	int color,
 	GRAPHIC::SURFACE* surface = nullptr);
+int LoadPCXImage(const char* filename, IMAGE& image);
+int LoadBitmapFrom(const char* filename, IMAGE& image);
+int LoadImageFrom(const char* filename, IMAGE& image);
+
+void Reset(RENDERLIST4DV2& rend_list);
+void DrawSolid(RENDERLIST4DV2& rend_list);
+void DrawSolid(OBJECT4DV2& obj);

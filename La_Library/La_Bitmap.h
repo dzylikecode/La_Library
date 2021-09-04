@@ -22,7 +22,7 @@ public:
 		copy(img);
 	}
 	bool create(int outWidth, int outHeight) { release(); width = outWidth; height = outHeight; pbuffer = new COLOR[width * height]; return pbuffer; }
-	void release() { if (pbuffer) delete[] pbuffer; }
+	void release() { if (pbuffer) { delete[] pbuffer; pbuffer = nullptr; } }
 	~IMAGE() { release(); }
 	IMAGE operator=(const IMAGE& img)
 	{

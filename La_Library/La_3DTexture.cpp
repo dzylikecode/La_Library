@@ -5349,7 +5349,7 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 	// this function draws a gouraud shaded polygon, based on the affine texture mapper, instead
 	// of interpolating the texture coordinates, we simply interpolate the (R,G,B) values across
 	// the polygons, I simply needed at another interpolant, I have mapped u.red, v.green, w.blue
-
+	surface = INCLUDE_NULL_SURFACE(surface);
 	int v0 = 0,
 		v1 = 1,
 		v2 = 2,
@@ -5697,7 +5697,8 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				for (xi = xstart; xi <= xend; xi++)
 				{
 					// write textel assume 5.6.5
-					screen_ptr[xi] = ((ui >> (FIXP16_SHIFT + 3)) << 11) + ((vi >> (FIXP16_SHIFT + 2)) << 5) + (wi >> (FIXP16_SHIFT + 3));
+					
+					screen_ptr[xi] = RGB_DX(ui >> (FIXP16_SHIFT), vi >> (FIXP16_SHIFT), wi >> (FIXP16_SHIFT));
 
 					// interpolate u,v
 					ui += du;
@@ -5756,7 +5757,7 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				for (xi = xstart; xi <= xend; xi++)
 				{
 					// write textel 5.6.5
-					screen_ptr[xi] = ((ui >> (FIXP16_SHIFT + 3)) << 11) + ((vi >> (FIXP16_SHIFT + 2)) << 5) + (wi >> (FIXP16_SHIFT + 3));
+					screen_ptr[xi] = RGB_DX(ui >> (FIXP16_SHIFT), vi >> (FIXP16_SHIFT), wi >> (FIXP16_SHIFT));
 
 					// interpolate u,v
 					ui += du;
@@ -6030,7 +6031,7 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				for (xi = xstart; xi <= xend; xi++)
 				{
 					// write textel assume 5.6.5
-					screen_ptr[xi] = ((ui >> (FIXP16_SHIFT + 3)) << 11) + ((vi >> (FIXP16_SHIFT + 2)) << 5) + (wi >> (FIXP16_SHIFT + 3));
+					screen_ptr[xi] = RGB_DX(ui >> (FIXP16_SHIFT), vi >> (FIXP16_SHIFT), wi >> (FIXP16_SHIFT));
 
 					// interpolate u,v
 					ui += du;
@@ -6138,7 +6139,7 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				for (xi = xstart; xi <= xend; xi++)
 				{
 					// write textel assume 5.6.5
-					screen_ptr[xi] = ((ui >> (FIXP16_SHIFT + 3)) << 11) + ((vi >> (FIXP16_SHIFT + 2)) << 5) + (wi >> (FIXP16_SHIFT + 3));
+					screen_ptr[xi] = RGB_DX(ui >> (FIXP16_SHIFT), vi >> (FIXP16_SHIFT), wi >> (FIXP16_SHIFT));
 
 					// interpolate u,v
 					ui += du;
