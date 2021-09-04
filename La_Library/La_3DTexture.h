@@ -495,3 +495,4 @@ int LoadImageFrom(const char* filename, IMAGE& image);
 void Reset(RENDERLIST4DV2& rend_list);
 void DrawSolid(RENDERLIST4DV2& rend_list);
 void DrawSolid(OBJECT4DV2& obj);
+void SetTexturePath(const char* path);

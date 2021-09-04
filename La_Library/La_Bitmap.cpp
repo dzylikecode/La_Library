@@ -148,7 +148,7 @@ namespace GRAPHIC
 	void BITMAP::ConvertToImage(IMAGE& image)
 	{
 		image.create(getWidth(), getHeight());
-		memcpy(image.pbuffer, image.pbuffer, getWidth() * getHeight() * sizeof(COLOR));
+		memcpy(image.pbuffer, buffer, getWidth() * getHeight() * sizeof(COLOR));
 	}
 	void BITMAP::getPalette(laPALETTE& outPalette)
 	{

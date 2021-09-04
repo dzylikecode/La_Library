@@ -79,6 +79,7 @@ void StartUp(void)
 		WINDOW_WIDTH,   // size of final screen viewport
 		WINDOW_HEIGHT);
 
+	SetTexturePath(path);
 	// load constant shaded water
 	vscale.set(20.00, 20.00, 20.00);
 	LoadCOB(obj_flat_cube, path + "cube_flat_textured_01.cob",
@@ -227,8 +228,7 @@ void GameBody(void)
 			lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
-
+	} 
  // toggle point light
 	if (keyboard[DIK_P])
 	{
@@ -239,7 +239,7 @@ void GameBody(void)
 			lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	} 
 
 
  // toggle spot light
@@ -252,7 +252,7 @@ void GameBody(void)
 			lights[SPOT_LIGHT2_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	} 
 
 
  // help menu
@@ -261,7 +261,7 @@ void GameBody(void)
 		// toggle help menu 
 		help_mode = -help_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	} 
 
  // z-sorting
 	if (keyboard[DIK_Z])
@@ -269,7 +269,7 @@ void GameBody(void)
 		// toggle z sorting
 		zsort_mode = -zsort_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	} 
 
 	static float plight_ang = 0, slight_ang = 0; // angles for light motion
 
@@ -299,70 +299,24 @@ void GameBody(void)
 	// constant shaded water
 
 	// reset the object (this only matters for backface and object removal)
-	Reset(obj_constant_water);
+	Reset(obj_flat_cube);
 
-	// set position of constant shaded water
-	obj_constant_water.world_pos.x = -50;
-	obj_constant_water.world_pos.y = 0;
-	obj_constant_water.world_pos.z = 120;
-
-	// generate rotation matrix around y axis
-	BuildXYZRotation(x_ang, y_ang, z_ang, mrot);
-
-	// rotate the local coords of the object
-	Transform(obj_constant_water, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
-
-	// perform world transform
-	ModelToWorld(obj_constant_water, TRANSFORM_TRANS_ONLY);
-
-	// insert the object into render list
-	Insert(rend_list, obj_constant_water, 0);
-
-	//////////////////////////////////////////////////////////////////////////
-	// flat shaded water
-
-	// reset the object (this only matters for backface and object removal)
-	Reset(obj_flat_water);
-
-	// set position of constant shaded water
-	obj_flat_water.world_pos.x = 0;
-	obj_flat_water.world_pos.y = 0;
-	obj_flat_water.world_pos.z = 120;
+	// set position of constant shaded cube
+	obj_flat_cube.world_pos.x = 0;
+	obj_flat_cube.world_pos.y = 0;
+	obj_flat_cube.world_pos.z = 150;
 
 	// generate rotation matrix around y axis
 	BuildXYZRotation(x_ang, y_ang, z_ang, mrot);
 
 	// rotate the local coords of the object
-	Transform(obj_flat_water, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
+	Transform(obj_flat_cube, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
 
 	// perform world transform
-	ModelToWorld(obj_flat_water, TRANSFORM_TRANS_ONLY);
+	ModelToWorld(obj_flat_cube, TRANSFORM_TRANS_ONLY);
 
 	// insert the object into render list
-	Insert(rend_list, obj_flat_water, 0);
-
-	//////////////////////////////////////////////////////////////////////////
-	// gouraud shaded water
-
-	// reset the object (this only matters for backface and object removal)
-	Reset(obj_gouraud_water);
-
-	// set position of constant shaded water
-	obj_gouraud_water.world_pos.x = 50;
-	obj_gouraud_water.world_pos.y = 0;
-	obj_gouraud_water.world_pos.z = 120;
-
-	// generate rotation matrix around y axis
-	BuildXYZRotation(x_ang, y_ang, z_ang, mrot);
-
-	// rotate the local coords of the object
-	Transform(obj_gouraud_water, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
-
-	// perform world transform
-	ModelToWorld(obj_gouraud_water, TRANSFORM_TRANS_ONLY);
-
-	// insert the object into render list
-	Insert(rend_list, obj_gouraud_water, 0);
+	Insert(rend_list, obj_flat_cube, 0);
 
 	// update rotation angles
 	if ((x_ang += 1) > 360) x_ang = 0;
@@ -418,7 +372,7 @@ void GameBody(void)
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<H>..............Toggle Help."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<ESC>............Exit demo."));
 
-	} // end help
+	} 
 
 // lock the back buffer
 	BeginDrawOn();
@@ -430,8 +384,37 @@ void GameBody(void)
 	else if (wireframe_mode == 1)
 		DrawSolid(rend_list);
 
+
+
 	// unlock the back buffer
 	EndDrawOn();
+	
+	//static int poly = 0;
+	//poly %= rend_list.num_polys;
+	//if (!(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_ACTIVE) ||
+	//	(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_CLIPPED) ||
+	//	(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_BACKFACE))
+	//{
+
+	//}
+	//else
+	//{
+	//	// need to test for textured first, since a textured poly can either
+	//	// be emissive, or flat shaded, hence we need to call different
+	//	// rasterizers    
+	//	if (rend_list.poly_ptrs[poly]->attr & POLY4DV2_ATTR_SHADE_MODE_TEXTURE)
+	//	{
+	//		// assign the texture
+	//		SURFACE temp;
+	//		COLOR* buffer = rend_list.poly_ptrs[poly]->texture.pbuffer;
+	//		int width = rend_list.poly_ptrs[poly]->texture.width;
+	//		int height = rend_list.poly_ptrs[poly]->texture.height;
+	//		temp.createFromBuffer(buffer, width, height);
+	//		temp.drawOn(0, 0);
+	//	}
+	//}
+	//poly++;
+	
 
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());

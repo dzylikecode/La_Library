@@ -32,7 +32,10 @@ UCHAR logbase2ofx[513] =
 
 char texture_path[80] = "./"; // root path to ALL textures, make current directory for now
 
-
+void SetTexturePath(const char* path)
+{
+	strcpy(texture_path, path);
+}
 
 // setting the frame is so important that it should be a member function
 int OBJECT4DV2::setFrame(int frame)
@@ -4352,30 +4355,27 @@ int LoadCOB(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& po
 						{
 							// set the shading mode flag in material
 							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_CONSTANT);
-						} // end if
+						}
+						else if (strcmp(parser.pstrings[2], "matte") == 0)
+						{
+							// set the shading mode flag in material
+							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
+						}
+						else if (strcmp(parser.pstrings[2], "plastic") == 0)
+						{
+							// set the shading mode flag in material
+							SET_BIT(materials[curr_material + num_materials].attr, MATV1_ATTR_SHADE_MODE_GOURAUD);
+						}
+						else if (strcmp(parser.pstrings[2], "phong") == 0)
+						{
+							// set the shading mode flag in material
+							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FASTPHONG);
+						}
 						else
-							if (strcmp(parser.pstrings[2], "matte") == 0)
-							{
-								// set the shading mode flag in material
-								SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
-							} // end if
-							else
-								if (strcmp(parser.pstrings[2], "plastic") == 0)
-								{
-									// set the shading mode flag in material
-									SET_BIT(materials[curr_material + num_materials].attr, MATV1_ATTR_SHADE_MODE_GOURAUD);
-								} // end if
-								else
-									if (strcmp(parser.pstrings[2], "phong") == 0)
-									{
-										// set the shading mode flag in material
-										SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FASTPHONG);
-									} // end if
-									else
-									{
-										// set the shading mode flag in material
-										SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
-									} // end else
+						{
+							// set the shading mode flag in material
+							SET_BIT(materials[material_index + num_materials].attr, MATV1_ATTR_SHADE_MODE_FLAT);
+						}
 
 						break;
 					}
@@ -5697,7 +5697,7 @@ void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				for (xi = xstart; xi <= xend; xi++)
 				{
 					// write textel assume 5.6.5
-					
+
 					screen_ptr[xi] = RGB_DX(ui >> (FIXP16_SHIFT), vi >> (FIXP16_SHIFT), wi >> (FIXP16_SHIFT));
 
 					// interpolate u,v
@@ -7207,7 +7207,7 @@ void DrawTexturedTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)        
+void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 {
 	// this function draws a textured triangle in 16-bit mode with flat shading
 	surface = INCLUDE_NULL_SURFACE(surface);
@@ -7260,8 +7260,8 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 	textmap = face.texture.pbuffer;
 
 	// extract base 2 of texture width
-	int texture_shift2 = logbase2ofx[face.texture.width];
-
+	//int texture_shift2 = logbase2ofx[face.texture.width];
+	int texture_shift2 = face.texture.width;
 	// adjust memory pitch to words, divide by 2
 	int mem_pitch = surface->getLpitch();
 	using namespace GRAPHIC;
@@ -7316,25 +7316,25 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 			SWAP(v0, v1, temp);
 		}
 
-	} 
+	}
 	else if (face.tvlist[v1].y == face.tvlist[v2].y)// now test for trivial flat sided cases
+	{
+		// set triangle type
+		tri_type = TRI_TYPE_FLAT_BOTTOM;
+
+		// sort vertices left to right
+		if (face.tvlist[v2].x < face.tvlist[v1].x)
 		{
-			// set triangle type
-			tri_type = TRI_TYPE_FLAT_BOTTOM;
+			SWAP(v1, v2, temp);
+		}
 
-			// sort vertices left to right
-			if (face.tvlist[v2].x < face.tvlist[v1].x)
-			{
-				SWAP(v1, v2, temp);
-			}
+	}
+	else
+	{
+		// must be a general triangle
+		tri_type = TRI_TYPE_GENERAL;
 
-		} 
-		else
-		{
-			// must be a general triangle
-			tri_type = TRI_TYPE_GENERAL;
-
-		} 
+	}
 
 	// extract base color of lit poly, so we can modulate texture a bit
 	// for lighting
@@ -7395,7 +7395,7 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				// compute new starting y
 				ystart = min_clip_y;
 
-			} 
+			}
 			else
 			{
 				// no clipping
@@ -7413,8 +7413,8 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				// set starting y
 				ystart = y0;
 
-			} 
-		} 
+			}
+		}
 		else
 		{
 			// must be flat bottom
@@ -7500,16 +7500,16 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				{
 					du = (ur - ul) / dx;
 					dv = (vr - vl) / dx;
-				} 
+				}
 				else
 				{
 					du = (ur - ul);
 					dv = (vr - vl);
-				} 
+				}
 
-			///////////////////////////////////////////////////////////////////////
+				///////////////////////////////////////////////////////////////////////
 
-			// test for x clipping, LHS
+				// test for x clipping, LHS
 				if (xstart < min_clip_x)
 				{
 					// compute x overlap
@@ -7535,7 +7535,7 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				{
 					// write textel
 					// get textel first
-					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) * texture_shift2)];
 
 					// extract rgb components
 					DisRGB(textel, r_textel, g_textel, b_textel);
@@ -7550,14 +7550,14 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 					// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
 					// and they all cancel out for the most part, but we will need logical anding, we will do
 					// it later when we optimize more...
-					screen_ptr[xi] = RGB_DX(r_textel, g_textel, b_textel);
+					screen_ptr[xi] = RGB_DX(r_textel/256, g_textel/256, b_textel/256);
 
 					// interpolate u,v
 					ui += du;
 					vi += dv;
-				} 
+				}
 
-			// interpolate u,v,x along right and left edge
+				// interpolate u,v,x along right and left edge
 				xl += dxdyl;
 				ul += dudyl;
 				vl += dvdyl;
@@ -7569,8 +7569,8 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				// advance screen ptr
 				screen_ptr += mem_pitch;
 
-			} 
-		} 
+			}
+		}
 		else
 		{
 			// non-clip version
@@ -7605,7 +7605,7 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 				{
 					// write textel
 					// get textel first
-					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) * texture_shift2)];
 
 					// extract rgb components
 					DisRGB(textel, r_textel, g_textel, b_textel);
@@ -7620,7 +7620,7 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 					// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
 					// and they all cancel out for the most part, but we will need logical anding, we will do
 					// it later when we optimize more...
-					screen_ptr[xi] = RGB_DX(r_textel, g_textel, b_textel);
+					screen_ptr[xi] = RGB_DX(r_textel / 256, g_textel / 256, b_textel / 256);
 
 					// interpolate u,v
 					ui += du;
@@ -7641,440 +7641,440 @@ void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface)
 
 			}
 		}
-	} 
+	}
 	else if (tri_type == TRI_TYPE_GENERAL)
+	{
+
+		// first test for bottom clip, always
+		if ((yend = y2) > max_clip_y)
+			yend = max_clip_y;
+
+		// pre-test y clipping status
+		if (y1 < min_clip_y)
 		{
+			// compute all deltas
+			// LHS
+			dyl = (y2 - y1);
 
-			// first test for bottom clip, always
-			if ((yend = y2) > max_clip_y)
-				yend = max_clip_y;
+			dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+			dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+			dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
 
-			// pre-test y clipping status
-			if (y1 < min_clip_y)
+			// RHS
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+
+			// compute overclip
+			dyr = (min_clip_y - y0);
+			dyl = (min_clip_y - y1);
+
+			// computer new LHS starting values
+			xl = dxdyl * dyl + (x1 << FIXP16_SHIFT);
+			ul = dudyl * dyl + (tu1 << FIXP16_SHIFT);
+			vl = dvdyl * dyl + (tv1 << FIXP16_SHIFT);
+
+			// compute new RHS starting values
+			xr = dxdyr * dyr + (x0 << FIXP16_SHIFT);
+			ur = dudyr * dyr + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr * dyr + (tv0 << FIXP16_SHIFT);
+
+			// compute new starting y
+			ystart = min_clip_y;
+
+			// test if we need swap to keep rendering left to right
+			if (dxdyr > dxdyl)
 			{
-				// compute all deltas
-				// LHS
-				dyl = (y2 - y1);
+				SWAP(dxdyl, dxdyr, temp);
+				SWAP(dudyl, dudyr, temp);
+				SWAP(dvdyl, dvdyr, temp);
+				SWAP(xl, xr, temp);
+				SWAP(ul, ur, temp);
+				SWAP(vl, vr, temp);
+				SWAP(x1, x2, temp);
+				SWAP(y1, y2, temp);
+				SWAP(tu1, tu2, temp);
+				SWAP(tv1, tv2, temp);
 
-				dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
-				dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
-				dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+				// set interpolation restart
+				irestart = INTERP_RHS;
 
-				// RHS
-				dyr = (y2 - y0);
+			}
+		}
+		else if (y0 < min_clip_y)
+		{
+			// compute all deltas
+			// LHS
+			dyl = (y1 - y0);
 
-				dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
-				dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
-				dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
 
-				// compute overclip
-				dyr = (min_clip_y - y0);
-				dyl = (min_clip_y - y1);
+			// RHS
+			dyr = (y2 - y0);
 
-				// computer new LHS starting values
-				xl = dxdyl * dyl + (x1 << FIXP16_SHIFT);
-				ul = dudyl * dyl + (tu1 << FIXP16_SHIFT);
-				vl = dvdyl * dyl + (tv1 << FIXP16_SHIFT);
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
 
-				// compute new RHS starting values
-				xr = dxdyr * dyr + (x0 << FIXP16_SHIFT);
-				ur = dudyr * dyr + (tu0 << FIXP16_SHIFT);
-				vr = dvdyr * dyr + (tv0 << FIXP16_SHIFT);
+			// compute overclip
+			dy = (min_clip_y - y0);
 
-				// compute new starting y
-				ystart = min_clip_y;
+			// computer new LHS starting values
+			xl = dxdyl * dy + (x0 << FIXP16_SHIFT);
+			ul = dudyl * dy + (tu0 << FIXP16_SHIFT);
+			vl = dvdyl * dy + (tv0 << FIXP16_SHIFT);
 
-				// test if we need swap to keep rendering left to right
-				if (dxdyr > dxdyl)
+			// compute new RHS starting values
+			xr = dxdyr * dy + (x0 << FIXP16_SHIFT);
+			ur = dudyr * dy + (tu0 << FIXP16_SHIFT);
+			vr = dvdyr * dy + (tv0 << FIXP16_SHIFT);
+
+			// compute new starting y
+			ystart = min_clip_y;
+
+			// test if we need swap to keep rendering left to right
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl, dxdyr, temp);
+				SWAP(dudyl, dudyr, temp);
+				SWAP(dvdyl, dvdyr, temp);
+				SWAP(xl, xr, temp);
+				SWAP(ul, ur, temp);
+				SWAP(vl, vr, temp);
+				SWAP(x1, x2, temp);
+				SWAP(y1, y2, temp);
+				SWAP(tu1, tu2, temp);
+				SWAP(tv1, tv2, temp);
+
+				// set interpolation restart
+				irestart = INTERP_RHS;
+
+			}
+		}
+		else
+		{
+			// no initial y clipping
+
+			// compute all deltas
+			// LHS
+			dyl = (y1 - y0);
+
+			dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
+			dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
+			dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
+
+			// RHS
+			dyr = (y2 - y0);
+
+			dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+			dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+			dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+
+			// no clipping y
+
+			// set starting values
+			xl = (x0 << FIXP16_SHIFT);
+			xr = (x0 << FIXP16_SHIFT);
+
+			ul = (tu0 << FIXP16_SHIFT);
+			vl = (tv0 << FIXP16_SHIFT);
+
+			ur = (tu0 << FIXP16_SHIFT);
+			vr = (tv0 << FIXP16_SHIFT);
+
+			// set starting y
+			ystart = y0;
+
+			// test if we need swap to keep rendering left to right
+			if (dxdyr < dxdyl)
+			{
+				SWAP(dxdyl, dxdyr, temp);
+				SWAP(dudyl, dudyr, temp);
+				SWAP(dvdyl, dvdyr, temp);
+				SWAP(xl, xr, temp);
+				SWAP(ul, ur, temp);
+				SWAP(vl, vr, temp);
+				SWAP(x1, x2, temp);
+				SWAP(y1, y2, temp);
+				SWAP(tu1, tu2, temp);
+				SWAP(tv1, tv2, temp);
+
+				// set interpolation restart
+				irestart = INTERP_RHS;
+
+			} // end if
+
+		} // end else
+
+
+	// test for horizontal clipping
+		if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
+			(x1 < min_clip_x) || (x1 > max_clip_x) ||
+			(x2 < min_clip_x) || (x2 > max_clip_x))
+		{
+			// clip version
+			// x clipping	
+
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			for (yi = ystart; yi <= yend; yi++)
+			{
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart)) > 0)
 				{
-					SWAP(dxdyl, dxdyr, temp);
-					SWAP(dudyl, dudyr, temp);
-					SWAP(dvdyl, dvdyr, temp);
-					SWAP(xl, xr, temp);
-					SWAP(ul, ur, temp);
-					SWAP(vl, vr, temp);
-					SWAP(x1, x2, temp);
-					SWAP(y1, y2, temp);
-					SWAP(tu1, tu2, temp);
-					SWAP(tv1, tv2, temp);
-
-					// set interpolation restart
-					irestart = INTERP_RHS;
-
-				} 
-			} 
-			else if (y0 < min_clip_y)
-				{
-					// compute all deltas
-					// LHS
-					dyl = (y1 - y0);
-
-					dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
-					dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
-					dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
-
-					// RHS
-					dyr = (y2 - y0);
-
-					dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
-					dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
-					dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
-
-					// compute overclip
-					dy = (min_clip_y - y0);
-
-					// computer new LHS starting values
-					xl = dxdyl * dy + (x0 << FIXP16_SHIFT);
-					ul = dudyl * dy + (tu0 << FIXP16_SHIFT);
-					vl = dvdyl * dy + (tv0 << FIXP16_SHIFT);
-
-					// compute new RHS starting values
-					xr = dxdyr * dy + (x0 << FIXP16_SHIFT);
-					ur = dudyr * dy + (tu0 << FIXP16_SHIFT);
-					vr = dvdyr * dy + (tv0 << FIXP16_SHIFT);
-
-					// compute new starting y
-					ystart = min_clip_y;
-
-					// test if we need swap to keep rendering left to right
-					if (dxdyr < dxdyl)
-					{
-						SWAP(dxdyl, dxdyr, temp);
-						SWAP(dudyl, dudyr, temp);
-						SWAP(dvdyl, dvdyr, temp);
-						SWAP(xl, xr, temp);
-						SWAP(ul, ur, temp);
-						SWAP(vl, vr, temp);
-						SWAP(x1, x2, temp);
-						SWAP(y1, y2, temp);
-						SWAP(tu1, tu2, temp);
-						SWAP(tv1, tv2, temp);
-
-						// set interpolation restart
-						irestart = INTERP_RHS;
-
-					}
-				} 
+					du = (ur - ul) / dx;
+					dv = (vr - vl) / dx;
+				} // end if
 				else
 				{
-					// no initial y clipping
-
-					// compute all deltas
-					// LHS
-					dyl = (y1 - y0);
-
-					dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
-					dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
-					dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
-
-					// RHS
-					dyr = (y2 - y0);
-
-					dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
-					dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
-					dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
-
-					// no clipping y
-
-					// set starting values
-					xl = (x0 << FIXP16_SHIFT);
-					xr = (x0 << FIXP16_SHIFT);
-
-					ul = (tu0 << FIXP16_SHIFT);
-					vl = (tv0 << FIXP16_SHIFT);
-
-					ur = (tu0 << FIXP16_SHIFT);
-					vr = (tv0 << FIXP16_SHIFT);
-
-					// set starting y
-					ystart = y0;
-
-					// test if we need swap to keep rendering left to right
-					if (dxdyr < dxdyl)
-					{
-						SWAP(dxdyl, dxdyr, temp);
-						SWAP(dudyl, dudyr, temp);
-						SWAP(dvdyl, dvdyr, temp);
-						SWAP(xl, xr, temp);
-						SWAP(ul, ur, temp);
-						SWAP(vl, vr, temp);
-						SWAP(x1, x2, temp);
-						SWAP(y1, y2, temp);
-						SWAP(tu1, tu2, temp);
-						SWAP(tv1, tv2, temp);
-
-						// set interpolation restart
-						irestart = INTERP_RHS;
-
-					} // end if
-
+					du = (ur - ul);
+					dv = (vr - vl);
 				} // end else
 
+			///////////////////////////////////////////////////////////////////////
 
-			// test for horizontal clipping
-			if ((x0 < min_clip_x) || (x0 > max_clip_x) ||
-				(x1 < min_clip_x) || (x1 > max_clip_x) ||
-				(x2 < min_clip_x) || (x2 > max_clip_x))
-			{
-				// clip version
-				// x clipping	
-
-				// point screen ptr to starting line
-				screen_ptr = dest_buffer + (ystart * mem_pitch);
-
-				for (yi = ystart; yi <= yend; yi++)
+			// test for x clipping, LHS
+				if (xstart < min_clip_x)
 				{
-					// compute span endpoints
-					xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-					xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+					// compute x overlap
+					dx = min_clip_x - xstart;
 
-					// compute starting points for u,v interpolants
-					ui = ul + FIXP16_ROUND_UP;
-					vi = vl + FIXP16_ROUND_UP;
+					// slide interpolants over
+					ui += dx * du;
+					vi += dx * dv;
 
-					// compute u,v interpolants
-					if ((dx = (xend - xstart)) > 0)
-					{
-						du = (ur - ul) / dx;
-						dv = (vr - vl) / dx;
-					} // end if
-					else
-					{
-						du = (ur - ul);
-						dv = (vr - vl);
-					} // end else
+					// set x to left clip edge
+					xstart = min_clip_x;
+
+				} // end if
+
+			// test for x clipping RHS
+				if (xend > max_clip_x)
+					xend = max_clip_x;
 
 				///////////////////////////////////////////////////////////////////////
 
-				// test for x clipping, LHS
-					if (xstart < min_clip_x)
-					{
-						// compute x overlap
-						dx = min_clip_x - xstart;
-
-						// slide interpolants over
-						ui += dx * du;
-						vi += dx * dv;
-
-						// set x to left clip edge
-						xstart = min_clip_x;
-
-					} // end if
-
-				// test for x clipping RHS
-					if (xend > max_clip_x)
-						xend = max_clip_x;
-
-					///////////////////////////////////////////////////////////////////////
-
-					// draw span
-					for (xi = xstart; xi <= xend; xi++)
-					{
-						// write textel
-						//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
-						// get textel first
-						textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
-
-						// extract rgb components
-						DisRGB(textel, r_textel, g_textel, b_textel);
-
-						// modulate textel with lit background color
-						r_textel *= r_base;
-						g_textel *= g_base;
-						b_textel *= b_base;
-
-						// finally write pixel, note that we did the math such that the results are r*32, g*64, b*32
-						// hence we need to divide the results by 32,64,32 respetively, BUT since we need to shift
-						// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
-						// and they all cancel out for the most part, but we will need logical anding, we will do
-						// it later when we optimize more...
-						screen_ptr[xi] = RGB_DX(r_textel, g_textel, b_textel);
-
-						// interpolate u,v
-						ui += du;
-						vi += dv;
-					} // end for xi
-
-				// interpolate u,v,x along right and left edge
-					xl += dxdyl;
-					ul += dudyl;
-					vl += dvdyl;
-
-					xr += dxdyr;
-					ur += dudyr;
-					vr += dvdyr;
-
-					// advance screen ptr
-					screen_ptr += mem_pitch;
-
-					// test for yi hitting second region, if so change interpolant
-					if (yi == yrestart)
-					{
-						// test interpolation side change flag
-
-						if (irestart == INTERP_LHS)
-						{
-							// LHS
-							dyl = (y2 - y1);
-
-							dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
-							dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
-							dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
-
-							// set starting values
-							xl = (x1 << FIXP16_SHIFT);
-							ul = (tu1 << FIXP16_SHIFT);
-							vl = (tv1 << FIXP16_SHIFT);
-
-							// interpolate down on LHS to even up
-							xl += dxdyl;
-							ul += dudyl;
-							vl += dvdyl;
-						} // end if
-						else
-						{
-							// RHS
-							dyr = (y1 - y2);
-
-							dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
-							dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
-							dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
-
-							// set starting values
-							xr = (x2 << FIXP16_SHIFT);
-							ur = (tu2 << FIXP16_SHIFT);
-							vr = (tv2 << FIXP16_SHIFT);
-
-							// interpolate down on RHS to even up
-							xr += dxdyr;
-							ur += dudyr;
-							vr += dvdyr;
-
-						} // end else
-
-
-					} // end if
-
-				} // end for y
-
-			} // end if
-			else
-			{
-				// no x clipping
-				// point screen ptr to starting line
-				screen_ptr = dest_buffer + (ystart * mem_pitch);
-
-				for (yi = ystart; yi <= yend; yi++)
+				// draw span
+				for (xi = xstart; xi <= xend; xi++)
 				{
-					// compute span endpoints
-					xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
-					xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+					// write textel
+					//screen_ptr[xi] = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+					// get textel first
+					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) * texture_shift2)];
 
-					// compute starting points for u,v interpolants
-					ui = ul + FIXP16_ROUND_UP;
-					vi = vl + FIXP16_ROUND_UP;
+					// extract rgb components
+					DisRGB(textel, r_textel, g_textel, b_textel);
 
-					// compute u,v interpolants
-					if ((dx = (xend - xstart)) > 0)
+					// modulate textel with lit background color
+					r_textel *= r_base;
+					g_textel *= g_base;
+					b_textel *= b_base;
 
+					// finally write pixel, note that we did the math such that the results are r*32, g*64, b*32
+					// hence we need to divide the results by 32,64,32 respetively, BUT since we need to shift
+					// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
+					// and they all cancel out for the most part, but we will need logical anding, we will do
+					// it later when we optimize more...
+					screen_ptr[xi] = RGB_DX(r_textel / 256, g_textel / 256, b_textel / 256);
+
+					// interpolate u,v
+					ui += du;
+					vi += dv;
+				} // end for xi
+
+			// interpolate u,v,x along right and left edge
+				xl += dxdyl;
+				ul += dudyl;
+				vl += dvdyl;
+
+				xr += dxdyr;
+				ur += dudyr;
+				vr += dvdyr;
+
+				// advance screen ptr
+				screen_ptr += mem_pitch;
+
+				// test for yi hitting second region, if so change interpolant
+				if (yi == yrestart)
+				{
+					// test interpolation side change flag
+
+					if (irestart == INTERP_LHS)
 					{
-						du = (ur - ul) / dx;
-						dv = (vr - vl) / dx;
+						// LHS
+						dyl = (y2 - y1);
+
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+
+						// set starting values
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
+
+						// interpolate down on LHS to even up
+						xl += dxdyl;
+						ul += dudyl;
+						vl += dvdyl;
 					} // end if
 					else
 					{
-						du = (ur - ul);
-						dv = (vr - vl);
+						// RHS
+						dyr = (y1 - y2);
+
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
+
+						// set starting values
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
+
+						// interpolate down on RHS to even up
+						xr += dxdyr;
+						ur += dudyr;
+						vr += dvdyr;
+
 					} // end else
 
+
+				} // end if
+
+			} // end for y
+
+		} // end if
+		else
+		{
+			// no x clipping
+			// point screen ptr to starting line
+			screen_ptr = dest_buffer + (ystart * mem_pitch);
+
+			for (yi = ystart; yi <= yend; yi++)
+			{
+				// compute span endpoints
+				xstart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+				xend = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+				// compute starting points for u,v interpolants
+				ui = ul + FIXP16_ROUND_UP;
+				vi = vl + FIXP16_ROUND_UP;
+
+				// compute u,v interpolants
+				if ((dx = (xend - xstart)) > 0)
+
+				{
+					du = (ur - ul) / dx;
+					dv = (vr - vl) / dx;
+				}
+				else
+				{
+					du = (ur - ul);
+					dv = (vr - vl);
+				}
+
 				// draw span
-					for (xi = xstart; xi <= xend; xi++)
-					{
-						// write textel
-						// get textel first
-						textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) << texture_shift2)];
+				for (xi = xstart; xi <= xend; xi++)
+				{
+					// write textel
+					// get textel first
+					textel = textmap[(ui >> FIXP16_SHIFT) + ((vi >> FIXP16_SHIFT) * texture_shift2)];
 
-						// extract rgb components
-						DisRGB(textel, r_textel, g_textel, b_textel);
+					// extract rgb components
+					DisRGB(textel, r_textel, g_textel, b_textel);
 
-						// modulate textel with lit background color
-						r_textel *= r_base;
-						g_textel *= g_base;
-						b_textel *= b_base;
+					// modulate textel with lit background color
+					r_textel *= r_base;
+					g_textel *= g_base;
+					b_textel *= b_base;
 
-						// finally write pixel, note that we did the math such that the results are r*32, g*64, b*32
-						// hence we need to divide the results by 32,64,32 respetively, BUT since we need to shift
-						// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
-						// and they all cancel out for the most part, but we will need logical anding, we will do
-						// it later when we optimize more...
-						
-						screen_ptr[xi] = RGB_DX(r_textel, g_textel, b_textel);
+					// finally write pixel, note that we did the math such that the results are r*32, g*64, b*32
+					// hence we need to divide the results by 32,64,32 respetively, BUT since we need to shift
+					// the results to fit into the destination 5.6.5 word, we can take advantage of the shifts
+					// and they all cancel out for the most part, but we will need logical anding, we will do
+					// it later when we optimize more...
 
-						// interpolate u,v
-						ui += du;
-						vi += dv;
-					} // end for xi
+					screen_ptr[xi] = RGB_DX(r_textel / 256, g_textel / 256, b_textel / 256);
+
+					// interpolate u,v
+					ui += du;
+					vi += dv;
+				}
 
 				// interpolate u,v,x along right and left edge
-					xl += dxdyl;
-					ul += dudyl;
-					vl += dvdyl;
+				xl += dxdyl;
+				ul += dudyl;
+				vl += dvdyl;
 
-					xr += dxdyr;
-					ur += dudyr;
-					vr += dvdyr;
+				xr += dxdyr;
+				ur += dudyr;
+				vr += dvdyr;
 
-					// advance screen ptr
-					screen_ptr += mem_pitch;
+				// advance screen ptr
+				screen_ptr += mem_pitch;
 
-					// test for yi hitting second region, if so change interpolant
-					if (yi == yrestart)
+				// test for yi hitting second region, if so change interpolant
+				if (yi == yrestart)
+				{
+					// test interpolation side change flag
+
+					if (irestart == INTERP_LHS)
 					{
-						// test interpolation side change flag
+						// LHS
+						dyl = (y2 - y1);
 
-						if (irestart == INTERP_LHS)
-						{
-							// LHS
-							dyl = (y2 - y1);
+						dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+						dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+						dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
 
-							dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
-							dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
-							dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+						// set starting values
+						xl = (x1 << FIXP16_SHIFT);
+						ul = (tu1 << FIXP16_SHIFT);
+						vl = (tv1 << FIXP16_SHIFT);
 
-							// set starting values
-							xl = (x1 << FIXP16_SHIFT);
-							ul = (tu1 << FIXP16_SHIFT);
-							vl = (tv1 << FIXP16_SHIFT);
+						// interpolate down on LHS to even up
+						xl += dxdyl;
+						ul += dudyl;
+						vl += dvdyl;
+					} // end if
+					else
+					{
+						// RHS
+						dyr = (y1 - y2);
 
-							// interpolate down on LHS to even up
-							xl += dxdyl;
-							ul += dudyl;
-							vl += dvdyl;
-						} // end if
-						else
-						{
-							// RHS
-							dyr = (y1 - y2);
+						dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
+						dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
+						dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
 
-							dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
-							dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
-							dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
+						// set starting values
+						xr = (x2 << FIXP16_SHIFT);
+						ur = (tu2 << FIXP16_SHIFT);
+						vr = (tv2 << FIXP16_SHIFT);
 
-							// set starting values
-							xr = (x2 << FIXP16_SHIFT);
-							ur = (tu2 << FIXP16_SHIFT);
-							vr = (tv2 << FIXP16_SHIFT);
+						// interpolate down on RHS to even up
+						xr += dxdyr;
+						ur += dudyr;
+						vr += dvdyr;
 
-							// interpolate down on RHS to even up
-							xr += dxdyr;
-							ur += dudyr;
-							vr += dvdyr;
-
-						}
-					} 
-				} 
-			} 
-		} 
+					}
+				}
+			}
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -8511,11 +8511,11 @@ int LoadImageFrom(const char* filename, IMAGE& image)
 
 	// check for bmp
 	if (strstr(_filename, ".BMP"))
-		return(LoadBitmapFrom( _filename, image));
+		return(LoadBitmapFrom(_filename, image));
 	else if (strstr(_filename, ".PCX"))// pcx?
-			return(LoadPCXImage(_filename, image));
-		else return(0);// serious trouble
-} 
+		return(LoadPCXImage(_filename, image));
+	else return(0);// serious trouble
+}
 int LoadPCXImage(const char* filename, IMAGE& image)
 {
 	// this function loads a PCX file into the bitmap file structure. The function
@@ -8540,25 +8540,25 @@ int LoadPCXImage(const char* filename, IMAGE& image)
 	if ((fp = fopen(filename, "rb")) == NULL)
 	{
 		return(0);
-	} 
- // load the header
+	}
+	// load the header
 	for (index = 0; index < sizeof(PCX_HEADER); index++)
 	{
 		((UCHAR*)&pcx_header)[index] = (UCHAR)getc(fp);
-	} 
+	}
 
-// compute statistics
+	// compute statistics
 	width = (pcx_header.xmax - pcx_header.xmin) + 1;
 	height = (pcx_header.ymax - pcx_header.ymin) + 1;
 
 	// allocate memory
-	image.create(width , height);
+	image.create(width, height);
 
 	// compute bit stuff, not needed since it's ALWAYS 8-bit
 	bits_per_pixel = pcx_header.bits_per_pixel;
 	bytes_per_pixel = bits_per_pixel / 8;
 
-	
+
 	// loop while width*height bytes haven't been decompressed
 	for (count = 0; count < width * height; )
 	{
@@ -8579,14 +8579,14 @@ int LoadPCXImage(const char* filename, IMAGE& image)
 			{
 				image.pbuffer[count++] = data;
 			}
-		} 
+		}
 		else
 		{
 			// actual data, just copy it into buffer at next location
 			image.pbuffer[count++] = data;
-		} 
-	} 
-// move to end of file then back up 768 bytes i.e. to begining of palette
+		}
+	}
+	// move to end of file then back up 768 bytes i.e. to begining of palette
 	fseek(fp, -768L, SEEK_END);
 	laPALETTE pal;
 	// load the PCX pallete into the VGA color registers
@@ -8597,8 +8597,8 @@ int LoadPCXImage(const char* filename, IMAGE& image)
 		UCHAR g = getc(fp);
 		UCHAR b = getc(fp);
 		pal[index] = RGB_DX(r, g, b);
-	} 
-// time to close the file
+	}
+	// time to close the file
 	fclose(fp);
 
 
@@ -8630,7 +8630,7 @@ int LoadPCXImage(const char* filename, IMAGE& image)
 	// success
 	return(1);
 
-} 
+}
 
 
 
@@ -8666,8 +8666,8 @@ void DrawSolid2(RENDERLIST4DV1& rend_list)
 			rend_list.poly_ptrs[poly]->tvlist[1].x, rend_list.poly_ptrs[poly]->tvlist[1].y,
 			rend_list.poly_ptrs[poly]->tvlist[2].x, rend_list.poly_ptrs[poly]->tvlist[2].y,
 			rend_list.poly_ptrs[poly]->color);
-	} 
-} 
+	}
+}
 
 /////////////////////////////////////////////////////////////
 
@@ -8705,13 +8705,13 @@ void DrawSolid2(OBJECT4DV1& obj)
 			obj.vlist_trans[vindex_2].x, obj.vlist_trans[vindex_2].y,
 			obj.plist[poly].color);
 
-	} 
-} 
+	}
+}
 
 
 ///////////////////////////////////////////////////////////////////////////
 
-void DrawTextured(RENDERLIST4DV2& rend_list,IMAGE& texture)
+void DrawTextured(RENDERLIST4DV2& rend_list, IMAGE& texture)
 {
 	// TEST FUNCTION ONLY!!!!
 
@@ -8750,8 +8750,8 @@ void DrawTextured(RENDERLIST4DV2& rend_list,IMAGE& texture)
 
 		// draw the textured triangle
 		DrawTexturedTriangle(face);
-	} 
-} 
+	}
+}
 void DrawTextured(OBJECT4DV1& obj)
 {
 	// TEST FUNCTION ONLY!!!
@@ -8782,10 +8782,10 @@ void DrawTextured(OBJECT4DV1& obj)
 			obj.plist[poly].color);
 
 	}
-} 
+}
 ///////////////////////////////////////////////////////////////
 
-void DrawTextured(RENDERLIST4DV1& rend_list,IMAGE& texture)
+void DrawTextured(RENDERLIST4DV1& rend_list, IMAGE& texture)
 {
 	// TEST FUNCTION
 
