@@ -159,7 +159,7 @@ struct LIGHTV1
 		int          _state,      // state of light
 		int          _attr,       // type of light, and extra qualifiers
 		RGBAV1       _c_ambient,  // ambient light intensity
-		RGBAV1       _c_diffuse,  // diffuse light intensity
+		RGBAV1       Outc_diffuse,  // diffuse light intensity
 		RGBAV1       _c_specular, // specular light intensity
 		const VECTOR4D& _pos,        // position of light
 		const VECTOR4D& _dir,        // direction of light
@@ -176,7 +176,7 @@ struct LIGHTV1
 		this->attr = _attr;       // type of light, and extra qualifiers
 
 		this->c_ambient = _c_ambient;  // ambient light intensity
-		this->c_diffuse = _c_diffuse;  // diffuse light intensity
+		this->c_diffuse = Outc_diffuse;  // diffuse light intensity
 		this->c_specular = _c_specular; // specular light intensity
 
 		this->kc = _kc;         // constant, linear, and quadratic attenuation factors

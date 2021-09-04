@@ -152,7 +152,7 @@ RGBAV1 white, light_gray, gray, black, red, green, blue;
 
 
 // music and sound stuff
-int 
+int
 laser_id = -1, // sound of laser pulse
 explosion_id = -1, // sound of explosion
 flyby_id = -1, // sound of ALIEN fighter flying by
@@ -229,7 +229,7 @@ void Render_Energy_Bindings(VECTOR2D* bindings, // array containing binding posi
 	int num_bindings,     // number of energy bindings to render 1-3
 	int num_segments,     // number of segments to randomize bindings into
 	int amplitude,        // amplitude of energy binding
-	int color)          
+	int color)
 {
 	// this functions renders the energy bindings across the main exterior energy
 	// transmission emitters :) Basically, the function takes two points in 2d then
@@ -269,7 +269,7 @@ void Render_Energy_Bindings(VECTOR2D* bindings, // array containing binding posi
 				color);
 
 	}
-} 
+}
 
 ////////////////////////////////////////////////////////////////////
 
@@ -278,7 +278,7 @@ void Render_Weapon_Bursts(VECTOR2D* burstpoints, // array containing energy burs
 	int num_bursts,
 	int num_segments,     // number of segments to randomize bindings into
 	int amplitude,        // amplitude of energy binding
-	int color)          
+	int color)
 {
 	// this functions renders the weapon energy bursts from the weapon emitter or wherever
 	// function derived from Render_Energy_Binding, but generalized 
@@ -317,8 +317,8 @@ void Render_Weapon_Bursts(VECTOR2D* burstpoints, // array containing energy burs
 			GRAPHIC::DrawLine(segments[sindex].x, segments[sindex].y,
 				segments[sindex + 1].x, segments[sindex + 1].y,
 				color);
-	} 
-} 
+	}
+}
 
 ///////////////////////////////////////////////////////////////
 
@@ -331,7 +331,7 @@ int Load_Bitmap_Font(const TCHAR* fontfile, aniDICT& font)
 
 	// load the font bitmap template
 
-	
+
 	SURFACE temp;
 	temp.createFromBitmap(fontfile);
 	// create the bob that will hold the font, use a bob for speed, we can use the 
@@ -342,11 +342,11 @@ int Load_Bitmap_Font(const TCHAR* fontfile, aniDICT& font)
 	for (int index = 0; index < 64; index++)
 	{
 		int width = 16; int height = 14;
-		font[index].createFromSurface(width, height, temp, (index % 16) * (width + 1) + 1 , (index / 16) * (height + 1) + 1);
+		font[index].createFromSurface(width, height, temp, (index % 16) * (width + 1) + 1, (index / 16) * (height + 1) + 1);
 	}
 
 	return(1);
-} 
+}
 
 ///////////////////////////////////////////////////////////////
 
@@ -371,14 +371,14 @@ int Draw_Bitmap_Font_String(aniDICT& font,  // pointer to bob containing font
 		if (curr_frame > 63 || curr_frame < 0) curr_frame = 0;
 
 		// render character (i hate making a function call!)
-		font[curr_frame].drawOn(dest,x, y);
+		font[curr_frame].drawOn(dest, x, y);
 
 		// move position
 		x += hpitch;
 
-	} 
+	}
 	return(1);
-} 
+}
 
 /////////////////////////////////////////////////////////
 
@@ -691,9 +691,9 @@ void Draw_Mesh_Explosions(void)
 				Add(explobj[eindex].vlist_local[pindex * 3 + 2].v,
 					trajectory[pindex * 2 + 0],
 					explobj[eindex].vlist_local[pindex * 3 + 2].v);
-			} 
+			}
 
-	   // update counter, test for terminate
+			// update counter, test for terminate
 			if (--explobj[eindex].ivar2 < 0)
 			{
 				// reset this object
@@ -857,7 +857,7 @@ int Start_Mesh_Explosion(OBJECT4DV2* obj,  // object to destroy
 				static VECTOR4D mv;
 
 				// first compute trajectory as vector from center to vertex piercing polygon
-				trajectory[pindex * 2 + 0]=obj->vlist_local[obj->plist[pindex * detail].vert[0]].v;
+				trajectory[pindex * 2 + 0] = obj->vlist_local[obj->plist[pindex * detail].vert[0]].v;
 				Scale(rate, trajectory[pindex * 2 + 0], trajectory[pindex * 2 + 0]);
 
 				mv.x = RAND_RANGE(-10, 10);
@@ -1093,7 +1093,7 @@ void StartUp(void)
 
 	// load flat shaded cube
 	vscale.set(18.00, 18.00, 18.00);
-	LoadCOB(obj_alien, TToA(path)+"tie04.cob",
+	LoadCOB(obj_alien, TToA(path) + "tie04.cob",
 		vscale, vpos, vrot, VERTEX_FLAGS_SWAP_YZ | VERTEX_FLAGS_SWAP_XZ |
 		VERTEX_FLAGS_INVERT_WINDING_ORDER |
 		VERTEX_FLAGS_TRANSFORM_LOCAL |
@@ -1384,7 +1384,7 @@ void GameBody(void)
 		} // end if
 
 	 // track cross hair
-		
+
 		cross_x += mouse.getX();
 		cross_y -= mouse.getY();
 
@@ -1392,12 +1392,12 @@ void GameBody(void)
 		if (cross_x >= (WINDOW_WIDTH / 2 - CROSS_WIDTH / 2))
 			cross_x = (WINDOW_WIDTH / 2 - CROSS_WIDTH / 2) - 1;
 		else if (cross_x <= -(WINDOW_WIDTH / 2 - CROSS_WIDTH / 2))
-				cross_x = -(WINDOW_WIDTH / 2 - CROSS_WIDTH / 2) + 1;
+			cross_x = -(WINDOW_WIDTH / 2 - CROSS_WIDTH / 2) + 1;
 
 		if (cross_y >= (WINDOW_HEIGHT / 2 - CROSS_HEIGHT / 2))
 			cross_y = (WINDOW_HEIGHT / 2 - CROSS_HEIGHT / 2) - 1;
 		else if (cross_y <= -(WINDOW_HEIGHT / 2 - CROSS_HEIGHT / 2))
-				cross_y = -(WINDOW_HEIGHT / 2 - CROSS_HEIGHT / 2) + 1;
+			cross_y = -(WINDOW_HEIGHT / 2 - CROSS_HEIGHT / 2) + 1;
 
 		// player is done moving create camera matrix //////////////////////////
 		BuildEuler(cam, CAM_ROT_SEQ_ZYX);
@@ -1461,13 +1461,13 @@ void GameBody(void)
 			DrawSolid(rend_list);
 		}
 		else if (wireframe_mode == 1)
-			{
-				DrawWire(rend_list);
-			} // end if
+		{
+			DrawWire(rend_list);
+		} // end if
 
-		 // draw energy bindings
+	 // draw energy bindings
 		Render_Energy_Bindings(energy_bindings, 1, 8, 16, RGB_DX(0, 255, 0));
-		
+
 		// fire the weapon
 		if (game_state == GAME_STATE_RUN && mouse.getLButton() && weapon_energy > 20)
 		{
@@ -1595,7 +1595,7 @@ void GameBody(void)
 			crosshair.y = cross_y_screen - CROSS_HEIGHT / 2;
 
 			crosshair.drawOn();
-		} 
+		}
 		fpsSet.adjust();
 		gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());
 		Flush();
@@ -1608,7 +1608,7 @@ void GameBody(void)
 			escaped++;
 		} // end if
 
-  
+
 
 		if (KEY_DOWN(VK_ESCAPE))
 			gameBox.exitFromGameBody();
@@ -1630,10 +1630,10 @@ void GameBody(void)
 
 	default: break;
 
-	} 
-	
+	}
 
-	
+
+
 
 }
 
