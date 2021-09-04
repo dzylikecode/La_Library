@@ -128,16 +128,16 @@ void StartUp(void)
 		tanks[index].y = 0; // obj_tank.max_radius;
 		tanks[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
 		tanks[index].w = RAND_RANGE(0, 360);
-	} 
+	}
 
-// position the towers
+	// position the towers
 	for (int index = 0; index < NUM_TOWERS; index++)
 	{
 		// randomly position the tower
 		towers[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
 		towers[index].y = 0; // obj_tower.max_radius;
 		towers[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-	} 
+	}
 
 	// create some working colors
 	RGBAV1 white, gray, black, red, green, blue;
@@ -275,7 +275,7 @@ void GameBody(void)
 		if ((turning -= 2) < -25)
 			turning = -25;
 
-	} 
+	}
 	else // center heading again
 	{
 		if (turning > 0)
@@ -284,11 +284,11 @@ void GameBody(void)
 			if (turning < 0)
 				turning += 1;
 
-	} 
+	}
 
- // modes and lights
+	// modes and lights
 
- // wireframe mode
+	// wireframe mode
 	if (keyboard[DIK_W])
 	{
 		// toggle wireframe mode
@@ -568,7 +568,7 @@ void GameBody(void)
 		((zsort_mode == 1) ? "ON" : "OFF"),
 		((backface_mode == 1) ? "ON" : "OFF"));
 
-	gPrintf( 0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), AToT(work_string));
+	gPrintf(0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), AToT(work_string));
 
 	// draw instructions
 	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Press ESC to exit. Press <H> for Help."));
@@ -609,7 +609,7 @@ void GameBody(void)
 
 
 	EndDrawOn();
-	
+
 
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());

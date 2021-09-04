@@ -477,8 +477,8 @@ int ComputeVertexNormals(OBJECT4DV2& obj);
 int ComputePolyNormals(OBJECT4DV2& obj);
 int LoadCOB(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials);
 int Load3DSASC(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
-int LoadPLG(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
-int LoadPLG(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
+int LoadPLG(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags=0);
+
 void DrawWire(RENDERLIST4DV2& rend_list);
 void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface = nullptr);
 void DrawTexturedTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface = nullptr);

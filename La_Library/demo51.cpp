@@ -31,18 +31,6 @@ KEYBOARD keyboard;
 #define WINDOW_WIDTH SCREEN_WIDTH
 #define WINDOW_HEIGHT SCREEN_HEIGHT
 
-// defines for the game universe
-#define UNIVERSE_RADIUS   4000
-
-#define POINT_SIZE        100
-#define NUM_POINTS_X      (2*UNIVERSE_RADIUS/POINT_SIZE)
-#define NUM_POINTS_Z      (2*UNIVERSE_RADIUS/POINT_SIZE)
-#define NUM_POINTS        (NUM_POINTS_X*NUM_POINTS_Z)
-
-// defines for objects 
-#define NUM_TOWERS        96 
-#define NUM_TANKS         32 
-#define TANK_SPEED        15
 
 // create some constants for ease of access
 #define AMBIENT_LIGHT_INDEX   0 // ambient light index
@@ -51,8 +39,9 @@ KEYBOARD keyboard;
 #define SPOT_LIGHT1_INDEX     4 // point light index
 #define SPOT_LIGHT2_INDEX     3 // spot light index
 
+
 // initialize camera position and direction
-VECTOR4D  cam_pos = { 0,40	,0 };
+VECTOR4D  cam_pos = { 0,0,0 };
 VECTOR4D  cam_target = { 0,0,0 };
 VECTOR4D cam_dir = { 0,0,0 };
 
@@ -63,21 +52,12 @@ vrot = { 0,0,0 };
 
 CAM4DV1        cam;       // the single camera
 
-OBJECT4DV2     obj_tower,    // used to hold the master tower
-obj_tank,     // used to hold the master tank
-obj_marker,   // the ground marker
-obj_player;   // the player object     
-
-VECTOR4D  towers[NUM_TOWERS],
-tanks[NUM_TANKS];
-
-IMAGE textures[12]; // holds our texture library 
-
+OBJECT4DV2     obj_flat_cube;
 
 RENDERLIST4DV2 rend_list; // the render list
 
 LIGHTV1 lights[5];
-ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo52\\";
+ASTRING path = "F:\\Git_WorkSpace\\La_Library\\La_Library\\Resource\\demo51\\";
 
 MATV1 materials[MAX_MATERIALS];
 int numMaterials = 0;
@@ -100,44 +80,12 @@ void StartUp(void)
 		WINDOW_HEIGHT);
 
 	SetTexturePath(path);
-
-	// load the master tank object
-	vscale.set(0.75, 0.75, 0.75);
-	LoadPLG(obj_tank, path + "tank3.plg", vscale, vpos, vrot);
-
-	// load player object for 3rd person view
-	vscale.set(15.75, 15.75, 15.75);
-	LoadCOB(obj_player, path + "tie04.cob",
-		vscale, vpos, vrot, VERTEX_FLAGS_INVERT_TEXTURE_V |
-		VERTEX_FLAGS_SWAP_YZ | VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD,
-		materials, numMaterials);
-
-	// load the master tower object
-	vscale.set(1.0, 2.0, 1.0);
-	LoadPLG(obj_tower, path + "towerg1.plg", vscale, vpos, vrot);
-
-	// load the master ground marker
-	vscale.set(3.0, 3.0, 3.0);
-	LoadPLG(obj_marker, path + "marker2.plg", vscale, vpos, vrot);
-
-	// position the tanks
-	for (int index = 0; index < NUM_TANKS; index++)
-	{
-		// randomly position the tanks
-		tanks[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		tanks[index].y = 0; // obj_tank.max_radius;
-		tanks[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		tanks[index].w = RAND_RANGE(0, 360);
-	} 
-
-// position the towers
-	for (int index = 0; index < NUM_TOWERS; index++)
-	{
-		// randomly position the tower
-		towers[index].x = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-		towers[index].y = 0; // obj_tower.max_radius;
-		towers[index].z = RAND_RANGE(-UNIVERSE_RADIUS, UNIVERSE_RADIUS);
-	} 
+	// load constant shaded water
+	vscale.set(20.00, 20.00, 20.00);
+	LoadCOB(obj_flat_cube, path + "cube_flat_textured_01.cob",
+		vscale, vpos, vrot, VERTEX_FLAGS_SWAP_YZ |
+		VERTEX_FLAGS_TRANSFORM_LOCAL |
+		VERTEX_FLAGS_TRANSFORM_LOCAL_WORLD, materials, numMaterials);
 
 	// create some working colors
 	RGBAV1 white, gray, black, red, green, blue;
@@ -225,79 +173,24 @@ void GameBody(void)
 
 	char work_string[256]; // temp string
 
-	DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT / 2, RGB_DX(0, 35, 50));
-
-	DrawRectangle(0, WINDOW_HEIGHT / 2 - 1, WINDOW_WIDTH, WINDOW_HEIGHT, RGB_DX(20, 12, 0));
-
 	// game logic here...
 	// draw the sky
 	// reset the render list
+	// reset the render list
 	Reset(rend_list);
 
-	// allow user to move camera
+	// modes and lights
 
-	// turbo
-	if (keyboard[DIK_SPACE])
-		tank_speed = 5 * TANK_SPEED;
-	else
-		tank_speed = TANK_SPEED;
-
-	// forward/backward
-	if (keyboard[DIK_UP])
-	{
-		// move forward
-		cam.pos.x += tank_speed * SinFast(cam.dir.y);
-		cam.pos.z += tank_speed * CosFast(cam.dir.y);
-	} // end if
-
-	if (keyboard[DIK_DOWN])
-	{
-		// move backward
-		cam.pos.x -= tank_speed * SinFast(cam.dir.y);
-		cam.pos.z -= tank_speed * CosFast(cam.dir.y);
-	} // end if
-
- // rotate
-	if (keyboard[DIK_RIGHT])
-	{
-		cam.dir.y += 3;
-
-		// add a little turn to object
-		if ((turning += 2) > 25)
-			turning = 25;
-	} // end if
-
-	if (keyboard[DIK_LEFT])
-	{
-		cam.dir.y -= 3;
-
-		// add a little turn to object
-		if ((turning -= 2) < -25)
-			turning = -25;
-
-	} 
-	else // center heading again
-	{
-		if (turning > 0)
-			turning -= 1;
-		else
-			if (turning < 0)
-				turning += 1;
-
-	} 
-
- // modes and lights
-
- // wireframe mode
+	// wireframe mode
 	if (keyboard[DIK_W])
 	{
 		// toggle wireframe mode
 		if (++wireframe_mode > 1)
 			wireframe_mode = 0;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
- // backface removal
+	// backface removal
 	if (keyboard[DIK_B])
 	{
 		// toggle backface removal
@@ -335,9 +228,8 @@ void GameBody(void)
 			lights[INFINITE_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
-
- // toggle point light
+	}
+	// toggle point light
 	if (keyboard[DIK_P])
 	{
 		// toggle point light
@@ -347,10 +239,10 @@ void GameBody(void)
 			lights[POINT_LIGHT_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 
- // toggle spot light
+	// toggle spot light
 	if (keyboard[DIK_S])
 	{
 		// toggle spot light
@@ -360,39 +252,39 @@ void GameBody(void)
 			lights[SPOT_LIGHT2_INDEX].state = LIGHTV1_STATE_ON;
 
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 
- // help menu
+	// help menu
 	if (keyboard[DIK_H])
 	{
 		// toggle help menu 
 		help_mode = -help_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
- // z-sorting
+	// z-sorting
 	if (keyboard[DIK_Z])
 	{
 		// toggle z sorting
 		zsort_mode = -zsort_mode;
 		Sleep(100); // wait, so keyboard doesn't bounce
-	} // end if
+	}
 
 	static float plight_ang = 0, slight_ang = 0; // angles for light motion
 
 	// move point light source in ellipse around game world
-	lights[POINT_LIGHT_INDEX].pos.x = 4000 * CosFast(plight_ang);
-	lights[POINT_LIGHT_INDEX].pos.y = 200;
-	lights[POINT_LIGHT_INDEX].pos.z = 4000 * SinFast(plight_ang);
+	lights[POINT_LIGHT_INDEX].pos.x = 1000 * CosFast(plight_ang);
+	lights[POINT_LIGHT_INDEX].pos.y = 100;
+	lights[POINT_LIGHT_INDEX].pos.z = 1000 * SinFast(plight_ang);
 
 	if ((plight_ang += 3) > 360)
 		plight_ang = 0;
 
 	// move spot light source in ellipse around game world
-	lights[SPOT_LIGHT2_INDEX].pos.x = 2000 * CosFast(slight_ang);
+	lights[SPOT_LIGHT2_INDEX].pos.x = 1000 * CosFast(slight_ang);
 	lights[SPOT_LIGHT2_INDEX].pos.y = 200;
-	lights[SPOT_LIGHT2_INDEX].pos.z = 2000 * SinFast(slight_ang);
+	lights[SPOT_LIGHT2_INDEX].pos.z = 1000 * SinFast(slight_ang);
 
 	if ((slight_ang -= 5) < 0)
 		slight_ang = 360;
@@ -400,140 +292,38 @@ void GameBody(void)
 	// generate camera matrix
 	BuildEuler(cam, CAM_ROT_SEQ_ZYX);
 
-	// insert the player into the world
+	// use these to rotate objects
+	static float x_ang = 0, y_ang = 0, z_ang = 0;
+
+	//////////////////////////////////////////////////////////////////////////
+	// constant shaded water
+
 	// reset the object (this only matters for backface and object removal)
-	Reset(obj_player);
+	Reset(obj_flat_cube);
 
-	// set position of tank
-
-	obj_player.world_pos.x = cam.pos.x + 300 * SinFast(cam.dir.y);
-	obj_player.world_pos.y = cam.pos.y - 70;
-	obj_player.world_pos.z = cam.pos.z + 300 * CosFast(cam.dir.y);
-
+	// set position of constant shaded cube
+	obj_flat_cube.world_pos.x = 0;
+	obj_flat_cube.world_pos.y = 0;
+	obj_flat_cube.world_pos.z = 150;
 
 	// generate rotation matrix around y axis
-	static int turn = 0;
-	BuildXYZRotation(1, cam.dir.y + turning, 2, mrot);
+	BuildXYZRotation(x_ang, y_ang, z_ang, mrot);
 
 	// rotate the local coords of the object
-	Transform(obj_player, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
+	Transform(obj_flat_cube, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
 
 	// perform world transform
-	ModelToWorld(obj_player, TRANSFORM_TRANS_ONLY);
-
-	//Light_OBJECT4DV2_World16(&obj_player, &cam, lights, 4);
+	ModelToWorld(obj_flat_cube, TRANSFORM_TRANS_ONLY);
 
 	// insert the object into render list
-	Insert(rend_list, obj_player, 0);
+	Insert(rend_list, obj_flat_cube, 0);
 
+	// update rotation angles
+	if ((x_ang += 1) > 360) x_ang = 0;
+	if ((y_ang += 2) > 360) y_ang = 0;
+	if ((z_ang += 3) > 360) z_ang = 0;
 
-
-	//////////////////////////////////////////////////////////
-
-	// insert the tanks in the world
-	for (int index = 0; index < NUM_TANKS; index++)
-	{
-		// reset the object (this only matters for backface and object removal)
-		Reset(obj_tank);
-
-		// generate rotation matrix around y axis
-		BuildXYZRotation(0, tanks[index].w, 0, mrot);
-
-		// rotate the local coords of the object
-		Transform(obj_tank, mrot, TRANSFORM_LOCAL_TO_TRANS, 1);
-
-		// set position of tank
-		obj_tank.world_pos.x = tanks[index].x;
-		obj_tank.world_pos.y = tanks[index].y;
-		obj_tank.world_pos.z = tanks[index].z;
-
-		// attempt to cull object   
-		if (!Cull(obj_tank, cam, CULL_OBJECT_XYZ_PLANES))
-		{
-			// if we get here then the object is visible at this world position
-			// so we can insert it into the rendering list
-			// perform local/model to world transform
-			ModelToWorld(obj_tank, TRANSFORM_TRANS_ONLY);
-
-			//Light_OBJECT4DV2_World16(&obj_tank, &cam, lights, 4);
-
-			// insert the object into render list
-			Insert(rend_list, obj_tank, 0);
-		} // end if
-
-	} // end for
-
-////////////////////////////////////////////////////////
-
-
-// insert the towers in the world
-	for (int index = 0; index < NUM_TOWERS; index++)
-	{
-		// reset the object (this only matters for backface and object removal)
-		Reset(obj_tower);
-
-		// set position of tower
-		obj_tower.world_pos.x = towers[index].x;
-		obj_tower.world_pos.y = towers[index].y;
-		obj_tower.world_pos.z = towers[index].z;
-
-		// attempt to cull object   
-		if (!Cull(obj_tower, cam, CULL_OBJECT_XYZ_PLANES))
-		{
-			// if we get here then the object is visible at this world position
-			// so we can insert it into the rendering list
-			// perform local/model to world transform
-			ModelToWorld(obj_tower);
-
-			//Light_OBJECT4DV2_World16(&obj_tower, &cam, lights, 4);
-
-			// insert the object into render list
-			Insert(rend_list, obj_tower, 0);
-
-		} // end if
-
-	} // end for
-
-///////////////////////////////////////////////////////////////
-
-
-	static int mcount = 0, mdir = 2;
-
-	mcount += mdir;
-	if (mcount > 200 || mcount < -200) { mdir = -mdir; mcount += mdir; }
-
-	// insert the ground markers into the world
-	for (int index_x = 0; index_x < NUM_POINTS_X; index_x++)
-		for (int index_z = 0; index_z < NUM_POINTS_Z; index_z++)
-		{
-			// reset the object (this only matters for backface and object removal)
-			Reset(obj_marker);
-
-			// set position of tower
-			obj_marker.world_pos.x = RAND_RANGE(-10, 10) - UNIVERSE_RADIUS + index_x * POINT_SIZE;
-			obj_marker.world_pos.y = obj_marker.max_radius[0] + 50 * SinFast(index_x * 10 + SinFast(index_z) + mcount);
-			obj_marker.world_pos.z = RAND_RANGE(-10, 10) - UNIVERSE_RADIUS + index_z * POINT_SIZE;
-
-			// attempt to cull object   
-			if (!Cull(obj_marker, cam, CULL_OBJECT_XYZ_PLANES))
-			{
-				// if we get here then the object is visible at this world position
-				// so we can insert it into the rendering list
-				// perform local/model to world transform
-				ModelToWorld(obj_marker);
-
-				//Light_OBJECT4DV2_World16(&obj_marker, &cam, lights, 4);
-
-				// insert the object into render list
-				Insert(rend_list, obj_marker, 0);
-
-			} // end if
-
-		} // end for
-
-
-
-// remove backfaces
+	// remove backfaces
 	if (backface_mode == 1)
 		RemoveBackfaces(rend_list, cam);
 
@@ -554,11 +344,6 @@ void GameBody(void)
 	// apply screen transform
 	PerspectiveToScreen(rend_list, cam);
 
-	sprintf(work_string, "pos:[%f, %f, %f] heading:[%f] elev:[%f]",
-		cam.pos.x, cam.pos.y, cam.pos.z, cam.dir.y, cam.dir.x);
-
-	gPrintf(0, WINDOW_HEIGHT - 20, RGB(0, 255, 0), AToT(work_string));
-
 	sprintf(work_string, "Lighting [%s]: Ambient=%d, Infinite=%d, Point=%d, Spot=%d | Zsort [%s], BckFceRM [%s]",
 		((lighting_mode == 1) ? "ON" : "OFF"),
 		lights[AMBIENT_LIGHT_INDEX].state,
@@ -568,7 +353,7 @@ void GameBody(void)
 		((zsort_mode == 1) ? "ON" : "OFF"),
 		((backface_mode == 1) ? "ON" : "OFF"));
 
-	gPrintf( 0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), AToT(work_string));
+	gPrintf(0, WINDOW_HEIGHT - 34, RGB(0, 255, 0), AToT(work_string));
 
 	// draw instructions
 	gPrintf(0, 0, RGB(0, 255, 0), TEXT("Press ESC to exit. Press <H> for Help."));
@@ -584,20 +369,12 @@ void GameBody(void)
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<S>..............Toggle spot light source."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<W>..............Toggle wire frame/solid mode."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<B>..............Toggle backface removal."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<Z>..............Toggle sort."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<RIGHT ARROW>....Rotate object right."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<LEFT ARROW>.....Rotate object left."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<UP ARROW>.......Move camera forward."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<DOWN ARROW>.....Move camera backward."));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<PG UP>..........Scale object down"));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<PG DWN>.........Scale object down"));
-		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<SPACE BAR>......Turbo."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<H>..............Toggle Help."));
 		gPrintf(0, text_y += 12, RGB(255, 255, 255), TEXT("<ESC>............Exit demo."));
 
-	} // end help
+	}
 
-// lock the back buffer
+	// lock the back buffer
 	BeginDrawOn();
 
 	// render the object
@@ -608,8 +385,36 @@ void GameBody(void)
 		DrawSolid(rend_list);
 
 
+
+	// unlock the back buffer
 	EndDrawOn();
-	
+
+	//static int poly = 0;
+	//poly %= rend_list.num_polys;
+	//if (!(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_ACTIVE) ||
+	//	(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_CLIPPED) ||
+	//	(rend_list.poly_ptrs[poly]->state & POLY4DV2_STATE_BACKFACE))
+	//{
+
+	//}
+	//else
+	//{
+	//	// need to test for textured first, since a textured poly can either
+	//	// be emissive, or flat shaded, hence we need to call different
+	//	// rasterizers    
+	//	if (rend_list.poly_ptrs[poly]->attr & POLY4DV2_ATTR_SHADE_MODE_TEXTURE)
+	//	{
+	//		// assign the texture
+	//		SURFACE temp;
+	//		COLOR* buffer = rend_list.poly_ptrs[poly]->texture.pbuffer;
+	//		int width = rend_list.poly_ptrs[poly]->texture.width;
+	//		int height = rend_list.poly_ptrs[poly]->texture.height;
+	//		temp.createFromBuffer(buffer, width, height);
+	//		temp.drawOn(0, 0);
+	//	}
+	//}
+	//poly++;
+
 
 	fpsSet.adjust();
 	gPrintf(0, 0, RED_GDI, TEXT("%d"), fpsSet.get());

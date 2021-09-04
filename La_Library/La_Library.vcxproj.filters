@@ -587,6 +587,12 @@
     <ClCompile Include="demo50.cpp">
       <Filter>源文件\test\3D</Filter>
     </ClCompile>
+    <ClCompile Include="demo51.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="demo52.cpp">
+      <Filter>源文件\test\3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="code.txt">
