@@ -145,6 +145,11 @@ namespace GRAPHIC
 
 		return true;
 	}
+	void BITMAP::ConvertToImage(IMAGE& image)
+	{
+		image.create(getWidth(), getHeight());
+		memcpy(image.pbuffer, image.pbuffer, getWidth() * getHeight() * sizeof(COLOR));
+	}
 	void BITMAP::getPalette(laPALETTE& outPalette)
 	{
 		for (int i = 0; i < PALETTE_NUM; i++)

@@ -261,7 +261,7 @@ struct RENDERLIST4DV1
 
 
 
-
+char* GetLinePLG(char* buffer, int maxlength, FILE* fp);
 float ComputeRadius(OBJECT4DV1& obj);
 bool LoadPLG(OBJECT4DV1& obj, const TCHAR* filename, const VECTOR4D& pos = VECTOR4D(0, 0, 0), const VECTOR4D& scale = VECTOR4D(1, 1, 1), const VECTOR4D& rot = VECTOR4D(0, 0, 0));
 inline void Reset(RENDERLIST4DV1& rend_list) { rend_list.num_polys = 0; }

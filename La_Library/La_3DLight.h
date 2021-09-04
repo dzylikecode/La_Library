@@ -76,16 +76,7 @@
 
 
 
-class IMAGE
-{
-public:
-	COLOR* pbuffer;
-	int width, height;
-public:
-	IMAGE() :pbuffer(nullptr) {};
-	void release(){ if (pbuffer) delete[] pbuffer; }
-	~IMAGE() { release(); }
-};
+
 
 // RGB+alpha color
 struct RGBAV1

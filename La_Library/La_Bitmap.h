@@ -4,6 +4,39 @@
 
 #define BITMAP_ID            (*(WORD*)"BM") // universal id for a bitmap
 
+class IMAGE
+{
+public:
+	COLOR* pbuffer;
+	int width, height;
+private:
+	void copy(const IMAGE& img)
+	{
+		memcpy(pbuffer, img.pbuffer, width * height * sizeof(COLOR));
+	}
+public:
+	IMAGE() :pbuffer(nullptr) {};
+	IMAGE(const IMAGE& img):pbuffer(nullptr)
+	{
+		create(img.width, img.height);
+		copy(img);
+	}
+	bool create(int outWidth, int outHeight) { release(); width = outWidth; height = outHeight; pbuffer = new COLOR[width * height]; return pbuffer; }
+	void release() { if (pbuffer) delete[] pbuffer; }
+	~IMAGE() { release(); }
+	IMAGE operator=(const IMAGE& img)
+	{
+		if (this != &img)
+		{
+			release();
+			create(img.width, img.height);
+			copy(img);
+		}
+		return *this;
+	}
+};
+
+
 namespace GRAPHIC
 {
 	class BITMAP
@@ -38,6 +71,7 @@ namespace GRAPHIC
 			return *this;
 		}
 		bool load(LPCTSTR fileName);
+		void ConvertToImage(IMAGE& image);
 		LONG getWidth()const { return bitmapinfoheader.biWidth; }
 		LONG getHeight()const { return bitmapinfoheader.biHeight; }
 		LONG getSizeByte()const { return bitmapinfoheader.biSizeImage; }

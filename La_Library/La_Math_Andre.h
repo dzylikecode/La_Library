@@ -300,6 +300,19 @@ public:
 	void set(const VECTOR4D& init, const VECTOR4D& term) { x = term.x - init.x; y = term.y - init.y; z = term.z - init.z; w = 1; }
 	void set(float outX, float outY, float outZ) { x = outX; y = outY; z = outZ; w = 1.0; }
 	void divByW() { x /= w; y /= w; z /= w; }
+	VECTOR4D operator=(const VECTOR4D& v4)
+	{
+		if (this != &v4)
+		{
+			x = v4.x; y = v4.y; z = v4.z; w = v4.w;
+		}
+		return *this;
+	}
+	VECTOR4D operator=(const VECTOR2D& v2)
+	{
+		x = v2.x; y = v2.y; z = 0; w = 1;
+		return *this;
+	}
 };
 
 // 2D parametric line /////////////////////////////////////////

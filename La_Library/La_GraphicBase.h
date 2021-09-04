@@ -57,4 +57,14 @@ namespace GRAPHIC
 			*/
 		}
 	}
+	inline void MemSetWORD(void* dest, USHORT data, int count)
+	{
+		_asm
+		{
+			mov edi, dest; //edi points to destination memory
+			mov ecx, count; //number of 16 - bit words to move
+			mov ax, data; //16 - bit data
+			rep stosw; //move data
+		}	
+	} 
 }

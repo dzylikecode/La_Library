@@ -239,7 +239,7 @@ int RGB_16_8_Indexed_Intensity_Table_Builder(LPPALETTEENTRY src_palette,  // sou
 } 
 
 
-
+UCHAR rgblightlookup[4096][256]; // rgb 8.12 lighting table lookup
 int RGBto8BitIndex(UCHAR r, UCHAR g, UCHAR b, LPPALETTEENTRY palette, int flush_cache = 0)
 {
 	// this function hunts thru the loaded 8-bit palette and tries to find the 
@@ -323,3 +323,82 @@ int RGBto8BitIndex(UCHAR r, UCHAR g, UCHAR b, LPPALETTEENTRY palette, int flush_
 	return(curr_index);
 
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+int RGB_12_8_Lighting_Table_Builder(LPPALETTEENTRY src_palette,       // source palette
+	UCHAR rgblookup[4096][256])  // lookup table
+{
+	// this function creates a lighting table used for 8-bit lighting inside the
+	// texture mapping function, what we need is a table that for every possible
+	// light color and textel color outputs the textel index that is the closest
+	// match for the given color modulation, however, that would be 256*65536 = 16.7 megs!
+	// a little excessive, thus, we will scale the incoming light value down to 4.4.4
+	// format, or only 16 different intensities per channel, or a total of 12 bits,
+	// now we will only need 256*2^12 = 1meg which is reasonable for the speed gain
+	// additionally, the table is going to be 2d, where the row is the intensity
+	// and the column is the color, this format is more effective since tables are
+	// stored in row-major form, and since we are shading flat shaded polys with
+	// texture, we know the texture color will change during the calculations,
+	// but not the light color, thus, the cache coherence will be excellent if we access
+	// elements in the form rgblookup[RGBcolor.12bit][textel index.8bit]
+	// finally, it's up to the caller to send in the rgblookup pre-allocated
+	// here it goes...
+
+	// first check the pointers
+	if (!src_palette || !rgblookup)
+		return(-1);
+
+	// there are 4096 RGB values we need to compute, assuming that we are in RGB: 4.4.4  format
+	for (int rgbindex = 0; rgbindex < 4096; rgbindex++)
+	{
+		// for each RGB color 0..4095 we need to multiple by each palette entry 0..255
+		// and then scan for the closest match, lots of loops!!!!
+		for (int color_index = 0; color_index < 256; color_index++)
+		{
+			int  curr_index = -1;        // current color index of best match
+			long curr_error = INT_max;    // distance in color space to nearest match or "error"
+
+			// extract r,g,b from rgbindex, assuming an encoding of 4.4.4
+			int r = (rgbindex >> 8);
+			int g = ((rgbindex >> 4) & 0x0f);
+			int b = (rgbindex & 0x0f);
+
+			// now the final target is this r,g,b value which is simulating the light source
+			// multiplied by the textel color, that IS our target...
+			// modulate values together, make sure results stay in 0..255, so divide results
+			// by 15 since the r,g,b values were normalized to 15 rather than 1.0
+			r = (int)(((float)r * (float)src_palette[color_index].peRed) / 15);
+			g = (int)(((float)g * (float)src_palette[color_index].peGreen) / 15);
+			b = (int)(((float)b * (float)src_palette[color_index].peBlue) / 15);
+
+			// now scan palette to find this color
+			for (int color_scan = 0; color_scan < 256; color_scan++)
+			{
+				// compute distance to color from target
+				long delta_red = abs(src_palette[color_scan].peRed - r);
+				long delta_green = abs(src_palette[color_scan].peGreen - g);
+				long delta_blue = abs(src_palette[color_scan].peBlue - b);
+				long error = (delta_red * delta_red) + (delta_green * delta_green) + (delta_blue * delta_blue);
+
+				// is this color a better match?
+				if (error < curr_error)
+				{
+					curr_index = color_scan;
+					curr_error = error;
+				} // end if
+			} // end for color_scan
+
+		   // best match has been found, enter it into table
+			rgblookup[rgbindex][color_index] = curr_index;
+
+		} // end for color_index
+
+	} // end for rgbindex
+
+ // return success
+	return(1);
+
+} // end RGB_12_8_Lighting_Table_Builder

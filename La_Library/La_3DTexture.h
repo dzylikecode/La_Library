@@ -163,7 +163,18 @@ struct VERTEX4DTV1
 		};
 
 	}; 
-
+public:
+	VERTEX4DTV1() {};
+	VERTEX4DTV1(const VERTEX4DTV1& vertv1) :v(vertv1.v), n(vertv1.n), t(vertv1.t) {};
+	VERTEX4DTV1 operator=(const VERTEX4DTV1& vertv1)
+	{
+		if (this != &vertv1)
+		{
+			for (int i = 0; i < 12; i++)
+				M[i] = vertv1.M[i];
+		}
+		return *this;
+	}
 };
 
 // a self contained polygon used for the render list version 2 /////////////////////////
@@ -217,7 +228,7 @@ struct POLY4DV2
 // that is this object can hold hundreds of frames of an animated mesh as long as
 // the mesh has the same polygons and geometry, but with changing vertex positions
 // similar to the Quake II .md2 format
-struct OBJECT4DV2
+struct OBJECT4DV2   //这其实相当于一个 sprite
 {
 	int   id;           // numeric id of this object
 	char  name[64];     // ASCII name of object just for kicks
@@ -263,8 +274,111 @@ struct OBJECT4DV2
 
 	// setting the frame is so important that it should be a member function
 	// calling functions without doing this can wreak havok!
-	int Set_Frame(int frame);
+	int setFrame(int frame);
+public:
+	int set(
+		int _num_vertices,
+		int _num_polys,
+		int _num_frames,
+		bool destroy = true)
+	{
+		// this function does nothing more than allocate the memory for an OBJECT4DV2
+		// based on the sent data, later we may want to create more robust initializers
+		// but the problem is that we don't want to tie the initializer to anthing yet
+		// in 99% of cases this all will be done by the call to load object
+		// we just might need this function if we manually want to build an object???
 
+
+		// first destroy the object if it exists
+		if (destroy)
+			close();
+
+		// allocate memory for vertex lists
+		if (!(vlist_local = (VERTEX4DTV1*)malloc(sizeof(VERTEX4DTV1) * _num_vertices * _num_frames)))
+			return(0);
+
+		// clear data
+		memset((void*)vlist_local, 0, sizeof(VERTEX4DTV1) * _num_vertices * _num_frames);
+
+		if (!(vlist_trans = (VERTEX4DTV1*)malloc(sizeof(VERTEX4DTV1) * _num_vertices * _num_frames)))
+			return(0);
+
+		// clear data
+		memset((void*)vlist_trans, 0, sizeof(VERTEX4DTV1) * _num_vertices * _num_frames);
+
+		// number of texture coordinates always 3*number of polys
+		if (!(tlist = (VECTOR2D*)malloc(sizeof(VECTOR2D) * _num_polys * 3)))
+			return(0);
+
+		// clear data
+		memset((void*)tlist, 0, sizeof(VECTOR2D) * _num_polys * 3);
+
+
+		// allocate memory for radii arrays
+		if (!(avg_radius = (float*)malloc(sizeof(float) * _num_frames)))
+			return(0);
+
+		// clear data
+		memset((void*)avg_radius, 0, sizeof(float) * _num_frames);
+
+
+		if (!(max_radius = (float*)malloc(sizeof(float) * _num_frames)))
+			return(0);
+
+		// clear data
+		memset((void*)max_radius, 0, sizeof(float) * _num_frames);
+
+		// allocate memory for polygon list
+		if (!(plist = (POLY4DV2*)malloc(sizeof(POLY4DV2) * _num_polys)))
+			return(0);
+
+		// clear data
+		memset((void*)plist, 0, sizeof(POLY4DV2) * _num_polys);
+
+		// alias head pointers
+		head_vlist_local = vlist_local;
+		head_vlist_trans = vlist_trans;
+
+		// set some internal variables
+		num_frames = _num_frames;
+		num_polys = _num_polys;
+		num_vertices = _num_vertices;
+		total_vertices = _num_vertices * _num_frames;
+
+		return(1);
+	} 
+	void close()
+	{
+		// this function destroys the sent object, basically frees the memory
+		// if any that has been allocated
+
+		// local vertex list
+		if (head_vlist_local)
+			free(head_vlist_local);
+
+		// transformed vertex list
+		if (head_vlist_trans)
+			free(head_vlist_trans);
+
+		// texture coordinate list
+		if (tlist)
+			free(tlist);
+
+		// polygon list
+		if (plist)
+			free(plist);
+
+		// object radii arrays
+		if (avg_radius)
+			free(avg_radius);
+
+		if (max_radius)
+			free(max_radius);
+
+		// now clear out object completely
+		memset((void*)this, 0, sizeof(OBJECT4DV2));
+	}
+	~OBJECT4DV2() { close(); }
 };
 
 // object to hold the render list version 2.0, this way we can have more
@@ -286,7 +400,6 @@ struct RENDERLIST4DV2
 	int num_polys; // number of polys in render list
 
 };
-
 
 // floating point comparison
 #define FCMP(a,b) ( (fabs(a-b) < EPSILON_E3) ? 1 : 0)
@@ -323,9 +436,55 @@ inline float LengthFast2(const VECTOR4D& va)
 
 extern UCHAR logbase2ofx[513];
 
-extern UCHAR rgblightlookup[4096][256]; // rgb 8.12 lighting table lookup
-
 extern char texture_path[80]; // root path to ALL textures, make current directory for now
 
 
 
+
+inline void Translate(OBJECT4DV2& obj, VECTOR4D& vt){Add(obj.world_pos, vt, obj.world_pos);}
+void Scale(OBJECT4DV2& obj, VECTOR4D& vs, int all_frames);
+void Transform(OBJECT4DV2& obj,  // object to transform
+	MATRIX4X4& mt,    // transformation matrix
+	int coord_select,    // selects coords to transform
+	int transform_basis, // flags if vector orientation
+						 // should be transformed too
+	int all_frames);
+
+void RotateXYZ(OBJECT4DV2& obj, float theta_x, float theta_y, float theta_z, int all_frames);
+void ModelToWorld(OBJECT4DV2& obj, int coord_select, int all_frames);
+int Cull(OBJECT4DV2& obj, CAM4DV1& cam, int cull_flags);
+void RemoveBackfaces(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
+void RemoveBackfaces(OBJECT4DV2& obj, CAM4DV1& cam);
+void WorldToCamera(OBJECT4DV2& obj, CAM4DV1& cam);
+void CameraToPerspective(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
+void CameraToPerspectiveScreen(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
+void PerspectiveToScreen(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
+void WorldToCamera(RENDERLIST4DV2& rend_list, CAM4DV1& cam);
+void CameraToPerspective(OBJECT4DV2& obj, CAM4DV1& cam);
+void CameraToPerspectiveScreen(OBJECT4DV2& obj, CAM4DV1& cam);
+void PerspectiveToScreen(OBJECT4DV2& obj, CAM4DV1& cam);
+void ConvertFromHomogeneous4D(OBJECT4DV2& obj);
+int Insert(RENDERLIST4DV2& rend_list, POLY4DV2& poly);
+int Insert(RENDERLIST4DV2& rend_list, POLYF4DV2& poly);
+int Insert(RENDERLIST4DV2& rend_list, OBJECT4DV2& obj, int insert_local = 0);
+void Reset(OBJECT4DV2& obj);
+void DrawWire(OBJECT4DV2& obj);
+void Sort(RENDERLIST4DV2& rend_list, int sort_method = SORT_POLYLIST_AVGZ);
+int LightWorld(OBJECT4DV2& obj, CAM4DV1& cam, LIGHTV1* lights, int max_lights);
+int LightWorld(RENDERLIST4DV2& rend_list, CAM4DV1& cam, LIGHTV1* lights, int max_lights);
+float ComputeRadius(OBJECT4DV2& obj);
+int ComputeVertexNormals(OBJECT4DV2& obj);
+int ComputePolyNormals(OBJECT4DV2& obj);
+int LoadCOB(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags, MATV1* materials, int& num_materials);
+int Load3DSASC(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
+int LoadPLG(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
+int LoadPLG(OBJECT4DV2& obj, const char* filename, VECTOR4D& scale, VECTOR4D& pos, VECTOR4D& rot, int vertex_flags);
+void DrawWire(RENDERLIST4DV2& rend_list);
+void DrawGouraudTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface = nullptr);
+void DrawTexturedTriangle(POLYF4DV2& face, GRAPHIC::SURFACE* surface = nullptr);
+void DrawTexturedTriangleFS(POLYF4DV2& face, GRAPHIC::SURFACE* surface = nullptr);
+void DrawTriangle2(float x1, float y1,
+	float x2, float y2,
+	float x3, float y3,
+	int color,
+	GRAPHIC::SURFACE* surface = nullptr);

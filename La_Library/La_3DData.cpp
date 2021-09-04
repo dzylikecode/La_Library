@@ -10,31 +10,31 @@
 								  (cur->state & POLY4DV1_STATE_BACKFACE) )
 namespace
 {
-	//获取PLG的一行的数据，空白行和注释会清除掉
-	char* GetLinePLG(char* buffer, int maxlength, FILE* fp)
-	{
-		int index = 0;  // general index
-		int length = 0; // general length
-
-		// enter into parsing loop
-		while (1)
-		{
-			// read the next line
-			if (!fgets(buffer, maxlength, fp)) return(nullptr);
-
-			// kill the whitespace  找到第一个不是空格的开头
-			for (length = strlen(buffer), index = 0; isspace(buffer[index]); index++);
-
-			// test if this was a blank line or a comment
-			if (index >= length || buffer[index] == '#') continue;
-
-			// at this point we have a good line
-			return(&buffer[index]);
-		}
-	}
+	
 
 }
+//获取PLG的一行的数据，空白行和注释会清除掉
+char* GetLinePLG(char* buffer, int maxlength, FILE* fp)
+{
+	int index = 0;  // general index
+	int length = 0; // general length
 
+	// enter into parsing loop
+	while (1)
+	{
+		// read the next line
+		if (!fgets(buffer, maxlength, fp)) return(nullptr);
+
+		// kill the whitespace  找到第一个不是空格的开头
+		for (length = strlen(buffer), index = 0; isspace(buffer[index]); index++);
+
+		// test if this was a blank line or a comment
+		if (index >= length || buffer[index] == '#') continue;
+
+		// at this point we have a good line
+		return(&buffer[index]);
+	}
+}
 
 /// <summary>
 /// 这是在模型中计算，中心就设置为原点

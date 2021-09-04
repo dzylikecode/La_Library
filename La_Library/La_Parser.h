@@ -117,3 +117,4 @@ int IsInt(char* istring);
 float IsFloat(char* fstring);
 char* StringRtrim(char* string);
 char* StringLtrim(char* string);
+char* ExtractFilenameFromPath(const char* filepath, char* filename);
