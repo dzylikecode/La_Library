@@ -144,6 +144,7 @@
     </ClInclude>
     <ClInclude Include="dmusici.h" />
     <ClInclude Include="La_3D.h" />
+    <ClInclude Include="La_3DClip.h" />
     <ClInclude Include="La_3DData.h" />
     <ClInclude Include="La_3DFile.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -378,6 +379,7 @@
     <ClCompile Include="demo9.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="La_3DClip.cpp" />
     <ClCompile Include="La_3DData.cpp" />
     <ClCompile Include="La_3DFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

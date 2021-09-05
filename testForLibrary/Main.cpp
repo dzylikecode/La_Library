@@ -1147,7 +1147,7 @@ void StartUp(void)
 
 	// spot light
 	lights[POINT_LIGHT2_INDEX].set(
-		LIGHTV1_STATE_OFF,         // turn the light on
+		LIGHTV1_STATE_ON,         // turn the light on
 		LIGHTV1_ATTR_POINT,  // spot light type 2
 		black, green, black,      // color for diffuse term only
 		slight_pos, slight_dir, // need pos only
@@ -1367,10 +1367,10 @@ void GameBody(void)
 		if (keyboard[DIK_S])
 		{
 			// toggle spot light
-			if (lights[SPOT_LIGHT2_INDEX].state == LIGHTV1_STATE_ON)
-				lights[SPOT_LIGHT2_INDEX].state = LIGHTV1_STATE_OFF;
+			if (lights[POINT_LIGHT2_INDEX].state == LIGHTV1_STATE_ON)
+				lights[POINT_LIGHT2_INDEX].state = LIGHTV1_STATE_OFF;
 			else
-				lights[SPOT_LIGHT2_INDEX].state = LIGHTV1_STATE_ON;
+				lights[POINT_LIGHT2_INDEX].state = LIGHTV1_STATE_ON;
 
 			Sleep(100); // wait, so keyboard doesn't bounce
 		} // end if

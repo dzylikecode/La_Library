@@ -1147,7 +1147,7 @@ void StartUp(void)
 
 	// spot light
 	lights[POINT_LIGHT2_INDEX].set(
-		LIGHTV1_STATE_OFF,         // turn the light on
+		LIGHTV1_STATE_ON,         // turn the light on
 		LIGHTV1_ATTR_POINT,  // spot light type 2
 		black, green, black,      // color for diffuse term only
 		slight_pos, slight_dir, // need pos only

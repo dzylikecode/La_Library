@@ -324,6 +324,9 @@
     <ClInclude Include="La_3DTexture.h">
       <Filter>头文件\3D</Filter>
     </ClInclude>
+    <ClInclude Include="La_3DClip.h">
+      <Filter>头文件\3D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="La_Shell.cpp">
@@ -595,6 +598,9 @@
     </ClCompile>
     <ClCompile Include="demo53.cpp">
       <Filter>源文件\test\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="La_3DClip.cpp">
+      <Filter>源文件\3D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
