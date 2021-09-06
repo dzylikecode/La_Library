@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\1Core">
+      <UniqueIdentifier>{188801e2-3e29-42ce-9ad5-57ba9c550ca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core">
+      <UniqueIdentifier>{21268b0d-f09b-4aba-a950-dc5becfd17c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\Base">
+      <UniqueIdentifier>{f5d99dc5-5e3d-47b1-9bc2-09dd3e903528}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\DataSturcture">
+      <UniqueIdentifier>{83219c06-51f4-433d-9fef-7d12f45803fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\Debug">
+      <UniqueIdentifier>{941a7f86-fb97-431e-81fb-099d077a522a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\IO">
+      <UniqueIdentifier>{a2b1ed95-0e35-476d-9057-d7082d65f50b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\IO\File">
+      <UniqueIdentifier>{c80113c4-f514-484e-84e0-143132b4808d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\String">
+      <UniqueIdentifier>{0a83b9c7-c7a8-4984-b2c1-b946c0118b1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\1Core\Time">
+      <UniqueIdentifier>{e8813103-ff5a-4a59-8228-481a04ecc59a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core\Debug">
+      <UniqueIdentifier>{93734d0e-8e40-4e5c-b5cd-f198ffb2383f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core\IO">
+      <UniqueIdentifier>{4971176a-b640-46b1-8b35-a7fc0cdf06b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core\IO\File">
+      <UniqueIdentifier>{de931fe0-e874-4fee-9c3d-b21e918ef669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core\String">
+      <UniqueIdentifier>{54aceaa4-8f64-4543-8c07-c4f2a9335946}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\2Windows">
+      <UniqueIdentifier>{00cf776b-7137-4ee8-98a7-990b510dee16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\2Windows">
+      <UniqueIdentifier>{7f661db8-fb2f-4714-a28e-0cd97c45843e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\1Core\Time">
+      <UniqueIdentifier>{0b6d84b5-001e-465f-85b4-5f1d7da5d393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\3Graphic">
+      <UniqueIdentifier>{76292ed0-587c-4846-af67-2946951cfeca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\3Graphic">
+      <UniqueIdentifier>{cf7dddf5-438c-4792-9be9-7f6257c8e709}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="La_Base.h">
+      <Filter>头文件\1Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Master.h">
+      <Filter>头文件\1Core\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Array.h">
+      <Filter>头文件\1Core\DataSturcture</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Debug.h">
+      <Filter>头文件\1Core\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="La_IOBase.h">
+      <Filter>头文件\1Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="La_FileBase.h">
+      <Filter>头文件\1Core\IO\File</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Console.h">
+      <Filter>头文件\1Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="La_IO.h">
+      <Filter>头文件\1Core\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="La_StringBase.h">
+      <Filter>头文件\1Core\String</Filter>
+    </ClInclude>
+    <ClInclude Include="La_StringClass.h">
+      <Filter>头文件\1Core\String</Filter>
+    </ClInclude>
+    <ClInclude Include="La_String.h">
+      <Filter>头文件\1Core\String</Filter>
+    </ClInclude>
+    <ClInclude Include="La_TimeBase.h">
+      <Filter>头文件\1Core\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="La_WindowBase.h">
+      <Filter>头文件\2Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="La_WinFile.h">
+      <Filter>头文件\1Core\IO\File</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Shell.h">
+      <Filter>头文件\2Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="La_WinTime.h">
+      <Filter>头文件\1Core\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="La_Time.h">
+      <Filter>头文件\1Core\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="La_GraphicBase.h">
+      <Filter>头文件\3Graphic</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="La_Debug.cpp">
+      <Filter>源文件\1Core\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="La_FileBase.cpp">
+      <Filter>源文件\1Core\IO\File</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Console.cpp">
+      <Filter>源文件\1Core\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="La_StringClass.cpp">
+      <Filter>源文件\1Core\String</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="La_WinFile.cpp">
+      <Filter>源文件\1Core\IO\File</Filter>
+    </ClCompile>
+    <ClCompile Include="La_Shell.cpp">
+      <Filter>源文件\2Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="La_WinTime.cpp">
+      <Filter>源文件\1Core\Time</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
