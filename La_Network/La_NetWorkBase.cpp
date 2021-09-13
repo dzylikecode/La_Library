@@ -1,5 +1,8 @@
-#include "La_NetWork.h"
+#include "La_NetWorkBase.h"
 
+
+#pragma comment(lib, "Urlmon.lib")
+#pragma comment(lib, "Ws2_32.lib")
 namespace
 {
 	WSADATA wsaData;
@@ -13,11 +16,12 @@ namespace LADZY
 		int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 		if (result != 0)
 		{
-			MessageWarn(TEXT("WSAStartup ß∞‹£∫%d\n"), result);
+			/*MessageWarn(TEXT("WSAStartup ß∞‹£∫%d\n"), result);*/
 			return false;
 		}
 		return true;
 	}
+
 	bool CloseNetWork()
 	{
 		WSACleanup();

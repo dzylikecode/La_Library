@@ -1,4 +1,4 @@
-#include "La_File.h"
+#include "La_FileBase.h"
 namespace winFILEMaster
 {
 	//Ö§³ÖÍ¨Åä·û

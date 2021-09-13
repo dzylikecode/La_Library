@@ -166,7 +166,6 @@
     <ClInclude Include="La_Console.h" />
     <ClInclude Include="La_Control.h" />
     <ClInclude Include="La_DxWidthGDI.h" />
-    <ClInclude Include="La_File.h" />
     <ClInclude Include="La_GameBox.h" />
     <ClInclude Include="La_Geometry.h" />
     <ClInclude Include="La_GeometryBase.h" />
@@ -183,13 +182,11 @@
     <ClInclude Include="La_Math3D.h" />
     <ClInclude Include="La_MathBase.h" />
     <ClInclude Include="La_Matrix.h" />
-    <ClInclude Include="La_NetWork.h" />
     <ClInclude Include="La_Palette.h" />
     <ClInclude Include="La_Parser.h" />
     <ClInclude Include="La_Physics.h" />
     <ClInclude Include="La_PhysicsBase.h" />
     <ClInclude Include="La_Polygon.h" />
-    <ClInclude Include="La_Shell.h" />
     <ClInclude Include="La_Sprite.h" />
     <ClInclude Include="La_String.h" />
     <ClInclude Include="La_LinearList.h" />
@@ -378,24 +375,32 @@
     <ClCompile Include="demo9.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="La_3DData.cpp" />
+    <ClCompile Include="La_3DData.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="La_3DFile.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_3DLight.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="La_3DTexture.cpp" />
+    <ClCompile Include="La_3DTexture.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="La_AudioBase.cpp" />
     <ClCompile Include="La_Blink.cpp" />
     <ClCompile Include="La_Console.cpp" />
     <ClCompile Include="La_Gif.cpp" />
     <ClCompile Include="La_GifClass.cpp" />
     <ClCompile Include="La_InputBase.cpp" />
-    <ClCompile Include="La_Math_Andre.cpp" />
+    <ClCompile Include="La_Math_Andre.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="La_Palette.cpp" />
-    <ClCompile Include="La_Parser.cpp" />
+    <ClCompile Include="La_Parser.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="La_PhysicsBase.cpp" />
     <ClCompile Include="La_Vector.cpp" />
     <ClCompile Include="ToConvert.cpp">
@@ -405,10 +410,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="WinMain.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="La_Bitmap.cpp" />
-    <ClCompile Include="La_File.cpp" />
     <ClCompile Include="La_GameBox.cpp" />
     <ClCompile Include="La_GeometryBase.cpp" />
     <ClCompile Include="La_GraphicBase.cpp" />
@@ -418,8 +422,6 @@
     <ClCompile Include="La_Surface.cpp" />
     <ClCompile Include="La_Time.cpp" />
     <ClCompile Include="La_Windows.cpp" />
-    <ClCompile Include="La_NetWork.cpp" />
-    <ClCompile Include="La_Shell.cpp" />
     <ClCompile Include="La_WinGDI.cpp" />
     <ClCompile Include="test.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

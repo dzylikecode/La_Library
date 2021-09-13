@@ -326,10 +326,6 @@ int Insert_POLYF4DV1_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list, POLYF4DV1_PTR 
 int Insert_OBJECT4DV1_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list, OBJECT4DV1_PTR obj,
 	int insert_local = 0);
 
-void Draw_OBJECT4DV1_Wire(OBJECT4DV1_PTR obj, UCHAR* video_buffer, int lpitch);
-
-void Draw_RENDERLIST4DV1_Wire(RENDERLIST4DV1_PTR rend_list, UCHAR* video_buffer, int lpitch);
-
 void Draw_OBJECT4DV1_Wire16(OBJECT4DV1_PTR obj, UCHAR* video_buffer, int lpitch);
 
 void Draw_RENDERLIST4DV1_Wire16(RENDERLIST4DV1_PTR rend_list, UCHAR* video_buffer, int lpitch);

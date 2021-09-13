@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{8b71149d-9cfc-4e07-8f2c-ea4619209ad1}</ProjectGuid>
-    <RootNamespace>LaGurus</RootNamespace>
+    <ProjectGuid>{cda4d32f-1e28-47bc-9d5f-91784979a3f1}</ProjectGuid>
+    <RootNamespace>LaNetwork</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -30,7 +30,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -86,11 +86,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -139,36 +139,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="dmusici.h" />
-    <ClInclude Include="t3dlib1.h" />
-    <ClInclude Include="t3dlib10.h" />
-    <ClInclude Include="t3dlib11.h" />
-    <ClInclude Include="t3dlib12.h" />
-    <ClInclude Include="t3dlib13.h" />
-    <ClInclude Include="t3dlib2.h" />
-    <ClInclude Include="t3dlib3.h" />
-    <ClInclude Include="t3dlib4.h" />
-    <ClInclude Include="t3dlib5.h" />
-    <ClInclude Include="t3dlib6.h" />
-    <ClInclude Include="t3dlib7.h" />
-    <ClInclude Include="t3dlib8.h" />
-    <ClInclude Include="t3dlib9.h" />
+    <ClInclude Include="La_NetWorkBase.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="t3dlib1.cpp" />
-    <ClCompile Include="t3dlib10.cpp" />
-    <ClCompile Include="T3DLIB11.CPP" />
-    <ClCompile Include="T3DLIB12.CPP" />
-    <ClCompile Include="T3DLIB13.CPP" />
-    <ClCompile Include="t3dlib2.cpp" />
-    <ClCompile Include="t3dlib3.cpp" />
-    <ClCompile Include="t3dlib4.cpp" />
-    <ClCompile Include="t3dlib5.cpp" />
-    <ClCompile Include="t3dlib6.cpp" />
-    <ClCompile Include="t3dlib7.cpp" />
-    <ClCompile Include="t3dlib8.cpp" />
-    <ClCompile Include="t3dlib9.cpp" />
+    <ClCompile Include="La_NetWorkBase.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

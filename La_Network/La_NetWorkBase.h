@@ -12,7 +12,7 @@
 *  最后修改:
 *
 *  简    介: 简洁易用是非常重要的
-* 
+*
 * 客户端的套接字可以不绑定自身的地址/端口，
 * 因为udp在创建套接字后直接使用sendto(),
 * 隐含操作是，在发送数据之前操作系统会为该套接字随机分配一个合适的udp端口，
@@ -26,11 +26,10 @@
 */
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma once
-#include "La_WindowsBase.h"
+#include <windows.h>
 
 
-#pragma comment(lib, "Urlmon.lib")
-#pragma comment(lib, "Ws2_32.lib")
+
 inline bool DownLoad(const TCHAR* destFileName, const TCHAR* souceAddress)
 {
 	if (URLDownloadToFile(nullptr, souceAddress, destFileName, 0, nullptr) == S_OK)
@@ -74,11 +73,12 @@ namespace LADZY
 		}
 		char* getLocalName()const
 		{
-			static char hostName[MAX_BUFFER];
+			static char hostName[1024];
 			int result = gethostname(hostName, sizeof(hostName));
 			if (result != 0)
 			{
-				MessageWarn(TEXT("获取本地主机名失败：%d\n"), result);
+				/*MessageWarn(TEXT("获取本地主机名失败：%d\n"), result);*/
+				return nullptr;
 			}
 			return hostName;
 		}
@@ -88,7 +88,7 @@ namespace LADZY
 			addr.s_addr = inet_addr(IP);
 			if (addr.s_addr == INADDR_NONE)
 			{
-				MessageWarn(TEXT("The IPv4 address entered must be a legal address\n"));
+				/*_tprintf(TEXT("The IPv4 address entered must be a legal address\n"));*/
 				return false;
 			}
 			else
@@ -258,7 +258,7 @@ namespace LADZY
 		return send(process, msg, msgLen, flag);
 	}
 
-	
+
 }
 
 namespace LADZY

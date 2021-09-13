@@ -1,6 +1,6 @@
 /*
 ***************************************************************************************
-*  程    序: 
+*  程    序:
 *
 *  作    者: LaDzy
 *
@@ -9,15 +9,15 @@
 *  编译环境: Visual Studio 2019
 *
 *  创建时间: 2021/05/20 11:44:59
-*  最后修改: 
+*  最后修改:
 *
-*  简    介: 
+*  简    介:
 *
 ***************************************************************************************
 */
 
 #pragma once
-#include "La_WindowsBase.h"
+#include <windows.h>
 
 class SHELL :private SHELLEXECUTEINFO
 {
@@ -30,12 +30,12 @@ public:
 	bool print(LPCTSTR fileName);//必须文档
 	bool edit(LPCTSTR fileName);
 	bool select(LPCTSTR fileNameOrDirectory);
-	void setShowStyle(SHOWSTYLE showStyle) { nShow = showStyle; }
+	void setShowStyle(int showStyle) { nShow = showStyle; }
 	void clear(void)
 	{
 		memset((SHELLEXECUTEINFO*)this, 0, sizeof(SHELLEXECUTEINFO));
 		cbSize = sizeof(SHELLEXECUTEINFO);
-		nShow = SHOW;
+		nShow = SW_SHOW;
 	}
 	void setWorkDirectory(LPCTSTR directory) { lpDirectory = directory; }
 };

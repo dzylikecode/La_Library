@@ -139,12 +139,6 @@
     <Filter Include="头文件\Math\3D">
       <UniqueIdentifier>{2ec1bb86-9ea8-46cb-bf2e-a949aa269800}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\NetWork">
-      <UniqueIdentifier>{0bc78904-9e3d-4fef-b44d-ffc746f7acf2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\NetWork">
-      <UniqueIdentifier>{90a1522f-035d-4739-9942-550c34b1ef85}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\test\3D">
       <UniqueIdentifier>{71ea9605-1217-4c95-bf56-26e55075049b}</UniqueIdentifier>
     </Filter>
@@ -174,13 +168,7 @@
     <ClInclude Include="La_LinearList.h">
       <Filter>头文件\DataStruture</Filter>
     </ClInclude>
-    <ClInclude Include="La_Shell.h">
-      <Filter>头文件\Windows\Extend</Filter>
-    </ClInclude>
     <ClInclude Include="La_Control.h">
-      <Filter>头文件\Windows\Extend</Filter>
-    </ClInclude>
-    <ClInclude Include="La_File.h">
       <Filter>头文件\Windows\Extend</Filter>
     </ClInclude>
     <ClInclude Include="La_Console.h">
@@ -288,9 +276,6 @@
     <ClInclude Include="La_3DVector.h">
       <Filter>头文件\Math\3D</Filter>
     </ClInclude>
-    <ClInclude Include="La_NetWork.h">
-      <Filter>头文件\NetWork</Filter>
-    </ClInclude>
     <ClInclude Include="La_Math_Andre.h">
       <Filter>头文件\Math\3D</Filter>
     </ClInclude>
@@ -326,17 +311,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="La_Shell.cpp">
-      <Filter>源文件\Windows\Extend</Filter>
-    </ClCompile>
     <ClCompile Include="La_Windows.cpp">
       <Filter>源文件\Windows\Base</Filter>
     </ClCompile>
     <ClCompile Include="test.cpp">
       <Filter>源文件\test</Filter>
-    </ClCompile>
-    <ClCompile Include="La_File.cpp">
-      <Filter>源文件\Windows\Extend</Filter>
     </ClCompile>
     <ClCompile Include="La_Log.cpp">
       <Filter>源文件\Debug</Filter>
@@ -514,9 +493,6 @@
     </ClCompile>
     <ClCompile Include="La_GifClass.cpp">
       <Filter>源文件\Graphic\Extend</Filter>
-    </ClCompile>
-    <ClCompile Include="La_NetWork.cpp">
-      <Filter>源文件\NetWork</Filter>
     </ClCompile>
     <ClCompile Include="demo37.cpp">
       <Filter>源文件\test\3D</Filter>

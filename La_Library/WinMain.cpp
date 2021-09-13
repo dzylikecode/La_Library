@@ -20,7 +20,6 @@
 */
 
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <conio.h>
 #include <iostream>
@@ -32,6 +31,7 @@
 #include "La_Input.h"
 #include "La_Audio.h"
 #include "La_Physics.h"
+#include "La_Master.h"
 
 using namespace std;
 

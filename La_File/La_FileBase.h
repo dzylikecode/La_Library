@@ -1,6 +1,6 @@
 /*
 ***************************************************************************************
-*  程    序: 
+*  程    序:
 *
 *  作    者: LaDzy
 *
@@ -9,14 +9,14 @@
 *  编译环境: Visual Studio 2019
 *
 *  创建时间: 2021/05/20 17:21:10
-*  最后修改: 
+*  最后修改:
 *
-*  简    介: 
+*  简    介:
 *
 ***************************************************************************************
 */
 #pragma once
-#include "La_WindowsBase.h"
+#include <windows.h>
 #include <stdio.h>
 #include <time.h>
 #include <dbghelp.h>
@@ -67,7 +67,7 @@ namespace winFILEMaster
 	}
 	//可以是文件夹
 	inline bool move(LPCTSTR dest, LPCTSTR source) { return MoveFile(source, dest); }
-	inline bool Rename(LPCTSTR newName, LPCTSTR fileName){ return MoveFile(fileName, newName); }
+	inline bool Rename(LPCTSTR newName, LPCTSTR fileName) { return MoveFile(fileName, newName); }
 
 	//文件夹的操作
 	inline bool CreateDir(LPCTSTR path, bool force = false)
@@ -272,7 +272,7 @@ public:
 			ReadFile(hFile, buffer + beReadTotal, size - beReadTotal, &beRead, nullptr);
 			beReadTotal += beRead;
 		}
-		
+
 		return beRead;
 	}
 	bool flush()
@@ -295,7 +295,7 @@ public:
 		return fileSize.QuadPart;
 	}
 	LONGLONG getSize() { return getSize(tstrFileName); }
-	bool close(void) 
+	bool close(void)
 	{
 		if (hFile != INVALID_HANDLE_VALUE)
 		{

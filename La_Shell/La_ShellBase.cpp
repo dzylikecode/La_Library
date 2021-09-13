@@ -1,5 +1,6 @@
-#include "La_Shell.h"
-
+#include "La_ShellBase.h"
+#include <iostream>
+#include <tchar.h>
 bool SHELL::open(LPCTSTR fileNameOrDirectory, LPCTSTR parameters)
 {
 	lpVerb = TEXT("open");
@@ -42,7 +43,8 @@ bool SHELL::edit(LPCTSTR fileName)
 
 bool SHELL::select(LPCTSTR fileNameOrDirectory)
 {
-	TSTRING string(TEXT("/select,"));
-	string += fileNameOrDirectory;
+	TCHAR string[MAX_PATH + 8 + 1];
+	_tcscpy(string, TEXT("/select,"));
+	_tcscat(string, fileNameOrDirectory);
 	return open(TEXT("explorer.exe"), string);
 }

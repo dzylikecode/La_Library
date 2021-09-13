@@ -154,26 +154,6 @@ public:
 		CONSOLE_CURSOR_INFO cur = { size, true };
 		SetConsoleCursorInfo(hOutput, &cur);
 	}
-	//	SB_BOTH
-	//	显示或隐藏窗口的标准水平和垂直滚动条。
-	//	SB_CTL
-	//	显示或隐藏滚动条控件。铰链参数必须是滚动条控制的手柄。
-	//	SB_HORZ
-	//	显示或隐藏窗口的标准水平滚动条。
-	//	SB_VERT
-	//	显示或隐藏窗口的标准垂直滚动栏。
-	void hideScroll(int scrollFlag)
-	{
-		ShowScrollBar(/*GetConsoleWindow()*/hConsole, scrollFlag, false);
-	}
-	void showScroll(int scrollFlag)
-	{
-		ShowScrollBar(hConsole, scrollFlag, true);
-	}
-	void enableScroll(int scrollFlag, UINT action)
-	{
-		EnableScrollBar(hConsole, scrollFlag, action);
-	}
 	bool gotoXY(SHORT x, SHORT y)
 	{
 		COORD pos = { x, y };
@@ -245,7 +225,7 @@ public:
 	}
 	void clear()
 	{
-		system("cls");
+		/*system("cls");*/
 	}
 	void getInfo(CONSOLE_SCREEN_BUFFER_INFO& info)
 	{
