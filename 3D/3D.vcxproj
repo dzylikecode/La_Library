@@ -21,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{6320bafa-3216-41af-b04e-69d8a4d7c4ac}</ProjectGuid>
-    <RootNamespace>LaLibraryVersion1</RootNamespace>
+    <ProjectGuid>{233a3a95-d8df-44c2-9a51-6f2d3c0b03aa}</ProjectGuid>
+    <RootNamespace>My3D</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>La_Core</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -87,7 +86,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -101,7 +100,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -140,33 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="La_Array.h" />
-    <ClInclude Include="La_Base.h" />
-    <ClInclude Include="La_Console.h" />
-    <ClInclude Include="La_Debug.h" />
-    <ClInclude Include="La_FileBase.h" />
-    <ClInclude Include="La_GraphicBase.h" />
-    <ClInclude Include="La_IO.h" />
-    <ClInclude Include="La_IOBase.h" />
-    <ClInclude Include="La_Master.h" />
-    <ClInclude Include="La_Shell.h" />
-    <ClInclude Include="La_String.h" />
-    <ClInclude Include="La_StringBase.h" />
-    <ClInclude Include="La_StringClass.h" />
-    <ClInclude Include="La_Time.h" />
-    <ClInclude Include="La_TimeBase.h" />
-    <ClInclude Include="La_WindowBase.h" />
-    <ClInclude Include="La_WinFile.h" />
-    <ClInclude Include="La_WinTime.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="La_Console.cpp" />
-    <ClCompile Include="La_Debug.cpp" />
-    <ClCompile Include="La_FileBase.cpp" />
-    <ClCompile Include="La_Shell.cpp" />
-    <ClCompile Include="La_StringClass.cpp" />
-    <ClCompile Include="La_WinFile.cpp" />
-    <ClCompile Include="La_WinTime.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

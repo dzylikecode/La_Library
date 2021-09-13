@@ -107,23 +107,6 @@ namespace LADZY
 	}
 }
 
-class DSOCKET
-{
-protected:
-	bool bCreate;
-	SOCKET hSocket;
-	virtual void close()
-	{
-		if (bCreate)
-		{
-			closesocket(hSocket);
-		}
-	}
-public:
-	DSOCKET() :bCreate(false), hSocket(INVALID_SOCKET) {};
-	SOCKET GetSocket()const { return hSocket; }
-	~DSOCKET() { close(); }
-};
 
 namespace LADZY
 {
